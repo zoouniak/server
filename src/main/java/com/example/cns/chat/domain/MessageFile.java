@@ -1,20 +1,14 @@
 package com.example.cns.chat.domain;
 
-import com.example.cns.chat.type.RoomType;
+import com.example.cns.common.FileEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+@Table(name = "message_file")
 @Entity
 @Getter
-public class Room {
+public class MessageFile extends FileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column
-    @Enumerated(EnumType.STRING)
-    private RoomType type;
-
-    @Column
-    private String name;
 }

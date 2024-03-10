@@ -16,7 +16,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "room_id")
-    private Room room;
+    private chatRoom chatRoom;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -30,7 +30,7 @@ public class Message {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private MessageType type;
+    private MessageType messageType;
 
     @Column
     private Long subjectId;

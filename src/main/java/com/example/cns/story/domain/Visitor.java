@@ -19,6 +19,7 @@ public class Visitor {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column @ColumnDefault("false")
-    private boolean like;
+    @Column
+    @ColumnDefault("false")
+    private boolean isLike;
 }

@@ -26,7 +26,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "parent_comment_id")
-    private Comment parent;
+    private Comment parentComment;
 
     @Column
     private String content;
@@ -34,9 +34,10 @@ public class Comment {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column @ColumnDefault("0")
-    private int like;
+    @Column
+    @ColumnDefault("0")
+    private int likeCnt;
 
-    @OneToMany(mappedBy = "parent")
-    private List<Comment> childComment;
+    @OneToMany(mappedBy = "parentComment")
+    private List<Comment> childComments;
 }

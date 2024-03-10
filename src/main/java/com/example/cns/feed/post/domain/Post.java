@@ -21,6 +21,7 @@ public class Post {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column @ColumnDefault("true")
-    private boolean commentFlag;
+    @Column
+    @ColumnDefault("true")
+    private boolean isCommentEnabled;
 }

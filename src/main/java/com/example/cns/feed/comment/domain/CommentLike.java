@@ -6,7 +6,7 @@ import lombok.Getter;
 @Table(name = "comment_like")
 @Entity
 @Getter
-public class Like {
+public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

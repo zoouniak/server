@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+
 @Entity
 @Getter
 public class Story extends FileEntity {
@@ -17,6 +18,6 @@ public class Story extends FileEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 }

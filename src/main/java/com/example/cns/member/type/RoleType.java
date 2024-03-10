@@ -1,5 +1,7 @@
 package com.example.cns.member.type;
 
 public enum RoleType {
-    // todo role type 설정
+    ROLE_EMPLOYEE,
+    ROLE_ADMIN,
+    ROLE_GENERAL
 }

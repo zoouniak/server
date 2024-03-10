@@ -24,11 +24,12 @@ public class Notification {
     // todo converter 사용 고민
     @Enumerated(EnumType.STRING)
     @Column
-    private NotificationType type;
+    private NotificationType notificationType;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column @ColumnDefault("false")
-    private  boolean checked;
+    @Column
+    @ColumnDefault("false")
+    private boolean isChecked;
 }

@@ -14,7 +14,7 @@ public class Member extends FileEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -22,7 +22,6 @@ public class Member extends FileEntity {
 
     @Column(nullable = false)
     private String email;
-
     @Column(nullable = false)
     private String firstName;
 
@@ -30,7 +29,7 @@ public class Member extends FileEntity {
     private String lastName;
 
     @Column
-    private String present;
+    private String introduction;
 
     @Column
     private Date birth;

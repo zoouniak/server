@@ -1,12 +1,13 @@
 package com.example.cns.feed.post.domain;
 
-import com.example.cns.member.domain.Member;
+import com.example.cns.common.FileEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
-@Table(name = "post_like")
+
+@Table(name = "post_file")
 @Entity
 @Getter
-public class like {
+public class PostFile extends FileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,9 +15,5 @@ public class like {
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
-
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private Member member;
 
 }
