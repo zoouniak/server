@@ -22,6 +22,13 @@ public class Post {
     private LocalDateTime createdAt;
 
     @Column
+    private String content;
+
+    @Column
+    @ColumnDefault("1")
+    private int likeCnt;
+
+    @Column
     @ColumnDefault("true")
     private boolean isCommentEnabled;
 }

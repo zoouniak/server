@@ -20,7 +20,7 @@ public class FileEntity {
     private FileType fileType;
 
     @Column
-    private String name;
+    private String fileName;
 
     @Column
     private String uuid;

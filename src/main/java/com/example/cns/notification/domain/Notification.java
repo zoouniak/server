@@ -15,8 +15,12 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @JoinColumn(name = "from_member_id")
+    private Member from;
+
+    @ManyToOne
+    @JoinColumn(name = "target_member_id")
+    private Member target;
 
     @Column
     private Long subjectId;
