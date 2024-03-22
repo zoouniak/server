@@ -12,19 +12,19 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Getter
 public class FileEntity {
-    @Column(nullable = false)
+    @Column
     private String url;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private FileType fileType;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private String uuid;
 
-    @Column(updatable = false)
+    @Column
     private LocalDateTime createdAt;
 }
