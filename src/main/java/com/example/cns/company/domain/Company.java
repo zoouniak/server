@@ -10,9 +10,9 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(insertable = false, updatable = false)
+    @Column(unique = true, insertable = false, updatable = false)
     private String name;
 
-    @Column(insertable = false, updatable = false)
+    @Column(unique = true, insertable = false, updatable = false)
     private String email;
 }
