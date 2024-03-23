@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -44,14 +44,14 @@ public class Member extends FileEntity {
     private String position;
 
     @Column
-    private Date birth;
+    private LocalDate birth;
 
     @Column
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
     @Builder
-    public Member(Long id, String username, String password, String email, String firstName, String lastName, Date birth, RoleType role, String position) {
+    public Member(Long id, String username, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {
         this.id = id;
         this.username = username;
         this.password = password;
