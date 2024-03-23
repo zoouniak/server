@@ -12,6 +12,7 @@ import com.example.cns.company.domain.Company;
 import com.example.cns.company.service.CompanySearchService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.service.MemberService;
+import com.example.cns.member.type.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,10 @@ public class MemberAuthService {
         Member requestMember = dto.toEntity(passwordEncoder);
         validateMember(requestMember);
 
-        Company company = companySearchService.findByCompanyName(dto.companyName());
-        requestMember.changeCompany(company);
+        if (requestMember.getRole() == RoleType.EMPLOYEE) {
+            Company company = companySearchService.findByCompanyName(dto.companyName());
+            requestMember.enrollCompany(company);
+        }
 
         memberService.saveMember(requestMember);
     }

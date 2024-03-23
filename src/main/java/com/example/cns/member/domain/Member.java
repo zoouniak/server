@@ -63,7 +63,7 @@ public class Member extends FileEntity {
         this.position = position;
     }
 
-    public void changeCompany(Company company) {
+    public void enrollCompany(Company company) {
         this.company = company;
     }
 }
