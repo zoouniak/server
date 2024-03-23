@@ -1,4 +1,4 @@
-package com.example.cns.auth.controller;
+package com.example.cns.auth.presentation;
 
 import com.example.cns.auth.dto.AuthTokens;
 import com.example.cns.auth.dto.DuplicateCheckResponse;
