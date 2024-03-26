@@ -2,8 +2,8 @@ package com.example.cns.auth.service;
 
 import com.example.cns.auth.domain.RefreshToken;
 import com.example.cns.auth.dto.AuthTokens;
-import com.example.cns.auth.dto.LoginReq;
-import com.example.cns.auth.dto.SignUpReq;
+import com.example.cns.auth.dto.LoginRequest;
+import com.example.cns.auth.dto.SignUpRequest;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.security.exception.AuthException;
 import com.example.cns.common.security.jwt.dto.JwtUserInfo;
@@ -26,7 +26,7 @@ public class MemberAuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
-    public void register(SignUpReq dto) {
+    public void register(SignUpRequest dto) {
         Member requestMember = dto.toEntity(passwordEncoder);
         validateMember(requestMember);
 
@@ -38,7 +38,7 @@ public class MemberAuthService {
         memberService.saveMember(requestMember);
     }
 
-    public AuthTokens login(LoginReq dto) {
+    public AuthTokens login(LoginRequest dto) {
         Member member = memberService.findByUserName(dto.username());
 
         if (passwordEncoder.matches(dto.password(), member.getPassword())) {

@@ -2,10 +2,14 @@ package com.example.cns.auth.presentation;
 
 import com.example.cns.auth.dto.AuthTokens;
 import com.example.cns.auth.dto.DuplicateCheckResponse;
-import com.example.cns.auth.dto.LoginReq;
-import com.example.cns.auth.dto.SignUpReq;
+import com.example.cns.auth.dto.LoginRequest;
+import com.example.cns.auth.dto.SignUpRequest;
 import com.example.cns.auth.service.MemberAuthService;
+import com.example.cns.common.exception.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,22 +32,23 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "사용자 정보를 입력 받고 유효하다면 회원가입 성공 여부를 반환한다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "400", description = "회원가입 실패")
+            @ApiResponse(responseCode = "400", description = "회원가입 실패",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping("/register")
     public ResponseEntity signUp(
-            @RequestBody @Valid SignUpReq dto
+            @RequestBody @Valid SignUpRequest dto
     ) {
         memberAuthService.register(dto);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "아이디 중복 확인", description = "아이디를 입력 받고 아이디 중복 여부를 반환한다.")
+    @Parameter(name = "username", description = "사용하고자 하는 아이디", in = ParameterIn.PATH, required = true)
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "중복 아이디 존재",
-                            content = @Content(schema = @Schema(implementation = DuplicateCheckResponse.class))),
-                    @ApiResponse(responseCode = "200", description = "중복 아이디 존재하지 않음")
+                    @ApiResponse(responseCode = "200", description = "중복 아이디 존재(true)/존재하지 않음(false)",
+                            content = @Content(schema = @Schema(implementation = DuplicateCheckResponse.class)))
             }
     )
     @GetMapping("/check-duplicate/{username}")
@@ -56,17 +61,31 @@ public class AuthController {
     @Operation(summary = "로그인", description = "사용자 이름, 패스워드를 입력 받고 유효하다면 액세스 토큰과 리프레시 토큰을 반환한다.")
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "로그인 성공"),
-                    @ApiResponse(responseCode = "400", description = "로그인 실패")
+                    @ApiResponse(responseCode = "200", description = "로그인 성공", headers = {
+                            @Header(name = "Set-Cookie", description = "refresh-token"),
+                            @Header(name = "Authorization", description = "access-token")
+                    }),
+                    @ApiResponse(responseCode = "400", description = "실패(존재하지 않는 사용자, 비밀번호 불일치)",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
             })
     @PostMapping("/login")
-    public ResponseEntity signIn(@RequestBody @Valid LoginReq dto) {
+    public ResponseEntity signIn(@RequestBody @Valid LoginRequest dto) {
         AuthTokens authTokens = memberAuthService.login(dto);
 
         return getResponseEntity(authTokens);
     }
 
     @Operation(summary = "토큰 갱신", description = "쿠키 내 리프레시 토큰을 전달 받고 유효하다면 액세스 토큰과 리프레시 토큰을 반환한다.")
+    @Parameter(name = "refreshToken", description = "리프레시 토큰", in = ParameterIn.HEADER, required = true)
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공", headers = {
+                            @Header(name = "Set-Cookie", description = "refresh-token"),
+                            @Header(name = "Authorization", description = "access-token")
+                    }),
+                    @ApiResponse(responseCode = "400", description = "실패(refresh token invalid)",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            })
     @PostMapping("/refresh")
     public ResponseEntity renew(@CookieValue(name = "refreshToken") String refreshToken
     ) {
