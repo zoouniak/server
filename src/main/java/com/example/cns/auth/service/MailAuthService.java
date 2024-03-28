@@ -2,7 +2,7 @@ package com.example.cns.auth.service;
 
 import com.example.cns.auth.domain.AuthCode;
 import com.example.cns.auth.domain.repository.AuthCodeRepository;
-import com.example.cns.auth.dto.EmailAuthReq;
+import com.example.cns.auth.dto.EmailAuthRequest;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +34,18 @@ public class MailAuthService {
         String authCode = generateAuthCode();
         authCodeRepository.save(new AuthCode(email, authCode));
 
-        // todo 메소드 분리
+        sendAuthMail(email, authCode);
+    }
+
+    public void confirmAuthCode(EmailAuthRequest dto) {
+        AuthCode authCode = authCodeRepository.findById(dto.email())
+                .orElseThrow(() -> new BusinessException(ExceptionCode.INVALID_EMAIL));
+
+        if (!dto.authCode().equals(authCode.getAuthCode()))
+            throw new BusinessException(ExceptionCode.INCORRECT_AUTHENTICATION_NUMBER);
+    }
+
+    private void sendAuthMail(String email, String authCode) {
         MimeMessagePreparator messagePreparator = mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
             messageHelper.setFrom(sender);
@@ -44,14 +55,6 @@ public class MailAuthService {
         };
 
         mailSender.send(messagePreparator);
-    }
-
-    public void confirmAuthCode(EmailAuthReq dto) {
-        AuthCode authCode = authCodeRepository.findById(dto.email())
-                .orElseThrow(() -> new BusinessException(ExceptionCode.INVALID_EMAIL));
-
-        if (!dto.authCode().equals(authCode.getAuthCode()))
-            throw new BusinessException(ExceptionCode.INCORRECT_AUTHENTICATION_NUMBER);
     }
 
     private String generateAuthCode() {
