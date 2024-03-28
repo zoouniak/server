@@ -99,6 +99,7 @@ public class AuthController {
         return null;
     }
 
+
     private ResponseEntity<Object> getResponseEntity(AuthTokens authTokens) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", authTokens.refreshToken())
                 .path("/")

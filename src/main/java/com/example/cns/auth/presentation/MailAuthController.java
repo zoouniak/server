@@ -2,9 +2,13 @@ package com.example.cns.auth.presentation;
 
 import com.example.cns.auth.dto.EmailAuthRequest;
 import com.example.cns.auth.service.MailAuthService;
+import com.example.cns.common.exception.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,12 +41,22 @@ public class MailAuthController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "이메일 인증 성공"),
-                    @ApiResponse(responseCode = "400", description = "잘못된 이메일"),
-                    @ApiResponse(responseCode = "403", description = "인증번호 불일치")
+                    @ApiResponse(responseCode = "400", description = "잘못된 이메일",
+                            content = @Content(
+                                    array = @ArraySchema(
+                                            schema = @Schema(implementation = ExceptionResponse.class)
+                                    ))
+                    ),
+                    @ApiResponse(responseCode = "403", description = "인증번호 불일치",
+                            content = @Content(
+                                    array = @ArraySchema(
+                                            schema = @Schema(implementation = ExceptionResponse.class)
+                                    ))
+                    )
             }
     )
     @PostMapping("/confirm")
-    public ResponseEntity confirmAuthCode(@RequestBody @Valid EmailAuthRequest dto) {
+    public ResponseEntity<?> confirmAuthCode(@RequestBody @Valid EmailAuthRequest dto) {
         mailAuthService.confirmAuthCode(dto);
         return ResponseEntity.ok().build();
     }
