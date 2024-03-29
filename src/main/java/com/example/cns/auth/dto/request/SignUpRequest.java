@@ -1,4 +1,4 @@
-package com.example.cns.auth.dto;
+package com.example.cns.auth.dto.request;
 
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.type.RoleType;
