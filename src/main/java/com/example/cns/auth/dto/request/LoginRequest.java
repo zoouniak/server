@@ -1,4 +1,4 @@
-package com.example.cns.auth.dto;
+package com.example.cns.auth.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

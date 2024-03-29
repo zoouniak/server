@@ -1,4 +1,4 @@
-package com.example.cns.auth.dto;
+package com.example.cns.auth.dto.response;
 
 public record AuthTokens(
         String accessToken,
