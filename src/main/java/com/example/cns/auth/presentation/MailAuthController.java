@@ -1,6 +1,6 @@
 package com.example.cns.auth.presentation;
 
-import com.example.cns.auth.dto.EmailAuthRequest;
+import com.example.cns.auth.dto.request.EmailAuthRequest;
 import com.example.cns.auth.service.MailAuthService;
 import com.example.cns.common.exception.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "이메일 인증 API", description = "이메일 인증과 관련된 API")
@@ -29,6 +30,7 @@ public class MailAuthController {
     @ApiResponse(
             responseCode = "200", description = "이메일 전송 성공"
     )
+    @PreAuthorize("isAnonymous()")
     @GetMapping("/request/{email}")
     public ResponseEntity mailSend(
             @PathVariable(name = "email") String email
@@ -55,6 +57,7 @@ public class MailAuthController {
                     )
             }
     )
+    @PreAuthorize("isAnonymous()")
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmAuthCode(@RequestBody @Valid EmailAuthRequest dto) {
         mailAuthService.confirmAuthCode(dto);

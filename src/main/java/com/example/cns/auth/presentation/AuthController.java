@@ -1,9 +1,9 @@
 package com.example.cns.auth.presentation;
 
-import com.example.cns.auth.dto.AuthTokens;
-import com.example.cns.auth.dto.DuplicateCheckResponse;
-import com.example.cns.auth.dto.LoginRequest;
-import com.example.cns.auth.dto.SignUpRequest;
+import com.example.cns.auth.dto.request.LoginRequest;
+import com.example.cns.auth.dto.request.SignUpRequest;
+import com.example.cns.auth.dto.response.AuthTokens;
+import com.example.cns.auth.dto.response.DuplicateCheckResponse;
 import com.example.cns.auth.service.MemberAuthService;
 import com.example.cns.common.exception.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "유저 관리 API", description = "사용자 인증과 관련된 API")
@@ -51,6 +52,7 @@ public class AuthController {
                             content = @Content(schema = @Schema(implementation = DuplicateCheckResponse.class)))
             }
     )
+    @PreAuthorize("isAnonymous()")
     @GetMapping("/check-duplicate/{username}")
     public ResponseEntity<DuplicateCheckResponse> checkDuplicateId(@PathVariable(name = "username") String username) {
         boolean isExist = memberAuthService.checkDuplicateUsername(username);

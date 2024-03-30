@@ -1,6 +1,6 @@
 package com.example.cns.company.presentation;
 
-import com.example.cns.auth.dto.CompanyEmailResponse;
+import com.example.cns.auth.dto.response.CompanyEmailResponse;
 import com.example.cns.common.exception.ExceptionResponse;
 import com.example.cns.company.dto.CompanySearchResponse;
 import com.example.cns.company.service.CompanySearchService;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class CompanyController {
             @ApiResponse(responseCode = "204", description = "키워드가 포함된 회사가 없다.")
     })
     @Parameter(name = "keyword", description = "검색할 키워드")
+    @PreAuthorize("isAnonymous()")
     @GetMapping("/search")
     public ResponseEntity<?> searchCompany(@RequestParam(name = "keyword") String keyword) {
         System.out.println(keyword);
@@ -62,6 +64,7 @@ public class CompanyController {
                             )))
     })
     @Parameter(name = "companyName", description = "회사 이름")
+    @PreAuthorize("isAnonymous()")
     @GetMapping("/get-email/{companyName}")
     public ResponseEntity<?> getCompanyEmail(@PathVariable(name = "companyName") String companyName) {
         return ResponseEntity.ok(companySearchService.getCompanyEmail(companyName));
