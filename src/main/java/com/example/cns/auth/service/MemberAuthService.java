@@ -1,9 +1,9 @@
 package com.example.cns.auth.service;
 
 import com.example.cns.auth.domain.RefreshToken;
-import com.example.cns.auth.dto.AuthTokens;
-import com.example.cns.auth.dto.LoginRequest;
-import com.example.cns.auth.dto.SignUpRequest;
+import com.example.cns.auth.dto.request.LoginRequest;
+import com.example.cns.auth.dto.request.SignUpRequest;
+import com.example.cns.auth.dto.response.AuthTokens;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.security.exception.AuthException;
 import com.example.cns.common.security.jwt.dto.JwtUserInfo;
@@ -27,11 +27,12 @@ public class MemberAuthService {
     private final PasswordEncoder passwordEncoder;
 
     public void register(SignUpRequest dto) {
+        verifyMember(dto.username(), dto.email());
         Member requestMember = dto.toEntity(passwordEncoder);
-        validateMember(requestMember);
 
         if (requestMember.getRole() == RoleType.EMPLOYEE) {
             Company company = companySearchService.findByCompanyName(dto.companyName());
+            verifyEmail(company.getEmail(), dto.email());
             requestMember.enrollCompany(company);
         }
 
@@ -39,7 +40,7 @@ public class MemberAuthService {
     }
 
     public AuthTokens login(LoginRequest dto) {
-        Member member = memberService.findByUserName(dto.username());
+        Member member = memberService.findMemberByUserName(dto.username());
 
         if (passwordEncoder.matches(dto.password(), member.getPassword())) {
             JwtUserInfo userInfo = new JwtUserInfo(member.getId(), member.getRole());
@@ -64,10 +65,17 @@ public class MemberAuthService {
         throw new AuthException(ExceptionCode.EXPIRED_TOKEN);
     }
 
-    private void validateMember(Member member) {
-        if (memberService.isExistByEmail(member.getEmail()))
+    private void verifyMember(String username, String email) {
+        if (memberService.isExistByEmail(email))
             throw new AuthException(ExceptionCode.DUPLICATE_EMAIL_EXISTS);
-        if (memberService.isExistByUsername(member.getUsername()))
+        if (memberService.isExistByUsername(username))
             throw new AuthException(ExceptionCode.DUPLICATE_USERNAME_EXISTS);
     }
+
+    private void verifyEmail(String companyEmail, String userEmail) {
+        String domain = userEmail.split("@")[1];
+        if (!companyEmail.equals(domain))
+            throw new AuthException(ExceptionCode.EMAIL_FORMAT_INVALID);
+    }
+
 }
