@@ -32,13 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailService userDetailService;
 
     private final List<String> ignoreUrls = List.of(
-            "/api/v1/company/search",
-            "/api/v1/company/get-email",
             "/api/v1/auth/register",
             "/api/v1/auth/login",
-            "/api/v1/auth/refresh",
-            "/api/v1/auth/check-duplicate",
-            "/api/v1/email-auth",
             "/favicon.ico",
             "/api-docs",
             "/v3/api-docs",
@@ -62,6 +57,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            if (isAnonymousRequest(request)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             String accessToken = resolveToken(request);
             UserDetails userDetails = getUserDetails(accessToken);
             authenticateUser(userDetails, request);
@@ -73,13 +72,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     }
 
+    private boolean isAnonymousRequest(HttpServletRequest request) {
+        return request.getHeader("Authorization") == null;
+    }
+
     private String resolveToken(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
 
         String token = jwtProvider.resolveAccessToken(authHeader);
 
-        if (!StringUtils.hasText(token))
+        if (!StringUtils.hasText(token)) {
             throw new AuthException(EMPTY_ACCESS_TOKEN);
+        }
 
         if (jwtProvider.isTokenExpired(token))
             throw new AuthException(EXPIRED_TOKEN);

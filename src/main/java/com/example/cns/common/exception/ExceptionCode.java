@@ -4,19 +4,21 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
 
 @RequiredArgsConstructor
 @Getter
 public enum ExceptionCode {
+    // 인증
     MEMBER_NOT_FOUND(6001, HttpStatus.BAD_REQUEST, "사용자가 존재하지 않습니다."),
     EMPTY_ACCESS_TOKEN(6001, BAD_REQUEST, "토큰이 비어있습니다."),
-    MALFORMED_TOKEN(6001, UNAUTHORIZED, "손상된 토큰입니다"),
+    MALFORMED_TOKEN(6001, UNAUTHORIZED, "손상된 토큰입니다."),
     FAIL_TOKEN(6001, UNAUTHORIZED, "검증에 실패한 토큰입니다."),
     UNSUPPORTED_TOKEN(6001, UNAUTHORIZED, "지원하지 않는 토큰입니다."),
-    INVALID_TOKEN(6001, BAD_REQUEST, "유효하지 않은 토큰입니다"),
-    INVALID_ROLE(6001, BAD_REQUEST, "유효하지 않은 사용자입니다"),
+    INVALID_TOKEN(6001, BAD_REQUEST, "유효하지 않은 토큰입니다."),
+    INVALID_ROLE(6001, BAD_REQUEST, "유효하지 않은 사용자입니다."),
+    UNAUTHORIZED_USER(4001, UNAUTHORIZED, "인증되지 않은 사용자입니다."),
+    FORBIDDEN_REQUEST(4002, FORBIDDEN, "허가되지 않은 요청입니다."),
 
     EXPIRED_TOKEN(6001, UNAUTHORIZED, "만료된 토큰입니다."),
 

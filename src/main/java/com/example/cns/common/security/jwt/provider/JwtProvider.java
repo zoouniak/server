@@ -1,7 +1,7 @@
 package com.example.cns.common.security.jwt.provider;
 
 import com.example.cns.auth.domain.RefreshToken;
-import com.example.cns.auth.dto.AuthTokens;
+import com.example.cns.auth.dto.response.AuthTokens;
 import com.example.cns.auth.service.RefreshTokenService;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.security.exception.AuthException;
@@ -100,8 +100,6 @@ public class JwtProvider {
         } catch (ExpiredJwtException e) {
             throw new AuthException(ExceptionCode.EXPIRED_TOKEN);
         } catch (UnsupportedJwtException e) {
-            throw new AuthException(ExceptionCode.INVALID_TOKEN);
-        } catch (IllegalArgumentException e) {
             throw new AuthException(ExceptionCode.INVALID_TOKEN);
         }
     }
