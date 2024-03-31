@@ -44,10 +44,8 @@ public class MemberAuthService {
 
         if (passwordEncoder.matches(dto.password(), member.getPassword())) {
             JwtUserInfo userInfo = new JwtUserInfo(member.getId(), member.getRole());
-            AuthTokens authTokens = jwtProvider.generateLoginToken(userInfo);
-            refreshTokenService.saveRefreshToken(new RefreshToken(authTokens.refreshToken(), userInfo));
 
-            return authTokens;
+            return jwtProvider.generateLoginToken(userInfo);
         }
         throw new AuthException(ExceptionCode.INVALID_PASSWORD);
     }
