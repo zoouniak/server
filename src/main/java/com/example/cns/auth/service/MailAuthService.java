@@ -1,8 +1,7 @@
 package com.example.cns.auth.service;
 
 import com.example.cns.auth.domain.AuthCode;
-import com.example.cns.auth.domain.repository.AuthCodeRepository;
-import com.example.cns.auth.dto.EmailAuthRequest;
+import com.example.cns.auth.dto.request.EmailAuthRequest;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,29 +16,28 @@ import java.util.Random;
 public class MailAuthService {
     private final String sender;
     private final String subject;
-    private final AuthCodeRepository authCodeRepository;
+    private final AuthCodeService authCodeService;
     private final JavaMailSender mailSender;
 
     public MailAuthService(@Value("${spring.mail.username}") String sender,
                            @Value("${spring.mail.subject}") String subject,
-                           AuthCodeRepository authCodeRepository,
+                           AuthCodeService authCodeService,
                            JavaMailSender mailSender) {
         this.sender = sender;
         this.subject = subject;
-        this.authCodeRepository = authCodeRepository;
+        this.authCodeService = authCodeService;
         this.mailSender = mailSender;
     }
 
     public void sendAuthMail(String email) {
         String authCode = generateAuthCode();
-        authCodeRepository.save(new AuthCode(email, authCode));
+        authCodeService.saveAuthCode(new AuthCode(email, authCode));
 
         sendAuthMail(email, authCode);
     }
 
     public void confirmAuthCode(EmailAuthRequest dto) {
-        AuthCode authCode = authCodeRepository.findById(dto.email())
-                .orElseThrow(() -> new BusinessException(ExceptionCode.INVALID_EMAIL));
+        AuthCode authCode = authCodeService.findByEmail(dto.email());
 
         if (!dto.authCode().equals(authCode.getAuthCode()))
             throw new BusinessException(ExceptionCode.INCORRECT_AUTHENTICATION_NUMBER);
