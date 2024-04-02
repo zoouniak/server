@@ -16,6 +16,7 @@ import com.example.cns.member.type.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class MemberAuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public void register(SignUpRequest dto) {
         verifyMember(dto.username(), dto.email());
         Member requestMember = dto.toEntity(passwordEncoder);
@@ -39,6 +41,7 @@ public class MemberAuthService {
         memberService.saveMember(requestMember);
     }
 
+    @Transactional(readOnly = true)
     public AuthTokens login(LoginRequest dto) {
         Member member = memberService.findMemberByUserName(dto.username());
 
@@ -50,9 +53,11 @@ public class MemberAuthService {
         throw new AuthException(ExceptionCode.INVALID_PASSWORD);
     }
 
+    @Transactional(readOnly = true)
     public boolean checkDuplicateUsername(String username) {
         return memberService.isExistByUsername(username);
     }
+
 
     public AuthTokens refresh(final String refreshTokenReq) {
         if (!jwtProvider.isTokenExpired(refreshTokenReq)) {
