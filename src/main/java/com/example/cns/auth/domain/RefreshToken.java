@@ -1,6 +1,6 @@
 package com.example.cns.auth.domain;
 
-import com.example.cns.common.security.jwt.dto.JwtUserInfo;
+import com.example.cns.common.security.jwt.dto.JwtMemberInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +15,6 @@ public class RefreshToken {
     @Id
     private String token;
 
-    private JwtUserInfo userInfo;
+    private JwtMemberInfo userInfo;
 
 }
