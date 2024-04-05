@@ -17,7 +17,7 @@ public record SignUpRequest(
         String lastName,
 
         @NotBlank @Schema(description = "아이디")
-        String username,
+        String nickname,
 
         @NotBlank @Schema(description = "비밀번호")
         String password,
@@ -40,7 +40,7 @@ public record SignUpRequest(
         return Member.builder()
                 .firstName(firstName)
                 .lastName(lastName)
-                .username(username)
+                .nickname(nickname)
                 .password(passwordEncoder.encode(password))
                 .email(email)
                 .birth(birth)
