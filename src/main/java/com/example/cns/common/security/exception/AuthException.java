@@ -11,6 +11,10 @@ public class AuthException extends RuntimeException {
         this.exceptionCode = exceptionCode;
     }
 
+    public ExceptionCode getExceptionCode() {
+        return exceptionCode;
+    }
+
     public HttpStatus getStatus() {
         return exceptionCode.getHttpStatus();
     }
