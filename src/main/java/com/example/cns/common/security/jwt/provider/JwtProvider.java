@@ -5,7 +5,7 @@ import com.example.cns.auth.dto.response.AuthTokens;
 import com.example.cns.auth.service.RefreshTokenService;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.security.exception.AuthException;
-import com.example.cns.common.security.jwt.dto.JwtUserInfo;
+import com.example.cns.common.security.jwt.dto.JwtMemberInfo;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +38,7 @@ public class JwtProvider {
         this.refreshTokenService = refreshTokenService;
     }
 
-    public AuthTokens generateLoginToken(JwtUserInfo userInfo) {
+    public AuthTokens generateLoginToken(JwtMemberInfo userInfo) {
         final String accessToken = createToken(userInfo, accessExpirationTime);
         final String refreshToken = createToken(userInfo, refreshExpirationTime);
 
@@ -47,7 +47,7 @@ public class JwtProvider {
         return new AuthTokens(accessToken, refreshToken);
     }
 
-    public String createToken(JwtUserInfo userInfo, Long tokenValidTime) {
+    public String createToken(JwtMemberInfo userInfo, Long tokenValidTime) {
         final Date now = new Date();
 
         return Jwts.builder()
@@ -80,7 +80,7 @@ public class JwtProvider {
         return Map.of("alg", "HS256", "typ", "jwt");
     }
 
-    private Map<String, Object> createClaims(JwtUserInfo userInfo) {
+    private Map<String, Object> createClaims(JwtMemberInfo userInfo) {
         return Map.of("userId", userInfo.memberId(), "role", userInfo.role());
     }
 
@@ -104,7 +104,7 @@ public class JwtProvider {
         }
     }
 
-    private RefreshToken getRefreshTokenEntity(JwtUserInfo userInfo, String refreshToken) {
+    private RefreshToken getRefreshTokenEntity(JwtMemberInfo userInfo, String refreshToken) {
         return new RefreshToken(refreshToken, userInfo);
     }
 }
