@@ -20,7 +20,7 @@ public class Member extends FileEntity {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String nickname;
 
     @Column(nullable = false)
     private String password;
@@ -51,9 +51,9 @@ public class Member extends FileEntity {
     private RoleType role;
 
     @Builder
-    public Member(Long id, String username, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {
+    public Member(Long id, String nickname, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {
         this.id = id;
-        this.username = username;
+        this.nickname = nickname;
         this.password = password;
         this.email = email;
         this.firstName = firstName;
@@ -65,5 +65,9 @@ public class Member extends FileEntity {
 
     public void enrollCompany(Company company) {
         this.company = company;
+    }
+
+    public void resetPassword(String password) {
+        this.password = password;
     }
 }
