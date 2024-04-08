@@ -82,7 +82,7 @@ public class MemberAuthService {
     public void resetPassword(PasswordResetRequest request) {
         String newPassword = request.toEncodePassword(passwordEncoder);
 
-        Member findMember = memberSearchService.findMemberByNickName(request.nickname());
+        Member findMember = memberSearchService.findMemberByEmail(request.email());
         findMember.resetPassword(newPassword);
     }
 
