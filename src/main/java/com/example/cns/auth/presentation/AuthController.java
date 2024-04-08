@@ -104,23 +104,32 @@ public class AuthController {
                     )
             })
     @PreAuthorize("isAnonymous()")
-    @GetMapping("/help/nicknameInquiry")
+    @GetMapping("/nickname-inquiry")
     public ResponseEntity<?> findNickname(@RequestParam(name = "email") String email) {
         return ResponseEntity.ok(memberAuthService.findNickname(email));
     }
 
     @Operation(summary = "이름, 이메일 검증", description = "이름과 아이디를 입력 받고 회원 데이터와 일치한 지 검증한다.")
-    @Parameter(name = "email", description = "회원가입 시 사용한 아이디")
-    @GetMapping("/help/passwordInquiry/verification")
-    public ResponseEntity verifyMember(@RequestBody MemberVerificationRequest request) {
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "검증 성공"),
+                    @ApiResponse(responseCode = "400", description = "검증 실패",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))
+                    )
+            })
+    @PreAuthorize("isAnonymous()")
+    @GetMapping("/password-inquiry/verification")
+    public ResponseEntity<?> verifyMember(@RequestBody MemberVerificationRequest request) {
         // 이름, 이메일 검사
         memberAuthService.verifyMember(request);
 
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "비밃번호 초기화", description = "새로운 비밀번호로 초기화한다.")
-    @PostMapping("/help/passwordInquiry")
+    @Operation(summary = "비밀번호 초기화", description = "새로운 비밀번호로 초기화한다.")
+    @ApiResponse(responseCode = "200", description = "비밀번호 초기화 성공")
+    @PreAuthorize("isAnonymous()")
+    @PutMapping("/password-inquiry")
     public ResponseEntity resetPassword(@RequestBody PasswordResetRequest request) {
         memberAuthService.resetPassword(request);
         return ResponseEntity.ok().build();
