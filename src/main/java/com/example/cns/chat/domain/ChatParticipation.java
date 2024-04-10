@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class ChatParticipant {
+public class ChatParticipation {
     @Id
     @Column(name = "member_id")
     private Long member;
@@ -15,4 +15,6 @@ public class ChatParticipant {
     @Id
     @Column(name = "room_id")
     private Long room;
+
+    private boolean is_read;
 }

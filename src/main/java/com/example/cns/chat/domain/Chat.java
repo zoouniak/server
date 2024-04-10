@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-public class Message {
+public class Chat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "chat_room_id")
     private chatRoom chatRoom;
 
     @ManyToOne
@@ -23,7 +23,7 @@ public class Message {
     private Member from;
 
     @Column(nullable = false)
-    private String message;
+    private String content;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
