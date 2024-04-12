@@ -7,7 +7,7 @@ import lombok.Getter;
 @Table(name = "message_file")
 @Entity
 @Getter
-public class MessageFile extends FileEntity {
+public class ChatFile extends FileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -17,4 +17,7 @@ public class chatRoom {
 
     @Column
     private String name;
+
+    @Column
+    private int memberCnt;
 }

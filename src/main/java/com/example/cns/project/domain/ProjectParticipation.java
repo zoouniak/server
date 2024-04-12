@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class ProjectParticipant {
+public class ProjectParticipation {
     @Id
     @Column(name = "member_id")
     private Long member;

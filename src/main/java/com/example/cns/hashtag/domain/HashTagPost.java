@@ -1,7 +1,9 @@
 package com.example.cns.hashtag.domain;
 
-import com.example.cns.feed.post.domain.Post;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
 @Table(name = "hashtag_post")
@@ -9,14 +11,10 @@ import lombok.Getter;
 @Getter
 public class HashTagPost {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "hashtag_id")
+    private Long hashtag;
 
-    @ManyToOne
-    @JoinColumn(name = "hashtag_id")
-    private HashTag hashtag;
-
-    @ManyToOne
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Id
+    @Column(name = "post_id")
+    private Long post;
 }
