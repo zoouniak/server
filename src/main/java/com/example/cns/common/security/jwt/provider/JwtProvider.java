@@ -95,11 +95,9 @@ public class JwtProvider {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (MalformedJwtException e) {
-            throw new AuthException(ExceptionCode.MALFORMED_TOKEN);
         } catch (ExpiredJwtException e) {
             throw new AuthException(ExceptionCode.EXPIRED_TOKEN);
-        } catch (UnsupportedJwtException e) {
+        } catch (JwtException e) {
             throw new AuthException(ExceptionCode.INVALID_TOKEN);
         }
     }

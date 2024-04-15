@@ -65,7 +65,7 @@ public class CompanyController {
     })
     @Parameter(name = "companyName", description = "회사 이름")
     @PreAuthorize("isAnonymous()")
-    @GetMapping("/get-email/{companyName}")
+    @GetMapping("/{companyName}/email")
     public ResponseEntity<?> getCompanyEmail(@PathVariable(name = "companyName") String companyName) {
         return ResponseEntity.ok(companySearchService.getCompanyEmail(companyName));
     }

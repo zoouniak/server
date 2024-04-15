@@ -2,17 +2,19 @@ package com.example.cns.auth.service;
 
 import com.example.cns.auth.domain.RefreshToken;
 import com.example.cns.auth.dto.request.LoginRequest;
+import com.example.cns.auth.dto.request.PasswordResetRequest;
 import com.example.cns.auth.dto.request.SignUpRequest;
 import com.example.cns.auth.dto.response.AuthTokens;
+import com.example.cns.auth.dto.response.NicknameInquiryResponse;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.security.exception.AuthException;
-import com.example.cns.common.security.jwt.dto.JwtUserInfo;
+import com.example.cns.common.security.jwt.dto.JwtMemberInfo;
 import com.example.cns.common.security.jwt.provider.JwtProvider;
 import com.example.cns.company.domain.Company;
 import com.example.cns.company.service.CompanySearchService;
 import com.example.cns.member.domain.Member;
-import com.example.cns.member.service.MemberService;
+import com.example.cns.member.service.MemberSearchService;
 import com.example.cns.member.type.RoleType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,7 +36,7 @@ class MemberAuthServiceTest {
     @InjectMocks
     private MemberAuthService sut;
     @Mock
-    private MemberService memberService;
+    private MemberSearchService memberService;
     @Mock
     private CompanySearchService companySearchService;
     @Mock
@@ -44,12 +46,15 @@ class MemberAuthServiceTest {
     @Spy
     private PasswordEncoder passwordEncoder;
 
+    private static Member createMember() {
+        return new Member(1L, "test", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
+    }
 
     @Test
     void 회원가입이_가능하다() {
         // 준비
-        SignUpRequest req = createSignUpReq("test1", "test1@cns.com", "cns");
-        when(memberService.isExistByUsername(req.username())).thenReturn(false);
+        SignUpRequest req = createSignUpReq("test1@cns.com");
+        when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
         when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com"));
 
@@ -61,9 +66,18 @@ class MemberAuthServiceTest {
     }
 
     @Test
+    void 중복된_이메일이_존재할_경우_회원가입이_불가능하다() {
+        SignUpRequest req = createSignUpReq("test1@cns.com");
+        when(memberService.isExistByEmail(req.email())).thenReturn(true);
+
+        Assertions.assertThrows(AuthException.class,
+                () -> sut.register(req));
+    }
+
+    @Test
     void 회사_이메일이_아니면_회원가입이_불가능하다() {
-        SignUpRequest req = createSignUpReq("test1", "test1@naver.com", "cns");
-        when(memberService.isExistByUsername(req.username())).thenReturn(false);
+        SignUpRequest req = createSignUpReq("test1@naver.com");
+        when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
         when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com"));
 
@@ -72,44 +86,22 @@ class MemberAuthServiceTest {
     }
 
     @Test
-    void 중복된_이메일이_존재할_경우_회원가입이_불가능하다() {
-        SignUpRequest req = createSignUpReq("test1", "test1@naver.com", "cns");
-        when(memberService.isExistByEmail(req.email())).thenReturn(true);
-
-        Assertions.assertThrows(AuthException.class,
-                () -> sut.register(req));
-    }
-
-    @Test
     void 중복된_아이디가_존재할_경우_회원가입이_불가능하다() {
-        SignUpRequest req = createSignUpReq("test1", "test1@naver.com", "cns");
-        when(memberService.isExistByUsername(req.username())).thenReturn(true);
+        SignUpRequest req = createSignUpReq("test1@cns.com");
+        when(memberService.isExistByNickname(req.nickname())).thenReturn(true);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
 
         Assertions.assertThrows(AuthException.class,
                 () -> sut.register(req));
     }
 
-    private SignUpRequest createSignUpReq(String username, String email, String companyName) {
-        return new SignUpRequest(
-                "성",
-                "이름",
-                username,
-                "password",
-                email,
-                "position",
-                companyName,
-                LocalDate.now()
-        );
-    }
-
     @Test
     void 로그인_할_수_있다() {
-        LoginRequest req = createLoginRequest("test", "testpassword");
-        Member member = new Member(1L, "test", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
-        when(memberService.findMemberByUserName(req.username())).thenReturn(member);
+        LoginRequest req = createLoginRequest();
+        Member member = createMember();
+        when(memberService.findMemberByNickName(req.nickname())).thenReturn(member);
         when(passwordEncoder.matches(req.password(), member.getPassword())).thenReturn(true);
-        when(jwtProvider.generateLoginToken(new JwtUserInfo(member.getId(), member.getRole()))).thenReturn(new AuthTokens("access", "refresh"));
+        when(jwtProvider.generateLoginToken(new JwtMemberInfo(member.getId(), member.getRole()))).thenReturn(new AuthTokens("access", "refresh"));
 
         AuthTokens login = sut.login(req);
 
@@ -119,8 +111,8 @@ class MemberAuthServiceTest {
 
     @Test
     void 존재하지않은_아이디로_로그인_할_수_없다() {
-        LoginRequest req = createLoginRequest("test", "testpassword");
-        when(memberService.findMemberByUserName("test")).thenThrow(new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        LoginRequest req = createLoginRequest();
+        when(memberService.findMemberByNickName("test")).thenThrow(new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
         BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> sut.login(req));
 
@@ -129,9 +121,9 @@ class MemberAuthServiceTest {
 
     @Test
     void 잘못된_비밀번호로_로그인_할_수_없다() {
-        LoginRequest req = createLoginRequest("test", "testpassword");
-        Member member = new Member(1L, "test", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
-        when(memberService.findMemberByUserName(req.username())).thenReturn(member);
+        LoginRequest req = createLoginRequest();
+        Member member = createMember();
+        when(memberService.findMemberByNickName(req.nickname())).thenReturn(member);
         when(passwordEncoder.matches(req.password(), member.getPassword())).thenReturn(false);
 
         AuthException exception = Assertions.assertThrows(AuthException.class,
@@ -140,26 +132,20 @@ class MemberAuthServiceTest {
         Assertions.assertEquals(ExceptionCode.INVALID_PASSWORD, exception.getExceptionCode());
     }
 
-    private LoginRequest createLoginRequest(String username, String password) {
-        return new LoginRequest(
-                username, password
-        );
-    }
-
     @Test
     void 중복된_아이디가_존재하면_참을_반환한다() {
-        when(memberService.isExistByUsername("duplicate")).thenReturn(true);
+        when(memberService.isExistByNickname("duplicate")).thenReturn(true);
 
-        boolean isDuplicated = sut.checkDuplicateUsername("duplicate");
+        boolean isDuplicated = sut.hasDuplicateNickname("duplicate");
 
         Assertions.assertTrue(isDuplicated);
     }
 
     @Test
     void 중복된_아이디가_존재하지_않으면_거짓을_반환한다() {
-        when(memberService.isExistByUsername("duplicate")).thenReturn(false);
+        when(memberService.isExistByNickname("duplicate")).thenReturn(false);
 
-        boolean isDuplicated = sut.checkDuplicateUsername("duplicate");
+        boolean isDuplicated = sut.hasDuplicateNickname("duplicate");
 
         Assertions.assertFalse(isDuplicated);
     }
@@ -167,12 +153,12 @@ class MemberAuthServiceTest {
     @Test
     void 리프레시_토큰이_유효하다면_토큰을_재발급한다() {
         when(jwtProvider.isTokenExpired("refreshToken")).thenReturn(false);
-        RefreshToken refreshToken = new RefreshToken("refreshToken", new JwtUserInfo(1L, RoleType.EMPLOYEE));
+        RefreshToken refreshToken = new RefreshToken("refreshToken", new JwtMemberInfo(1L, RoleType.EMPLOYEE));
         when(refreshTokenService.findById("refreshToken")).thenReturn(refreshToken);
         when(jwtProvider.generateLoginToken(refreshToken.getUserInfo())).thenReturn(new AuthTokens("access", "refresh"));
         ;
 
-        AuthTokens refreshTokens = sut.refresh("refreshToken");
+        AuthTokens refreshTokens = sut.refreshTokens("refreshToken");
 
         Assertions.assertEquals(refreshTokens.accessToken(), "access");
         Assertions.assertEquals(refreshTokens.refreshToken(), "refresh");
@@ -182,10 +168,49 @@ class MemberAuthServiceTest {
     void 리프레시_토큰이_유효하지_않으면_재발급_할_수_없다() {
         when(jwtProvider.isTokenExpired("refreshToken")).thenReturn(true);
 
-        AuthException exception = Assertions.assertThrows(AuthException.class, () -> sut.refresh("refreshToken"));
+        AuthException exception = Assertions.assertThrows(AuthException.class, () -> sut.refreshTokens("refreshToken"));
 
         Assertions.assertEquals(ExceptionCode.EXPIRED_TOKEN, exception.getExceptionCode());
     }
 
+    @Test
+    void 이메일로_아이디를_찾을_수_있다() {
+        Member member = createMember();
+        when(memberService.findMemberByEmail(member.getEmail())).thenReturn(member);
 
+        NicknameInquiryResponse findNickname = sut.findNickname(member.getEmail());
+
+        Assertions.assertEquals(member.getNickname(), findNickname.nickname());
+    }
+
+    @Test
+    void 비밀번호를_변경할_수_있다() {
+        Member member = createMember();
+        PasswordResetRequest request = new PasswordResetRequest(member.getEmail(), "newPassword");
+        when(memberService.findMemberByEmail(member.getEmail())).thenReturn(member);
+        when(passwordEncoder.encode(request.password())).thenReturn(request.password());
+
+        sut.resetPassword(request);
+
+        Assertions.assertEquals(request.password(), member.getPassword());
+    }
+
+    private LoginRequest createLoginRequest() {
+        return new LoginRequest(
+                "test", "testpassword"
+        );
+    }
+
+    private SignUpRequest createSignUpReq(String email) {
+        return new SignUpRequest(
+                "성",
+                "이름",
+                "test1",
+                "password",
+                email,
+                "position",
+                "cns",
+                LocalDate.now()
+        );
+    }
 }
