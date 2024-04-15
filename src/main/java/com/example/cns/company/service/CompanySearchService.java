@@ -28,7 +28,7 @@ public class CompanySearchService {
     @Transactional(readOnly = true)
     public CompanyEmailResponse getCompanyEmail(String companyName) {
         Company findCompany = findByCompanyName(companyName);
-        return new CompanyEmailResponse(findCompany.getName(), findCompany.getEmail());
+        return new CompanyEmailResponse(findCompany.getEmail());
     }
 
     @Transactional(readOnly = true)
