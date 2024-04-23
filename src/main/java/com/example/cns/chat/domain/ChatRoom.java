@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class chatRoom {
+public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
