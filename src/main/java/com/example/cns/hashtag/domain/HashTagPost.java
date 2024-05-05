@@ -1,20 +1,23 @@
 package com.example.cns.hashtag.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.example.cns.feed.post.domain.Post;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Table(name = "hashtag_post")
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class HashTagPost {
-    @Id
-    @Column(name = "hashtag_id")
-    private Long hashtag;
 
-    @Id
-    @Column(name = "post_id")
-    private Long post;
+    @EmbeddedId
+    private HashTagPostId id;
+
+    @Builder
+    public HashTagPost(HashTagPostId id){
+        this.id = id;
+    }
 }
