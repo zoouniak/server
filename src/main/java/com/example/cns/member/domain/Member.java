@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 
@@ -49,6 +50,14 @@ public class Member extends FileEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private RoleType role;
+
+    @Column
+    @ColumnDefault("false")
+    private boolean isProfileExisted;
+
+    @Column
+    @ColumnDefault("false")
+    private boolean isResumeExisted;
 
     @Builder
     public Member(Long id, String nickname, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {

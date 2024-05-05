@@ -1,5 +1,6 @@
-package com.example.cns.project.domain;
+package com.example.cns.project.plan.domain;
 
+import com.example.cns.project.domain.Project;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -23,6 +24,9 @@ public class Plan {
 
     @Column
     private LocalDateTime endedAt;
+
+    @Column
+    private String content;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
