@@ -2,9 +2,12 @@ package com.example.cns.chat.domain;
 
 import com.example.cns.chat.type.RoomType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
 @Getter
 public class ChatRoom {
     @Id
@@ -20,4 +23,12 @@ public class ChatRoom {
 
     @Column
     private int memberCnt;
+
+    @Builder
+
+    public ChatRoom(RoomType roomType, String name, int memberCnt) {
+        this.roomType = roomType;
+        this.name = name;
+        this.memberCnt = memberCnt;
+    }
 }

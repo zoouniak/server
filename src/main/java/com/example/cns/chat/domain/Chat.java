@@ -3,12 +3,15 @@ package com.example.cns.chat.domain;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.member.domain.Member;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Chat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,7 +19,7 @@ public class Chat {
 
     @ManyToOne
     @JoinColumn(name = "chat_room_id")
-    private chatRoom chatRoom;
+    private ChatRoom chatRoom;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -34,4 +37,14 @@ public class Chat {
 
     @Column
     private Long subjectId;
+
+    @Builder
+    public Chat(ChatRoom chatRoom, Member from, String content, MessageType messageType, Long subjectId) {
+        this.chatRoom = chatRoom;
+        this.from = from;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+        this.messageType = messageType;
+        this.subjectId = subjectId;
+    }
 }
