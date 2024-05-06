@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,29 +31,40 @@ public class Post {
 
     @Column
     @ColumnDefault("0")
-    private int like_cnt;
+    private int likeCnt;
 
     @Column
     @ColumnDefault("0")
-    private int file_cnt;
+    private int fileCnt;
 
     @Column
     @ColumnDefault("0")
-    private int mention_cnt;
+    private int mentionCnt;
 
     @Column
     @ColumnDefault("true")
     private boolean isCommentEnabled;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostFile> postFiles = new ArrayList<>();
+
     @Builder
-    public Post(Member member, String content, int mention_cnt, boolean isCommentEnabled){
+    public Post(Member member, String content, int mentionCnt, boolean isCommentEnabled){
         this.member = member;
         this.content = content;
-        this.mention_cnt = mention_cnt;
+        this.mentionCnt = mentionCnt;
         this.isCommentEnabled = isCommentEnabled;
     }
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public void updateContent(String content){
+        if(content != null) this.content = content;
+    }
+
+    public void updateMentionCnt(int mentionCnt){
+        this.mentionCnt = mentionCnt;
     }
 }
