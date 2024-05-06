@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -23,8 +25,12 @@ public class ChatService {
         Member sender = memberRepository.findById(message.memberId()).get();
         ChatRoom chatRoom = chatRoomRepository.findById(message.roomId()).get();
 
-        Chat chat = message.toChatEntity(chatRoom, sender);
+        LocalDateTime now = LocalDateTime.now();
+        // 채팅방의 마지막 채팅 갱신
+        chatRoom.saveLastChat(message.content(), now);
+
+        // 채팅 저장
+        Chat chat = message.toChatEntity(chatRoom, sender, now);
         chatRepository.save(chat);
     }
-
 }
