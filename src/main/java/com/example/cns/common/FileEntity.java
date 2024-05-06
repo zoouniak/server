@@ -6,11 +6,13 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter
+@Setter
 public class FileEntity {
     @Column
     private String url;
@@ -27,4 +29,5 @@ public class FileEntity {
 
     @Column
     private LocalDateTime createdAt;
+
 }
