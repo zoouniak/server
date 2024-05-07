@@ -37,6 +37,7 @@ public class SecurityConfig {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
+        // LocalDateTime 직렬화 오류 해결
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper;
     }
@@ -60,9 +61,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((authorizeRequest) ->
-                        authorizeRequest.anyRequest().permitAll()
-                )
+                /*.authorizeHttpRequests((authorizeRequest) ->
+                        authorizeRequest.anyRequest().authenticated()
+                )*/
                 .exceptionHandling(
                         exception -> exception
                                 .accessDeniedHandler(accessDeniedHandler())
