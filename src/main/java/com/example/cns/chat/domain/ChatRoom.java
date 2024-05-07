@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -34,15 +32,11 @@ public class ChatRoom {
     @Column
     private LocalDateTime lastChatSendAt;
 
-    @OneToMany(mappedBy = "room")
-    private List<ChatParticipation> participationList;
-
     @Builder
     public ChatRoom(RoomType roomType, String name, int memberCnt) {
         this.roomType = roomType;
         this.name = name;
         this.memberCnt = memberCnt;
-        this.participationList = new ArrayList<>();
     }
 
     public void saveLastChat(String chat, LocalDateTime now) {

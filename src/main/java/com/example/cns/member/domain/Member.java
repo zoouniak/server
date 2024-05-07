@@ -29,7 +29,7 @@ public class Member extends FileEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
     private Company company;
     @Column(nullable = false)
@@ -58,6 +58,7 @@ public class Member extends FileEntity {
     @Column
     @ColumnDefault("false")
     private boolean isResumeExisted;
+
 
     @Builder
     public Member(Long id, String nickname, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {
