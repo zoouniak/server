@@ -1,6 +1,7 @@
 package com.example.cns.feed.post.dto.request;
 
 import com.example.cns.feed.post.domain.Post;
+import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.member.domain.Member;
 import jakarta.validation.constraints.NotBlank;
 
@@ -12,15 +13,14 @@ public record PostRequest(
         List<String> hashtag,
         List<String> mention,
         @NotBlank
-        boolean isCommentEnabled
+        boolean isCommentEnabled,
+        List<PostFileResponse> postFileList
 ) {
     public Post toEntity(Member member){
-        String hashtags = String.join(" ", hashtag);
-        String mentions = String.join(" ", mention);
         return Post.builder()
                 .member(member)
-                .content(content+"\n"+hashtags+"\n"+mentions)
-                .mention_cnt(mention.size())
+                .content(content)
+                .mentionCnt(mention.size())
                 .isCommentEnabled(isCommentEnabled)
                 .build();
     }
