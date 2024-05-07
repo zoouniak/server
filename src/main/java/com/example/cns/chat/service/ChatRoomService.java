@@ -1,5 +1,6 @@
 package com.example.cns.chat.service;
 
+import com.example.cns.chat.domain.ChatParticipation;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatParticipationRepository;
 import com.example.cns.chat.domain.repository.ChatRepository;
@@ -62,11 +63,12 @@ public class ChatRoomService {
     }
 
     private void saveChatParticipation(List<Long> inviteList, Long roomId) {
-        /*for (Long guestId : inviteList) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
+        for (Long guestId : inviteList) {
             chatParticipationRepository.save(ChatParticipation.builder()
-                    .member(guestId)
-                    .room(roomId)
+                    .member(memberRepository.findById(guestId).get())
+                    .room(chatRoom)
                     .build());
-        }*/
+        }
     }
 }
