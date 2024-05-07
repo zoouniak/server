@@ -1,27 +1,50 @@
 package com.example.cns.chat.service;
 
-import com.example.cns.chat.domain.ChatParticipation;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatParticipationRepository;
+import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.ChatRoomCreateRequest;
+import com.example.cns.chat.dto.ChatRoomResponse;
+import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
+    private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipationRepository chatParticipationRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public List<String> findAllChatroom(Long memberId) {
-        // 내가 참여하고 있는 모든 채팅방 조회
-        // select name from chat_room where id=( select room_id from chat_participation where member_id = 'memberId');
-        return chatParticipationRepository.findChatRoomNameByMemberId(memberId);
+    public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
+        // 회원이 참여하고 있는 채팅방 조회 (페이지 단위)
+        List<ChatRoom> ChatRoomList = chatRoomRepository.findChatRoomsByMemberIdByPage(PageRequest.of(pageNumber - 1, 10), memberId);
+
+        // 조회된 채팅방이 없는 경우
+        if (ChatRoomList.isEmpty())
+            return null;
+
+        List<ChatRoomResponse> responses = new ArrayList<>();
+
+        for (ChatRoom chatRoom : ChatRoomList) {
+            responses.add(ChatRoomResponse.builder()
+                    .roomId(chatRoom.getId())
+                    .roomName(chatRoom.getName())
+                    .lastChatSendAt(chatRoom.getLastChatSendAt())
+                    .isRead(chatParticipationRepository.findIsRead(memberId, chatRoom.getId())) // 회원의 채팅방 읽음 여부 조회
+                    .lastChat(chatRoom.getLastChat())
+                    .build());
+        }
+
+        return responses;
     }
 
     @Transactional
@@ -31,7 +54,6 @@ public class ChatRoomService {
         ChatRoom chatRoom = request.toChatRoomEntity();
         ChatRoom save = chatRoomRepository.save(chatRoom);
 
-        System.out.println("here?");
         // 참여 저장
         saveChatParticipation(request.inviteList(), save.getId());
 
@@ -40,11 +62,11 @@ public class ChatRoomService {
     }
 
     private void saveChatParticipation(List<Long> inviteList, Long roomId) {
-        for (Long guestId : inviteList) {
+        /*for (Long guestId : inviteList) {
             chatParticipationRepository.save(ChatParticipation.builder()
                     .member(guestId)
                     .room(roomId)
                     .build());
-        }
+        }*/
     }
 }

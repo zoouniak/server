@@ -1,5 +1,6 @@
 package com.example.cns.chat.domain;
 
+import com.example.cns.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -8,7 +9,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatParticipationID implements Serializable {
-    private Long member;
-    private Long room;
+    private Member member;
+    private ChatRoom room;
 
 }

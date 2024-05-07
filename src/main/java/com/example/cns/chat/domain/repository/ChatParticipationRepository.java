@@ -6,10 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-
 public interface ChatParticipationRepository extends JpaRepository<ChatParticipation, ChatParticipationID> {
-    @Query("SELECT room.name FROM ChatRoom room WHERE room.id in (SELECT cp.room FROM ChatParticipation cp WHERE cp.member = :memberId)")
-    List<String> findChatRoomNameByMemberId(@Param("memberId") Long memberId);
-
+   @Query("SELECT cp.isRead from ChatParticipation cp where cp.member.id = :memberId and cp.room.id=:roomId")
+   boolean findIsRead(@Param("memberId") Long memberId, @Param("roomId") Long roomId);
 }

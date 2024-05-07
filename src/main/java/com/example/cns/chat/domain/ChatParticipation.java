@@ -1,9 +1,7 @@
 package com.example.cns.chat.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
+import com.example.cns.member.domain.Member;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,20 +13,22 @@ import org.springframework.data.domain.Persistable;
 @IdClass(ChatParticipationID.class)
 public class ChatParticipation implements Persistable<ChatParticipationID> {
     @Id
-    @Column(name = "member_id")
-    private Long member;
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private ChatRoom room;
 
     @Id
-    @Column(name = "room_id")
-    private Long room;
-
-    private boolean is_read;
+    @ManyToOne
+    @JoinColumn(name = "member_id")
+    private Member member;
+    
+    private boolean isRead;
 
     @Builder
-    public ChatParticipation(Long member, Long room) {
+    public ChatParticipation(Member member, ChatRoom room) {
         this.member = member;
         this.room = room;
-        this.is_read = false;
+        this.isRead = false;
     }
 
     @Override
