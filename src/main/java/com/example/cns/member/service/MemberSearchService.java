@@ -2,12 +2,17 @@ package com.example.cns.member.service;
 
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
+import com.example.cns.company.domain.Company;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.member.type.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -88,5 +93,31 @@ public class MemberSearchService {
     @Transactional(readOnly = true)
     public boolean isExistByNickname(String nickname) {
         return memberRepository.existsByNickname(nickname);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemberSearchResponse> findMemberContainsNicknameParam(String param) {
+        List<Member> memberList = memberRepository.findAllByNicknameContaining(param);
+        List<MemberSearchResponse> responses = new ArrayList<>();
+        for (Member member : memberList) {
+            responses.add(MemberSearchResponse.builder()
+                    .memberId(member.getId())
+                    .nickname(member.getNickname())
+                    .build());
+        }
+        return responses;
+    }
+
+    public List<MemberSearchResponse> findMemberContainsNicknameParamInSameCompany(Long memberId, String param) {
+        Company company = findMemberById(memberId).getCompany();
+        List<Member> memberList = memberRepository.findAllByNicknameContainingAndCompany(param, company);
+        List<MemberSearchResponse> responses = new ArrayList<>();
+        for (Member member : memberList) {
+            responses.add(MemberSearchResponse.builder()
+                    .memberId(member.getId())
+                    .nickname(member.getNickname())
+                    .build());
+        }
+        return responses;
     }
 }
