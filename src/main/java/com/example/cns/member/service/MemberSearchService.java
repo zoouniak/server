@@ -95,9 +95,18 @@ public class MemberSearchService {
         return memberRepository.existsByNickname(nickname);
     }
 
+    /*
+     * 파라미터로 시작하는 닉네임을 가진 사용자를 찾는다.
+     * Params: param
+     * Returns: List<MemberSearchResponse>
+     */
     @Transactional(readOnly = true)
     public List<MemberSearchResponse> findMemberContainsNicknameParam(String param) {
-        List<Member> memberList = memberRepository.findAllByNicknameContaining(param);
+        List<Member> memberList = memberRepository.findAllByNicknameStartsWith(param);
+        // 검색 결과가 없는 경우
+        if (memberList.isEmpty())
+            return null;
+
         List<MemberSearchResponse> responses = new ArrayList<>();
         for (Member member : memberList) {
             responses.add(MemberSearchResponse.builder()
@@ -108,9 +117,19 @@ public class MemberSearchService {
         return responses;
     }
 
+    /*
+     * 사용자의 회사 내에서 파라미터로 시작하는 닉네임을 가진 사용자를 찾는다.
+     * Params: param
+     * Returns: List<MemberSearchResponse>
+     */
+    @Transactional(readOnly = true)
     public List<MemberSearchResponse> findMemberContainsNicknameParamInSameCompany(Long memberId, String param) {
         Company company = findMemberById(memberId).getCompany();
-        List<Member> memberList = memberRepository.findAllByNicknameContainingAndCompany(param, company);
+        List<Member> memberList = memberRepository.findAllByNicknameStartsWithAndCompany(param, company);
+        // 검색 결과가 없는 경우
+        if (memberList.isEmpty())
+            return null;
+
         List<MemberSearchResponse> responses = new ArrayList<>();
         for (Member member : memberList) {
             responses.add(MemberSearchResponse.builder()
