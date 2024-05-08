@@ -1,18 +1,18 @@
 package com.example.cns.feed.post.service;
 
 import com.example.cns.common.exception.BusinessException;
+import com.example.cns.common.exception.ExceptionCode;
+import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
+import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
-import com.example.cns.feed.post.domain.Post;
-import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
-import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.mention.service.MentionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +61,6 @@ public class PostService {
                         PostFile postfile = PostFile.builder()
                                 .post(postRepository.findById(responseId).get())
                                 .url(file.uploadFileURL())
-                                .uuid(file.uploadFileName())
                                 .fileName(file.uploadFileName())
                                 .fileType(file.fileType())
                                 .createdAt(LocalDateTime.now())
