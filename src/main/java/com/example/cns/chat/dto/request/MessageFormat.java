@@ -1,4 +1,4 @@
-package com.example.cns.chat.dto;
+package com.example.cns.chat.dto.request;
 
 import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.domain.ChatRoom;
@@ -28,6 +28,17 @@ public record MessageFormat(
                 .chatRoom(room)
                 .from(from)
                 .content(this.content)
+                .createdAt(now)
+                .messageType(MessageType.valueOf(messageType))
+                .subjectId(this.subjectId)
+                .build();
+    }
+
+    public Chat toChatEntityForImageType(ChatRoom room, Member from, LocalDateTime now) {
+        return Chat.builder()
+                .chatRoom(room)
+                .from(from)
+                .content("")
                 .createdAt(now)
                 .messageType(MessageType.valueOf(messageType))
                 .subjectId(this.subjectId)
