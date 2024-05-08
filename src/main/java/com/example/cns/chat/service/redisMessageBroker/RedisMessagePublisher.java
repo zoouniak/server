@@ -1,8 +1,7 @@
 package com.example.cns.chat.service.redisMessageBroker;
 
-import com.example.cns.chat.dto.MessageFormat;
+import com.example.cns.chat.dto.request.MessageFormat;
 import com.example.cns.chat.service.MessagePublisher;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,8 +18,9 @@ public class RedisMessagePublisher implements MessagePublisher {
     @Override
     public void publish(Long roomId, MessageFormat message) {
         try {
+            System.out.println("publish");
             messageOp.convertAndSend("/sub/chat/" + roomId, mapper.writeValueAsString(message));
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }

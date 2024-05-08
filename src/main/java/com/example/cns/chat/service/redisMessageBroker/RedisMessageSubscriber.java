@@ -1,6 +1,6 @@
 package com.example.cns.chat.service.redisMessageBroker;
 
-import com.example.cns.chat.dto.MessageFormat;
+import com.example.cns.chat.dto.request.MessageFormat;
 import com.example.cns.chat.service.MessageSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class RedisMessageSubscriber implements MessageListener, MessageSubscribe
         // 역직렬화 후 전송
         try {
             MessageFormat msg = mapper.readValue(publishedMessage, MessageFormat.class);
-            messageSendingOp.convertAndSend("sub/chat/" + msg.roomId().toString(), msg);
+            messageSendingOp.convertAndSend("sub/chat/" + msg.roomId(), msg);
         } catch (Exception e) {
             System.out.println(e);
         }
