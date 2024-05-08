@@ -1,12 +1,14 @@
 package com.example.cns.chat.service;
 
 import com.example.cns.chat.domain.ChatParticipation;
+import com.example.cns.chat.domain.ChatParticipationID;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatParticipationRepository;
-import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
-import com.example.cns.chat.dto.ChatRoomCreateRequest;
-import com.example.cns.chat.dto.ChatRoomResponse;
+import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
+import com.example.cns.chat.dto.response.ChatRoomResponse;
+import com.example.cns.common.exception.BusinessException;
+import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -16,10 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.cns.common.exception.ExceptionCode.ChatROOM_NOT_EXIST;
+
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
-    private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
@@ -63,12 +66,25 @@ public class ChatRoomService {
     }
 
     private void saveChatParticipation(List<Long> inviteList, Long roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
+        ChatRoom chatRoom = findChatRoom(roomId);
         for (Long guestId : inviteList) {
             chatParticipationRepository.save(ChatParticipation.builder()
                     .member(memberRepository.findById(guestId).get())
                     .room(chatRoom)
                     .build());
         }
+    }
+
+    @Transactional
+    public void leaveChatRoom(Long memberId, Long roomId) {
+        chatParticipationRepository.deleteById(memberId, roomId);
+        Member member = memberRepository.findById(memberId).get();
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
+        chatParticipationRepository.findById(new ChatParticipationID(member, chatRoom));
+    }
+
+    @Transactional(readOnly = true)
+    public ChatRoom findChatRoom(Long roomId) {
+        return chatRoomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
     }
 }

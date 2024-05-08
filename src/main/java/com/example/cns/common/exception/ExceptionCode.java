@@ -28,7 +28,10 @@ public enum ExceptionCode {
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
 
     //게시글, 댓글
-    POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다.");
+    POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다."),
+
+    // 채팅 4000번대
+    ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다");
 
     private final int errorCode;
     private final HttpStatus httpStatus;
