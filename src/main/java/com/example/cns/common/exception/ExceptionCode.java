@@ -31,7 +31,8 @@ public enum ExceptionCode {
     POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다."),
 
     // 채팅 4000번대
-    ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다");
+    ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
+    NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;

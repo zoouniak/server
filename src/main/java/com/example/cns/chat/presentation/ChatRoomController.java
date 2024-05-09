@@ -2,6 +2,7 @@ package com.example.cns.chat.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
+import com.example.cns.chat.dto.response.ChatParticipantsResponse;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.dto.response.ChatRoomIdResponse;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
@@ -61,7 +62,7 @@ public class ChatRoomController {
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody ChatRoomCreateRequest request) {
-        //채팅방 저장
+        // 채팅방 저장
         Long chatRoom = chatRoomService.createChatRoom(request, memberId);
         return ResponseEntity.ok(new ChatRoomIdResponse(chatRoom));
     }
@@ -94,9 +95,18 @@ public class ChatRoomController {
         return ResponseEntity.ok(chat);
     }
 
-   /* @GetMapping("/{roomId}/participant")
-    public ResponseEntity getParticipants(@PathVariable(name = "roomId")Long roomId) {
-        chatRoomService.getChatParticipants(roomId);
-    }*/
-
+    @Operation(summary = "채팅방 참여자 조회", description = "채팅방 번호를 입력 받고 해당 채팅방에 속해있는 회원들을 반환한다.")
+    @Parameter(name = "roomId", description = "채팅방 번호", required = true)
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "채팅방 참여자 리스트",
+                            content = @Content(schema = @Schema(implementation = ChatParticipantsResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "존재하지 않는 채팅방일 경우/해당 채팅방의 참여자가 아닐 경우"
+                    )
+            })
+    @GetMapping("/{roomId}/participant")
+    public ResponseEntity getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
+        List<ChatParticipantsResponse> participants = chatRoomService.getChatParticipants(roomId, memberId);
+        return ResponseEntity.ok(participants);
+    }
 }
