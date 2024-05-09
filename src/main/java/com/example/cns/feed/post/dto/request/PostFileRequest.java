@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@Schema(description = "파일 등록 dto")
+@Schema(description = "파일 등록 요청 DTO")
 public record PostFileRequest(
         @Schema(description = "여러개의 파일")
         List<MultipartFile> files

@@ -12,6 +12,7 @@ import com.example.cns.feed.post.dto.response.PostFileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,15 +38,15 @@ public class S3Service {
     2. 파일을 가져오고 UUID형태로 바꾸고 저장
     3. 해당 파일 경로 제공
      */
-    public List<PostFileResponse> uploadPostFile(PostFileRequest postFileRequest){
+    public List<PostFileResponse> uploadPostFile(List<MultipartFile> postFileRequest){
         List<PostFileResponse> uploadFileList = new ArrayList<>();
 
         /*
         각 multipart를 file로 변경후 객체로 바꾸어 S3에 저장
          */
 
-        if(postFileRequest.files().size()>=1){
-            postFileRequest.files().forEach(
+        if(postFileRequest.size()>=1){
+            postFileRequest.forEach(
                     multipartFile -> {
 
                         FileType fileType = null;
@@ -54,7 +55,7 @@ public class S3Service {
 
                         switch (ext) {
                             case "png", "PNG" -> fileType = FileType.PNG;
-                            case "jpg", "JPG" -> fileType = FileType.JPG;
+                            case "jpg", "JPG", "jpeg", "JPEG" -> fileType = FileType.JPG;
                             default -> {
                                 //throw new BusinessException();
                             }

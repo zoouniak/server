@@ -24,11 +24,10 @@ public class PostFile extends FileEntity {
     private Post post;
 
     @Builder
-    public PostFile(Post post, String url, String fileName, String uuid, LocalDateTime createdAt, FileType fileType){
+    public PostFile(Post post, String url, String fileName, LocalDateTime createdAt, FileType fileType){
         this.post = post;
         this.setUrl(url);
         this.setFileName(fileName);
-        this.setUuid(uuid);
         this.setCreatedAt(createdAt);
         this.setFileType(fileType);
     }
