@@ -4,9 +4,11 @@ import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.domain.ChatFile;
 import com.example.cns.chat.domain.ChatFileRepository;
 import com.example.cns.chat.domain.ChatRoom;
+import com.example.cns.chat.domain.repository.ChatListRepositoryImpl;
 import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.MessageFormat;
+import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatService {
     private final ChatRepository chatRepository;
+    private final ChatListRepositoryImpl chatListRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatFileRepository chatFileRepository;
     private final MemberRepository memberRepository;
@@ -61,5 +64,11 @@ public class ChatService {
                     .build();
             chatFileRepository.save(chatFile);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatResponse> getPaginationChat(Long roomId, Long chatId) {
+        // 스크롤에 따라 no offset 페이징
+        return chatListRepository.paginationChat(roomId, chatId, 10);
     }
 }
