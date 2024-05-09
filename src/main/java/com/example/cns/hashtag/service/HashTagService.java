@@ -7,8 +7,10 @@ import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.HashTagPost;
 import com.example.cns.hashtag.domain.HashTagPostId;
+import com.example.cns.hashtag.domain.HashTagView;
 import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
+import com.example.cns.hashtag.domain.repository.HashTagViewRepository;
 import com.example.cns.hashtag.dto.request.HashTagRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class HashTagService {
     private final HashTagRepository hashTagRepository;
     private final PostRepository postRepository;
     private final HashTagPostRepository hashTagPostRepository;
+    private final HashTagViewRepository hashTagViewRepository;
 
 
     /*
@@ -96,5 +99,29 @@ public class HashTagService {
                     hashTagPostRepository.deleteById(hashTagPost.getId());
                 }
         );
+    }
+
+    /*
+    해시태그 수정
+     */
+    @Transactional
+    public void updateHashTag(Long postId, List<String> addedHashTags, List<String> removedHashTags) {
+        //지워진 해시태그 삭제
+        removedHashTags.forEach(
+                removeHashTag -> {
+                    Optional<HashTagView> hashTagView = hashTagViewRepository.findHashTagViewByName(removeHashTag);
+                    if(hashTagView.isPresent()){
+                        if(hashTagView.get().getPostCnt() <= 1){ //해시태그 걸린 게시물이 1개인 경우, 해시태그와 연관관계 둘다 삭제
+                            hashTagRepository.deleteById(hashTagView.get().getHashtagId());
+                        }//해시태그 걸린 게시물이 1개 보다 많은 경우 연관관계 테이블만 삭제
+                        hashTagPostRepository.deleteHashTagPostById_PostAndId_Hashtag(postId,hashTagView.get().getHashtagId());
+                    }
+                }
+        );
+        //지워진 해시태그 삭제
+
+        //추가된 해시태그 생성
+        createHashTag(new HashTagRequest(postId,addedHashTags));
+        //추가된 해시태그 생성
     }
 }

@@ -3,17 +3,25 @@ package com.example.cns.feed.post.dto.request;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.member.domain.Member;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 
+@Schema(description = "게시물 등록 요청 DTO")
 public record PostRequest(
+        @Schema(description = "내용")
         @NotBlank
         String content,
+        @Schema(description = "해시태그 리스트", defaultValue = "null", example = "['#해시태그','#해시_태그']")
         List<String> hashtag,
+        @Schema(description = "멘션 리스트", defaultValue = "null", example = "['@사용자1','@사용자2']")
         List<String> mention,
+        @Schema(description = "댓글 허용 여부", defaultValue = "True")
         @NotBlank
         boolean isCommentEnabled,
+        @Schema(description = "업로드 된 사진 정보 리스트", defaultValue = "null")
         List<PostFileResponse> postFileList
 ) {
     public Post toEntity(Member member){
@@ -21,6 +29,7 @@ public record PostRequest(
                 .member(member)
                 .content(content)
                 .mentionCnt(mention.size())
+                .fileCnt(postFileList.size())
                 .isCommentEnabled(isCommentEnabled)
                 .build();
     }
