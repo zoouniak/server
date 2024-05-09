@@ -93,4 +93,10 @@ public class ChatRoomController {
         List<ChatResponse> chat = chatService.getPaginationChat(roomId, chatId);
         return ResponseEntity.ok(chat);
     }
+
+   /* @GetMapping("/{roomId}/participant")
+    public ResponseEntity getParticipants(@PathVariable(name = "roomId")Long roomId) {
+        chatRoomService.getChatParticipants(roomId);
+    }*/
+
 }
