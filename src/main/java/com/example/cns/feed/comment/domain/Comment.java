@@ -3,7 +3,10 @@ package com.example.cns.feed.comment.domain;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.member.domain.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
@@ -11,6 +14,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +42,15 @@ public class Comment {
     @ColumnDefault("0")
     private int likeCnt;
 
-    @OneToMany(mappedBy = "parentComment")
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE)
     private List<Comment> childComments;
+
+    @Builder
+    public Comment(Member writer, Post post, Comment parentComment, String content, LocalDateTime createdAt){
+        this.writer = writer;
+        this.post = post;
+        this.parentComment = parentComment;
+        this.content = content;
+        this.createdAt = createdAt;
+    }
 }
