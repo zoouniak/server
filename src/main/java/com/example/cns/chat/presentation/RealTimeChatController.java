@@ -8,7 +8,6 @@ import com.example.cns.chat.service.MessageSubscriber;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.request.PostFileRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,10 +27,10 @@ public class RealTimeChatController {
     private final MessagePublisher publisher;
     private final MessageSubscriber messageSubscriber;
     private final S3Service fileUploader;
-    private final ObjectMapper objectMapper;
 
-    @MessageMapping("/{roomId}")
-    @SendTo("/sub/chat/{roomId}")
+
+    @MessageMapping("/chat-room/{roomId}")
+    @SendTo("/sub/chat-room/{roomId}")
     public void sendTextMessage(@DestinationVariable Long roomId, MessageFormat textMessage) {
         // 데이터베이스에 채팅 저장
         chatService.saveTextMessage(textMessage);
@@ -39,12 +38,11 @@ public class RealTimeChatController {
         publisher.publish(roomId, textMessage);
     }
 
-    @MessageMapping("/image/{roomId}")
-    @SendTo("/sub/chat/{roomId}")
+    @MessageMapping("/chat-room/image/{roomId}")
+    @SendTo("/sub/chat-room/{roomId}")
     public void sendFileMessage(@DestinationVariable Long roomId, MessageFormat imageMessage) {
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
-
 
         List<MultipartFile> fileList = new ArrayList<>();
         fileList.add(new MultipartFileConverter(imgByte));
@@ -54,7 +52,7 @@ public class RealTimeChatController {
         publisher.publish(roomId, imageMessage);
     }
 
-    @SubscribeMapping("/chat/{roomId}")
+    @SubscribeMapping("/chat-room/{roomId}")
     public void subscribeRoom(@DestinationVariable Long roomId) {
         messageSubscriber.subscribe(String.valueOf(roomId));
     }
