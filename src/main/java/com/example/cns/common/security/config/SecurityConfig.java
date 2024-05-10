@@ -37,6 +37,7 @@ public class SecurityConfig {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
+        // LocalDateTime 직렬화 오류 해결
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper;
     }
@@ -60,9 +61,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((authorizeRequest) ->
-                        authorizeRequest.anyRequest().permitAll()
-                )
+                /*.authorizeHttpRequests((authorizeRequest) ->
+                        authorizeRequest.anyRequest().authenticated()
+                )*/
                 .exceptionHandling(
                         exception -> exception
                                 .accessDeniedHandler(accessDeniedHandler())
@@ -75,9 +76,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() { // Localhost 환경 cors
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedOrigin("http://localhost:5173");
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Set-Cookie", "Authorization", "Content-Type", "Cache-Control"));
         configuration.setExposedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -3,6 +3,7 @@ package com.example.cns.feed.post.domain;
 import com.example.cns.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
+
 @Table(name = "post_like")
 @Entity
 @Getter

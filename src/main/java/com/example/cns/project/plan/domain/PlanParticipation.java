@@ -1,4 +1,4 @@
-package com.example.cns.project.domain;
+package com.example.cns.project.plan.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;

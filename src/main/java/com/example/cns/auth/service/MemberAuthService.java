@@ -6,6 +6,7 @@ import com.example.cns.auth.dto.request.PasswordResetRequest;
 import com.example.cns.auth.dto.request.SignUpRequest;
 import com.example.cns.auth.dto.response.AuthTokens;
 import com.example.cns.auth.dto.response.NicknameInquiryResponse;
+import com.example.cns.chat.dto.response.LoginResponse;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.exception.MemberVerificationRequest;
 import com.example.cns.common.security.exception.AuthException;
@@ -43,13 +44,13 @@ public class MemberAuthService {
         memberSearchService.saveMember(requestMember);
     }
 
-    public AuthTokens login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         Member member = memberSearchService.findMemberByNickName(request.nickname());
 
         if (passwordEncoder.matches(request.password(), member.getPassword())) {
             JwtMemberInfo memberInfo = new JwtMemberInfo(member.getId(), member.getRole());
 
-            return jwtProvider.generateLoginToken(memberInfo);
+            return new LoginResponse(jwtProvider.generateLoginToken(memberInfo), member.getId());
         }
         throw new AuthException(ExceptionCode.INVALID_PASSWORD);
     }

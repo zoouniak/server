@@ -7,6 +7,7 @@ import com.example.cns.auth.dto.response.AuthTokens;
 import com.example.cns.auth.dto.response.NicknameCheckResponse;
 import com.example.cns.auth.dto.response.NicknameInquiryResponse;
 import com.example.cns.auth.service.MemberAuthService;
+import com.example.cns.chat.dto.response.LoginResponse;
 import com.example.cns.common.exception.ExceptionResponse;
 import com.example.cns.common.exception.MemberVerificationRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,11 +21,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 @Tag(name = "유저 관리 API", description = "사용자 인증과 관련된 API")
 @RestController
@@ -69,9 +70,9 @@ public class AuthController {
             })
     @PostMapping("/login")
     public ResponseEntity signIn(@RequestBody @Valid LoginRequest dto) {
-        AuthTokens authTokens = memberAuthService.login(dto);
+        LoginResponse response = memberAuthService.login(dto);
 
-        return getResponseEntity(authTokens);
+        return getResponseEntity(response);
     }
 
     @Operation(summary = "토큰 갱신", description = "쿠키 내 리프레시 토큰을 전달 받고 유효하다면 액세스 토큰과 리프레시 토큰을 반환한다.")
@@ -86,11 +87,14 @@ public class AuthController {
                             content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
             })
     @PostMapping("/refresh")
-    public ResponseEntity renew(@CookieValue(name = "refreshToken") String refreshToken
+    public ResponseEntity renew(@RequestHeader(name = "refreshToken") String refreshToken
     ) {
         AuthTokens refreshTokens = memberAuthService.refreshTokens(refreshToken);
 
-        return getResponseEntity(refreshTokens);
+        return ResponseEntity.ok()
+                .header("RefreshToken", refreshTokens.refreshToken())
+                .header("Authorization", refreshTokens.accessToken())
+                .build();
     }
 
     @Operation(summary = "아이디 찾기", description = "이메일을 입력받고 해당 이메일로 가입된 아이디를 반환한다.")
@@ -143,18 +147,11 @@ public class AuthController {
     }
 
 
-    private ResponseEntity<Object> getResponseEntity(AuthTokens authTokens) {
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", authTokens.refreshToken())
-                .path("/")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .maxAge(60 * 60 * 24 * 30)
-                .build();
-
+    private ResponseEntity<Object> getResponseEntity(LoginResponse response) {
+        AuthTokens authTokens = response.authTokens();
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header("RefreshToken", authTokens.refreshToken())
                 .header("Authorization", authTokens.accessToken())
-                .build();
+                .body(Collections.singletonMap("memberId", response.memberId()));
     }
 }
