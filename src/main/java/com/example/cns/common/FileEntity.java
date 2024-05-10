@@ -25,9 +25,6 @@ public class FileEntity {
     private String fileName;
 
     @Column
-    private String uuid;
-
-    @Column
     private LocalDateTime createdAt;
 
 }

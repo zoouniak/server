@@ -6,9 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Table(name = "hashtag")
 @Entity
 @Getter
@@ -18,11 +15,11 @@ public class HashTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false,updatable = false)
+    @Column(nullable = false, updatable = false)
     private String name;
 
     @Builder
-    public HashTag(String name){
+    public HashTag(String name) {
         this.name = name;
     }
 }

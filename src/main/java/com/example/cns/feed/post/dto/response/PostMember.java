@@ -1,11 +1,15 @@
 package com.example.cns.feed.post.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
+@Schema(description = "사용자 정보를 담은 DTO")
 @Getter
 public class PostMember {
+    @Schema(description = "사용자 index")
     private Long id;
+    @Schema(description = "사용자 아이디")
     private String nickname;
 
     @Builder

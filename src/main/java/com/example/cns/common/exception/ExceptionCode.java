@@ -28,7 +28,9 @@ public enum ExceptionCode {
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
 
     //게시글, 댓글
-    POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다.");
+    POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다."),
+    COMMENT_NOT_EXIST(3002, BAD_REQUEST, "댓글이 존재하지 않습니다."),
+    IMAGE_UPDATE_FAILED(3000,BAD_REQUEST,"이미지 수정에 실패하였습니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;
