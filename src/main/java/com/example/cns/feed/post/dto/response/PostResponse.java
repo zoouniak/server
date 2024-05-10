@@ -25,7 +25,7 @@ public record PostResponse(
         boolean isCommentEnabled
 ) {
     @Builder
-    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled){
+    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled) {
         this.id = id;
         this.postMember = postMember;
         this.content = content;

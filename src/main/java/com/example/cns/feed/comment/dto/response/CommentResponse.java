@@ -22,7 +22,7 @@ public record CommentResponse(
         int commentReplyCnt
 ) {
     @Builder
-    public CommentResponse(Long commentId, PostMember postMember, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt){
+    public CommentResponse(Long commentId, PostMember postMember, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt) {
         this.commentId = commentId;
         this.postMember = postMember;
         this.content = content;

@@ -8,9 +8,6 @@ import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.feed.post.service.PostService;
-import com.example.cns.hashtag.domain.HashTagView;
-import com.example.cns.hashtag.domain.repository.HashTagRepository;
-import com.example.cns.hashtag.domain.repository.HashTagViewRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -26,9 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-@Tag(name = "게시글 API",description = "게시글과 관련된 API")
+@Tag(name = "게시글 API", description = "게시글과 관련된 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -40,19 +36,19 @@ public class PostController {
     /*
     게시글 작성
      */
-    @Operation(summary = "게시글을 작성하는 api",description = "사용자로부터 게시글 작성에 필요한 정보, 서버에 업로드 된 사진을 입력받고, 게시글 번호를 반환한다.")
+    @Operation(summary = "게시글을 작성하는 api", description = "사용자로부터 게시글 작성에 필요한 정보, 서버에 업로드 된 사진을 입력받고, 게시글 번호를 반환한다.")
     @Parameters(
             value = {
-                    @Parameter (name = "id",description = "JWT/사용자 id"),
-                    @Parameter (name = "postRequest", description = "게시글 등록 요청 DTO")
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postRequest", description = "게시글 등록 요청 DTO")
             }
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200",description = "저장된 게시글의 번호를 반환한다.",
-            content = @Content(schema = @Schema(implementation = long.class)))
+            @ApiResponse(responseCode = "200", description = "저장된 게시글의 번호를 반환한다.",
+                    content = @Content(schema = @Schema(implementation = long.class)))
     })
     @PostMapping("/post")
-    public ResponseEntity createPost(@Parameter (name = "id",description = "JWT/사용자 id") @Auth Long id, @RequestBody @Valid PostRequest postRequest){
+    public ResponseEntity createPost(@Parameter(name = "id", description = "JWT/사용자 id") @Auth Long id, @RequestBody @Valid PostRequest postRequest) {
         Long postId = postService.savePost(id, postRequest);
         return ResponseEntity.ok(postId);
     }
@@ -60,14 +56,20 @@ public class PostController {
     /*
     게시글 수정
      */
-    @Operation(summary = "게시글을 수정하는 api(미완성)", description = "사용자로부터 수정된 정보를 받아와 수정한다.")
+    @Operation(summary = "게시글 수정 api", description = "사용자로부터 수정된 정보를 받아와 수정한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postPatchRequest", description = "게시글 수정 요청 DTO")
+            }
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "??")
+            @ApiResponse(responseCode = "200", description = "수정에 성공하면 200을 반환한다.")
     })
     @PatchMapping("/post/{postId}")
-    public ResponseEntity updatePost(@Parameter (name = "id",description = "JWT/사용자 id") @Auth Long id, @PathVariable Long postId, @RequestBody @Valid PostPatchRequest postPatchRequest){
+    public ResponseEntity updatePost(@Auth Long id, @PathVariable Long postId, @RequestBody @Valid PostPatchRequest postPatchRequest) {
         //
-        postService.updatePost(id, postId,postPatchRequest);
+        postService.updatePost(id, postId, postPatchRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -77,8 +79,8 @@ public class PostController {
     @Operation(summary = "게시글 삭제 api", description = "사용자가 삭제를 시도하면 게시글, 해시태그, 멘션, 사진을 삭제한다.")
     @Parameters(
             value = {
-                    @Parameter (name = "id",description = "JWT/사용자 id"),
-                    @Parameter (name = "postId", description = "게시글 인덱스")
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postId", description = "게시글 인덱스")
             }
     )
     @ApiResponses(
@@ -87,11 +89,10 @@ public class PostController {
             }
     )
     @DeleteMapping("/post/{postId}")
-    public ResponseEntity deletePost(@Auth Long id, @PathVariable Long postId){
+    public ResponseEntity deletePost(@Auth Long id, @PathVariable Long postId) {
         postService.deletePost(id, postId);
         return ResponseEntity.ok().build();
     }
-
 
 
     /*
@@ -101,17 +102,17 @@ public class PostController {
     @Parameters(
             value = {
                     //@Parameter (name = "id",description = "JWT/사용자 id"),
-                    @Parameter (name = "postFileRequest", description = "게시글 미디어 등록 요청 DTO")
+                    @Parameter(name = "postFileRequest", description = "게시글 미디어 등록 요청 DTO")
             }
     )
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200",description = "미디어 저장에 성공시에 해당 미디어의 저장정보를 반환한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
+                    @ApiResponse(responseCode = "200", description = "미디어 저장에 성공시에 해당 미디어의 저장정보를 반환한다.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
             }
     )
     @PostMapping("/post/media")
-    public ResponseEntity uploadPostFile(PostFileRequest postFileRequest){
+    public ResponseEntity uploadPostFile(PostFileRequest postFileRequest) {
         List<PostFileResponse> postFileResponses = s3Service.uploadPostFile(postFileRequest.files());
         return ResponseEntity.ok(postFileResponses);
     }
@@ -124,15 +125,15 @@ public class PostController {
      */
     @Operation(summary = "홈 화면 게시글 조회", description = "사용자의 커서값을 이용해 무한 스크롤 조회를 한다." +
             "v1 - 변경 가능성 높음 : 초기값은 0 or null값 -> 최신 10개 조회, 이후부터 커서값(게시글 인덱스값)을 입력하면 해당 게시글 이후 내용을 가져옵니다.")
-    @Parameter(name = "cursorValue",description = "마지막으로 본 게시글 인덱스")
+    @Parameter(name = "cursorValue", description = "마지막으로 본 게시글 인덱스")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "페이지 크기 (10) 만큼 게시글을 반환한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostResponse.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostResponse.class))))
             }
     )
     @GetMapping("/post/home")
-    public ResponseEntity<List<PostResponse>> getPosts(@RequestParam(name = "cursorValue", required = false) Long cursorValue){
+    public ResponseEntity<List<PostResponse>> getPosts(@RequestParam(name = "cursorValue", required = false) Long cursorValue) {
         List<PostResponse> posts = postService.getPosts(cursorValue);
         return ResponseEntity.ok(posts);
     }
@@ -140,16 +141,16 @@ public class PostController {
     /*
     게시글 미디어 조회
      */
-    @Operation(summary = "특정 게시글 미디어 조회",  description = "특정 게시글 인덱스값을 받아 미디어를 반환한다.")
+    @Operation(summary = "특정 게시글 미디어 조회", description = "특정 게시글 인덱스값을 받아 미디어를 반환한다.")
     @Parameter(name = "postId", description = "게시글 인덱스")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "해당 게시글에 미디어가 있을시 미디어의 정보를 반환한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
             }
     )
     @GetMapping("/post/{postId}/media")
-    public ResponseEntity<List<PostFileResponse>> getPostMedia(@PathVariable Long postId){
+    public ResponseEntity<List<PostFileResponse>> getPostMedia(@PathVariable Long postId) {
         List<PostFileResponse> postMedia = postService.getPostMedia(postId);
         return ResponseEntity.ok(postMedia);
     }

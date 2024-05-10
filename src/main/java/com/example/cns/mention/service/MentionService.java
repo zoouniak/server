@@ -33,7 +33,7 @@ public class MentionService {
 
         List<String> mentionNickname = extractMember(mention);
 
-        saveMention(postId,mentionNickname,MentionType.FEED);
+        saveMention(postId, mentionNickname, MentionType.FEED);
     }
 
     @Transactional
@@ -52,13 +52,13 @@ public class MentionService {
 
         List<String> mentionNickname = extractMember(mention);
 
-        saveMention(commentId,mentionNickname,MentionType.COMMENT);
+        saveMention(commentId, mentionNickname, MentionType.COMMENT);
 
     }
 
     @Transactional
     public void deleteCommentMention(CommentDeleteRequest commentDeleteRequest) {
-        mentionRepository.deleteAllMentionBySubjectId(commentDeleteRequest.commentId(),MentionType.COMMENT);
+        mentionRepository.deleteAllMentionBySubjectId(commentDeleteRequest.commentId(), MentionType.COMMENT);
     }
 
     @Transactional
@@ -70,29 +70,29 @@ public class MentionService {
         extractRemovedMentions.forEach(
                 nickname -> {
                     Optional<Member> member = memberRepository.findByNickname(nickname);
-                    if(member.isPresent()){
-                        mentionRepository.deleteMentionBySubjectIdAndMentionTypeAndMember(postId,MentionType.FEED,member.get().getId());
+                    if (member.isPresent()) {
+                        mentionRepository.deleteMentionBySubjectIdAndMentionTypeAndMember(postId, MentionType.FEED, member.get().getId());
                     }
                 }
         );
 
         //추가된 멘션 추가
-        saveMention(postId,extractAddedMentions,MentionType.FEED);
+        saveMention(postId, extractAddedMentions, MentionType.FEED);
     }
 
     //멘션 리스트에서 사용자 닉네임 추출
-    private List<String> extractMember(List<String> mention){
+    private List<String> extractMember(List<String> mention) {
         List<String> mentionNickname = new ArrayList<>();
-        mention.forEach(nickname -> mentionNickname.add(nickname.replace("@","")));
+        mention.forEach(nickname -> mentionNickname.add(nickname.replace("@", "")));
         return mentionNickname;
     }
 
     //저장 메소드 중복되어서 메소드 만들었음
-    private void saveMention(Long subjectId, List<String> mentionList, MentionType mentionType){
+    private void saveMention(Long subjectId, List<String> mentionList, MentionType mentionType) {
         mentionList.forEach(
                 nickname -> {
                     Optional<Member> member = memberRepository.findByNickname(nickname);
-                    if(member.isPresent()){
+                    if (member.isPresent()) {
                         Mention data = Mention.builder()
                                 .member(member.get())
                                 .subjectId(subjectId)

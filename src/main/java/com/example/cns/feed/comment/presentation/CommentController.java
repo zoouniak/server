@@ -21,13 +21,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "댓글 API",description = "댓글과 관련된 API")
+@Tag(name = "댓글 API", description = "댓글과 관련된 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/post")
 public class CommentController {
 
     private final CommentService commentService;
+
     /*
     댓글 등록
      */
@@ -41,11 +42,11 @@ public class CommentController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "댓글 등록이 성공하면 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
             }
     )
     @PostMapping("/comment")
-    public ResponseEntity writeComment(@Auth Long id, @RequestBody CommentPostRequest commentPostRequest){
+    public ResponseEntity writeComment(@Auth Long id, @RequestBody CommentPostRequest commentPostRequest) {
         commentService.createComment(id, commentPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -56,18 +57,18 @@ public class CommentController {
     @Operation(summary = "대댓글 등록 api", description = "게시글 인덱스, 댓글 인덱스, 댓글 정보를 받아 대댓글을 등록한다.")
     @Parameters(
             value = {
-                    @Parameter (name = "id",description = "JWT/사용자 id"),
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
                     @Parameter(name = "commentReplyPostRequest", description = "대댓글 등록 요청 DTO")
             }
     )
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "대댓글 등록이 성공하면 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
             }
     )
     @PostMapping("/comment/reply")
-    public ResponseEntity writeCommentReply(@Auth Long id, @RequestBody CommentReplyPostRequest commentReplyPostRequest){
+    public ResponseEntity writeCommentReply(@Auth Long id, @RequestBody CommentReplyPostRequest commentReplyPostRequest) {
         commentService.createCommentReply(id, commentReplyPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -85,12 +86,12 @@ public class CommentController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "댓글 및 대댓글 삭제에 성공하면 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
             }
     )
     @DeleteMapping("/comment")
-    public ResponseEntity deleteComment(@Parameter(name = "id",description = "JWT/사용자 id") @Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest){
-        commentService.deleteComment(id,commentDeleteRequest);
+    public ResponseEntity deleteComment(@Parameter(name = "id", description = "JWT/사용자 id") @Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
+        commentService.deleteComment(id, commentDeleteRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -101,12 +102,12 @@ public class CommentController {
     @Parameter(name = "postId", description = "게시글 인덱스")
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200",description = "해당 게시글의 댓글을 댓글등록순으로 불러온다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentResponse.class))))
+                    @ApiResponse(responseCode = "200", description = "해당 게시글의 댓글을 댓글등록순으로 불러온다.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentResponse.class))))
             }
     )
     @GetMapping("/{postId}/comment/list")
-    public ResponseEntity<List<CommentResponse>> getComment(@PathVariable Long postId){
+    public ResponseEntity<List<CommentResponse>> getComment(@PathVariable Long postId) {
         List<CommentResponse> comments = commentService.getComment(postId);
         return ResponseEntity.ok(comments);
     }
@@ -124,11 +125,11 @@ public class CommentController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "해당 댓글의 대댓글을 조죄한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentResponse.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentResponse.class))))
             }
     )
     @GetMapping("/{postId}/comment/{commentId}/list")
-    public ResponseEntity getCommentReply(@PathVariable Long postId, @PathVariable Long commentId){
+    public ResponseEntity getCommentReply(@PathVariable Long postId, @PathVariable Long commentId) {
         List<CommentResponse> commentReply = commentService.getCommentReply(postId, commentId);
         return ResponseEntity.ok(commentReply);
     }

@@ -10,11 +10,11 @@ public record PostFileResponse(
         String uploadFileName,
         @Schema(description = "서버에 업로드된 파일 경로")
         String uploadFileURL,
-        @Schema(description = "서버에 업로드된 파일 확장자",example = "PNG, JPG")
+        @Schema(description = "서버에 업로드된 파일 확장자", example = "PNG, JPG")
         FileType fileType
 ) {
     @Builder
-    public PostFileResponse(String uploadFileName, String uploadFileURL, FileType fileType){
+    public PostFileResponse(String uploadFileName, String uploadFileURL, FileType fileType) {
         this.uploadFileName = uploadFileName;
         this.uploadFileURL = uploadFileURL;
         this.fileType = fileType;

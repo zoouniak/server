@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,27 +54,32 @@ public class Post {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Post(Member member, String content, int mentionCnt, int fileCnt,boolean isCommentEnabled){
+    public Post(Member member, String content, int mentionCnt, int fileCnt, boolean isCommentEnabled) {
         this.member = member;
         this.content = content;
         this.mentionCnt = mentionCnt;
         this.fileCnt = fileCnt;
         this.isCommentEnabled = isCommentEnabled;
     }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
-    public void updateContent(String content){
-        if(content != null) this.content = content;
+    public void updateContent(String content) {
+        if (content != null) this.content = content;
     }
 
-    public void updateMentionCnt(int mentionCnt){
+    public void updateMentionCnt(int mentionCnt) {
         this.mentionCnt = mentionCnt;
     }
 
-    public void updateIsCommentEnabled(Boolean isCommentEnabled) {this.isCommentEnabled = isCommentEnabled;}
+    public void updateIsCommentEnabled(Boolean isCommentEnabled) {
+        this.isCommentEnabled = isCommentEnabled;
+    }
 
-    public void updateFileCnt(int fileCnt) {this.fileCnt = fileCnt;}
+    public void updateFileCnt(int fileCnt) {
+        this.fileCnt = fileCnt;
+    }
 }

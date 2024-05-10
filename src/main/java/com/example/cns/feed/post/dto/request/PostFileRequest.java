@@ -9,5 +9,5 @@ import java.util.List;
 public record PostFileRequest(
         @Schema(description = "여러개의 파일")
         List<MultipartFile> files
-){
+) {
 }

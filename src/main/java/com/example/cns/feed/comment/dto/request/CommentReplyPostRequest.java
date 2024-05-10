@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "대댓글 등록 요청 DTO")
-public record CommentReplyPostRequest (
+public record CommentReplyPostRequest(
         @Schema(description = "게시글 인덱스")
         Long postId,
         @Schema(description = "댓글 인덱스")
@@ -18,7 +18,7 @@ public record CommentReplyPostRequest (
         String content,
         @Schema(description = "멘션 리스트", defaultValue = "null", example = "['@사용자1','@사용자2']")
         List<String> mention
-){
+) {
     public Comment toEntity(Member member, Post post, Comment comment) {
         return Comment.builder()
                 .writer(member)

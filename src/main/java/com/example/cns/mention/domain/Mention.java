@@ -29,7 +29,7 @@ public class Mention {
     private MentionType mentionType;
 
     @Builder
-    public Mention(Member member, Long subjectId, MentionType mentionType){
+    public Mention(Member member, Long subjectId, MentionType mentionType) {
         this.member = member;
         this.subjectId = subjectId;
         this.mentionType = mentionType;

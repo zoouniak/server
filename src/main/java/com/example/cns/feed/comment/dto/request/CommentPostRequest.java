@@ -17,7 +17,7 @@ public record CommentPostRequest(
         @Schema(description = "멘션 리스트", defaultValue = "null", example = "['@사용자1','@사용자2']")
         List<String> mention
 ) {
-    public Comment toEntity(Member member, Post post,Comment comment){
+    public Comment toEntity(Member member, Post post, Comment comment) {
         return Comment.builder()
                 .writer(member)
                 .post(post)

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PostFileRepository extends JpaRepository<PostFile,Long> {
+public interface PostFileRepository extends JpaRepository<PostFile, Long> {
 
     @Query("SELECT p FROM PostFile p WHERE p.post.id = :postId ORDER BY p.createdAt ASC")
-    List<PostFile> findAllByPostId(@Param("postId")Long postId);
+    List<PostFile> findAllByPostId(@Param("postId") Long postId);
 }

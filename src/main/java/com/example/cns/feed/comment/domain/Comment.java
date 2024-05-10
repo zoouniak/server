@@ -46,7 +46,7 @@ public class Comment {
     private List<Comment> childComments;
 
     @Builder
-    public Comment(Member writer, Post post, Comment parentComment, String content, LocalDateTime createdAt){
+    public Comment(Member writer, Post post, Comment parentComment, String content, LocalDateTime createdAt) {
         this.writer = writer;
         this.post = post;
         this.parentComment = parentComment;

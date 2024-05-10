@@ -29,7 +29,7 @@ public enum ExceptionCode {
 
     //게시글, 댓글
     POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다."),
-    COMMENT_NOT_EXIST(3002,BAD_REQUEST,"댓글이 존재하지 않습니다.");
+    COMMENT_NOT_EXIST(3002, BAD_REQUEST, "댓글이 존재하지 않습니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;

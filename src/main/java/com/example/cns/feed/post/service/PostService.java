@@ -1,21 +1,21 @@
 package com.example.cns.feed.post.service;
 
 import com.example.cns.common.exception.BusinessException;
+import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.common.type.FileType;
+import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
+import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.feed.post.dto.response.PostMember;
-import com.example.cns.feed.post.domain.Post;
-import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
-import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.mention.service.MentionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +62,7 @@ public class PostService {
         mentionService.savePostMention(responseId, postRequest.mention());
 
         //파일이 있을시에 DB에 연관된 파일 저장
-        if(postRequest.postFileList() != null){
+        if (postRequest.postFileList() != null) {
             postRequest.postFileList().stream().forEach(
                     file -> {
                         PostFile postfile = PostFile.builder()
@@ -91,15 +91,14 @@ public class PostService {
     @Transactional
     public void deletePost(Long id, Long postId) {
         Optional<Post> post = postRepository.findById(postId);
-        if(post.isPresent()){
-            if(post.get().getMember().getId() == id){
+        if (post.isPresent()) {
+            if (post.get().getMember().getId() == id) {
                 hashTagService.deleteHashTag(postId); //해시태그 삭제
                 mentionService.deletePostMention(postId); //멘션 테이블 삭제
                 postRepository.deleteById(postId); //게시글 삭제
-            }
-            else
+            } else
                 throw new BusinessException(ExceptionCode.INCORRECT_INFO);
-        }else {
+        } else {
             throw new BusinessException(ExceptionCode.POST_NOT_EXIST);
         }
     }
@@ -107,23 +106,23 @@ public class PostService {
     /*
     모든 게시글 조회
      */
-    public List<PostResponse> getPosts(Long cursorValue){
+    public List<PostResponse> getPosts(Long cursorValue) {
 
-        if(cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId()+1;
+        if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
 
         List<Post> posts = postRepository.findPostsByCursor(10, cursorValue);
         List<PostResponse> postResponses = new ArrayList<>();
 
         posts.forEach(post -> {
             postResponses.add(PostResponse.builder()
-                            .id(post.getId())
-                            .postMember(new PostMember(post.getMember().getId(),post.getMember().getNickname()))
-                            .content(post.getContent())
-                            .likeCnt(post.getLikeCnt())
-                            .fileCnt(post.getFileCnt())
-                            .commentCnt(post.getComments().size())
-                            .createdAt(post.getCreatedAt())
-                            .isCommentEnabled(post.isCommentEnabled())
+                    .id(post.getId())
+                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
+                    .content(post.getContent())
+                    .likeCnt(post.getLikeCnt())
+                    .fileCnt(post.getFileCnt())
+                    .commentCnt(post.getComments().size())
+                    .createdAt(post.getCreatedAt())
+                    .isCommentEnabled(post.isCommentEnabled())
                     .build());
         });
         return postResponses;
@@ -135,17 +134,17 @@ public class PostService {
     2. url 전달
     3. 끝
      */
-    public List<PostFileResponse> getPostMedia(Long postId){
+    public List<PostFileResponse> getPostMedia(Long postId) {
         Optional<Post> post = postRepository.findById(postId);
         List<PostFileResponse> postFileResponses = new ArrayList<>();
-        if(post.isPresent()){
+        if (post.isPresent()) {
             List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
             allPostFile.forEach(
                     postFile -> {
                         postFileResponses.add(PostFileResponse.builder()
-                                        .uploadFileName(postFile.getFileName())
-                                        .uploadFileURL(postFile.getUrl())
-                                        .fileType(postFile.getFileType())
+                                .uploadFileName(postFile.getFileName())
+                                .uploadFileURL(postFile.getUrl())
+                                .fileType(postFile.getFileType())
                                 .build());
                     }
             );
@@ -159,13 +158,13 @@ public class PostService {
     2. 일부 데이터만 update
     3. 해시태그 수정시 -> 해시태그 확인 후 수정
     4. 멘션 수정시 -> 맨션 테이블 확인 후 수정
-    5. 사진 수정시 -> ....
+    5. 사진 수정시 -> 사진 테이블 확인 후 수정, S3 수정
      */
     @Transactional
-    public void updatePost(Long id, Long postId, @Valid PostPatchRequest postPatchRequest){
+    public void updatePost(Long id, Long postId, @Valid PostPatchRequest postPatchRequest) {
         Optional<Post> post = postRepository.findById(postId);
-        if(post.isPresent()) {
-            if(post.get().getMember().getId() == id) {
+        if (post.isPresent()) {
+            if (post.get().getMember().getId() == id) {
                 String previousContent = post.get().getContent(); //이전 게시글에서 해시태그, 멘션 추출 해서 비교
 
                 post.get().updateContent(postPatchRequest.content());
@@ -180,7 +179,7 @@ public class PostService {
                         .filter(mention -> !updateMentions.contains(mention))
                         .collect(Collectors.toList());
 
-                mentionService.updateMention(postId, addedMentions,removedMentions);
+                mentionService.updateMention(postId, addedMentions, removedMentions);
                 //이후에 바뀐 멘션으로 개수 바꾸기
                 post.get().updateMentionCnt(postPatchRequest.mention().size());
                 //멘션 수정 로직
@@ -195,7 +194,7 @@ public class PostService {
                         .filter(hashtag -> !updateHashTags.contains(hashtag))
                         .collect(Collectors.toList());
 
-                hashTagService.updateHashTag(postId,addedHashTags,removedHashTags);
+                hashTagService.updateHashTag(postId, addedHashTags, removedHashTags);
                 //해시태그 수정 로직
 
                 //댓글 허용여부 수정
@@ -215,7 +214,7 @@ public class PostService {
                             //새로 추가된 파일
                             boolean isNewFile = previousFiles.stream()
                                     .noneMatch(previousFile -> previousFile.getFileName().equals(fileName) && previousFile.getUrl().equals(url) && previousFile.getFileType().equals(fileType));
-                            if(isNewFile){
+                            if (isNewFile) {
                                 PostFile newFile = PostFile.builder()
                                         .post(post.get())
                                         .url(url)
@@ -232,7 +231,7 @@ public class PostService {
                 previousFiles.forEach(previousFile -> {
                     boolean isDeleted = postPatchRequest.postFileList().stream()
                             .noneMatch(file -> file.uploadFileName().equals(previousFile.getFileName()) && file.uploadFileURL().equals(previousFile.getUrl()) && file.fileType().equals(previousFile.getFileType()));
-                    if(isDeleted){ //삭제된 파일이면 연관관계 삭제 + S3에서도 삭제
+                    if (isDeleted) { //삭제된 파일이면 연관관계 삭제 + S3에서도 삭제
                         try {
                             postFileRepository.deleteById(previousFile.getId());
                             s3Service.deleteFile(previousFile.getFileName());
@@ -252,7 +251,7 @@ public class PostService {
         }
     }
 
-    public List<String> extractMention(String content){
+    public List<String> extractMention(String content) {
         List<String> mentions = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("@(\\w+)");
@@ -265,7 +264,7 @@ public class PostService {
         return mentions;
     }
 
-    public List<String> extractHashTag(String content){
+    public List<String> extractHashTag(String content) {
         List<String> hashtags = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("#\\S+");
