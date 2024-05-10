@@ -20,7 +20,7 @@ public class HashTagPostId implements Serializable {
     private Long post;
 
     @Builder
-    public HashTagPostId(Long hashtagId, Long postId){
+    public HashTagPostId(Long hashtagId, Long postId) {
         this.hashtag = hashtagId;
         this.post = postId;
     }

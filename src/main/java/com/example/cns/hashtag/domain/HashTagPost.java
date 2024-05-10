@@ -1,7 +1,8 @@
 package com.example.cns.hashtag.domain;
 
-import com.example.cns.feed.post.domain.Post;
-import jakarta.persistence.*;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class HashTagPost {
     private HashTagPostId id;
 
     @Builder
-    public HashTagPost(HashTagPostId id){
+    public HashTagPost(HashTagPostId id) {
         this.id = id;
     }
 }
