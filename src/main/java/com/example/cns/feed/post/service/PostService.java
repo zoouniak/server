@@ -1,6 +1,8 @@
 package com.example.cns.feed.post.service;
 
 import com.example.cns.common.exception.BusinessException;
+import com.example.cns.common.service.S3Service;
+import com.example.cns.common.type.FileType;
 import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +37,11 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final HashTagService hashTagService;
+    private final MentionService mentionService;
+    private final S3Service s3Service;
+
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-    private final MentionService mentionService;
     private final PostFileRepository postFileRepository;
 
     /*
@@ -198,6 +203,45 @@ public class PostService {
                 //댓글 허용여부 수정
 
                 //미디어 변경 로직
+                List<PostFile> previousFiles = postFileRepository.findAllByPostId(postId);
+                List<PostFileResponse> updateFile = new ArrayList<>();
+
+                postPatchRequest.postFileList().forEach(
+                        file -> {
+                            String url = file.uploadFileURL();
+                            String fileName = file.uploadFileName();
+                            FileType fileType = file.fileType();
+
+                            //새로 추가된 파일
+                            boolean isNewFile = previousFiles.stream()
+                                    .noneMatch(previousFile -> previousFile.getFileName().equals(fileName) && previousFile.getUrl().equals(url) && previousFile.getFileType().equals(fileType));
+                            if(isNewFile){
+                                PostFile newFile = PostFile.builder()
+                                        .post(post.get())
+                                        .url(url)
+                                        .fileName(fileName)
+                                        .fileType(fileType)
+                                        .createdAt(LocalDateTime.now())
+                                        .build();
+                                postFileRepository.save(newFile);
+                            }
+                            //새로 추가된 파일
+                        }
+                );
+                //삭제된 파일
+                previousFiles.forEach(previousFile -> {
+                    boolean isDeleted = postPatchRequest.postFileList().stream()
+                            .noneMatch(file -> file.uploadFileName().equals(previousFile.getFileName()) && file.uploadFileURL().equals(previousFile.getUrl()) && file.fileType().equals(previousFile.getFileType()));
+                    if(isDeleted){ //삭제된 파일이면 연관관계 삭제 + S3에서도 삭제
+                        try {
+                            postFileRepository.deleteById(previousFile.getId());
+                            s3Service.deleteFile(previousFile.getFileName());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+                //삭제된 파일
 
                 //미디어 변경 로직
 

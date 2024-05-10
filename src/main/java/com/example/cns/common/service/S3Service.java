@@ -1,8 +1,10 @@
 package com.example.cns.common.service;
 
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.example.cns.common.exception.BusinessException;
@@ -88,6 +90,15 @@ public class S3Service {
         }
 
         return uploadFileList;
+    }
+
+    public void deleteFile(String fileName) throws IOException{
+        try{
+            String keyName = postPath + "/" + fileName;
+            amazonS3Client.deleteObject(new DeleteObjectRequest(bucketName,keyName));
+        }catch (SdkClientException e){
+            throw new IOException("S3에서 삭제 실패",e);
+        }
     }
 
     private String getUUIDFileName(String fileName) {
