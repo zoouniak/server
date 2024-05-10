@@ -163,6 +163,7 @@ public class PostService {
     @Transactional
     public void updatePost(Long id, Long postId, @Valid PostPatchRequest postPatchRequest) {
         Optional<Post> post = postRepository.findById(postId);
+
         if (post.isPresent()) {
             if (post.get().getMember().getId() == id) {
                 String previousContent = post.get().getContent(); //이전 게시글에서 해시태그, 멘션 추출 해서 비교
@@ -203,7 +204,6 @@ public class PostService {
 
                 //미디어 변경 로직
                 List<PostFile> previousFiles = postFileRepository.findAllByPostId(postId);
-                List<PostFileResponse> updateFile = new ArrayList<>();
 
                 postPatchRequest.postFileList().forEach(
                         file -> {
@@ -234,12 +234,13 @@ public class PostService {
                     if (isDeleted) { //삭제된 파일이면 연관관계 삭제 + S3에서도 삭제
                         try {
                             postFileRepository.deleteById(previousFile.getId());
-                            s3Service.deleteFile(previousFile.getFileName());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            s3Service.deleteFile(previousFile.getFileName(), "post");
+                        } catch (IOException e) { //파일 수정 실패
+                            throw new BusinessException(ExceptionCode.IMAGE_UPDATE_FAILED);
                         }
                     }
                 });
+                post.get().updateFileCnt(postPatchRequest.postFileList().size());
                 //삭제된 파일
 
                 //미디어 변경 로직
@@ -247,7 +248,7 @@ public class PostService {
                 //변경사항 저장
                 postRepository.save(post.get());
                 //변경사항 저장
-            } //else return; //해당 사용자가 아닐경우 오류
+            } else throw new BusinessException(ExceptionCode.INVALID_ROLE);
         }
     }
 

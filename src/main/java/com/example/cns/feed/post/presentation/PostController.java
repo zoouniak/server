@@ -113,7 +113,7 @@ public class PostController {
     )
     @PostMapping("/post/media")
     public ResponseEntity uploadPostFile(PostFileRequest postFileRequest) {
-        List<PostFileResponse> postFileResponses = s3Service.uploadPostFile(postFileRequest.files());
+        List<PostFileResponse> postFileResponses = s3Service.uploadPostFile(postFileRequest.files(),"post");
         return ResponseEntity.ok(postFileResponses);
     }
 

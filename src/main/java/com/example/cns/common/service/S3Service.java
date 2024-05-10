@@ -38,7 +38,7 @@ public class S3Service {
     2. 파일을 가져오고 UUID형태로 바꾸고 저장
     3. 해당 파일 경로 제공
      */
-    public List<PostFileResponse> uploadPostFile(List<MultipartFile> postFileRequest) {
+    public List<PostFileResponse> uploadPostFile(List<MultipartFile> postFileRequest, String path) {
         List<PostFileResponse> uploadFileList = new ArrayList<>();
 
         /*
@@ -70,7 +70,7 @@ public class S3Service {
                         objectMetadata.setContentType(multipartFile.getContentType());
 
                         try (InputStream inputStream = multipartFile.getInputStream()) {
-                            String keyName = postPath + "/" + uploadFileName;
+                            String keyName = path + "/" + uploadFileName;
 
                             //S3에 저장하는데 외부에서 읽기 가능 권한 부여해서 저장
                             amazonS3Client.putObject(
@@ -90,9 +90,9 @@ public class S3Service {
         return uploadFileList;
     }
 
-    public void deleteFile(String fileName) throws IOException {
+    public void deleteFile(String fileName, String path) throws IOException {
         try {
-            String keyName = postPath + "/" + fileName;
+            String keyName = path + "/" + fileName;
             amazonS3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
         } catch (SdkClientException e) {
             throw new IOException("S3에서 삭제 실패", e);
