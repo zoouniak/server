@@ -73,8 +73,6 @@ public class ChatRoomService {
      * 채팅 참여 정보 저장
      */
     private void saveChatParticipation(List<Long> inviteList, Long roomId) {
-        // 채팅 참여 저장 전 채팅방 존재 검증
-        verifyRoomId(roomId);
         for (Long guestId : inviteList) {
             // 사용자 존재 검증
             verifyMember(guestId);
@@ -93,13 +91,16 @@ public class ChatRoomService {
         chatParticipationRepository.deleteByMemberAndRoom(memberId, roomId);
     }
 
-    @Transactional(readOnly = true)
-    public List<ChatParticipantsResponse> getChatParticipants(Long roomId, Long memberId) {
-        // 채팅방 존재 여부 검증
-        verifyChatRoom(roomId);
-        // 요청 회원의 채팅방 참여자 여부 검증
-        verifyMemberInChatRoom(memberId, roomId);
+    /*
+     * 채팅방 회원 추가
+     */
+    @Transactional
+    public void addParticipantsInChatRoom(List<Long> inviteList, Long roomId) {
+        saveChatParticipation(inviteList, roomId);
+    }
 
+    @Transactional(readOnly = true)
+    public List<ChatParticipantsResponse> getChatParticipants(Long roomId) {
         // 참여자 조회
         List<ChatParticipation> participants = chatParticipationRepository.findMemberByRoom(roomId);
 
@@ -115,24 +116,28 @@ public class ChatRoomService {
         return responses;
     }
 
+    /*
+     * 채팅방 존재 여부 검증
+     */
+    @Transactional(readOnly = true)
+    public void verifyRoomId(Long roomId) {
+        chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
+    }
+
+    /*
+     * 채팅방에 속해있는 회원인지 여부 검증
+     */
+    @Transactional(readOnly = true)
+    public void verifyMemberInChatRoom(Long memberId, Long roomId) {
+        chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
+                .orElseThrow(() -> new BusinessException(NOT_PARTICIPANTS));
+    }
+
     private void verifyMember(Long memberId) {
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
     }
 
-    private void verifyRoomId(Long roomId) {
-        chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
-    }
 
-
-    private void verifyMemberInChatRoom(Long memberId, Long roomId) {
-        chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
-                .orElseThrow(() -> new BusinessException(NOT_PARTICIPANTS));
-    }
-
-    private void verifyChatRoom(Long roomId) {
-        chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
-    }
 }

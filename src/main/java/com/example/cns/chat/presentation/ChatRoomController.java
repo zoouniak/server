@@ -2,6 +2,7 @@ package com.example.cns.chat.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
+import com.example.cns.chat.dto.request.MemberAddRequest;
 import com.example.cns.chat.dto.response.ChatParticipantsResponse;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.dto.response.ChatRoomIdResponse;
@@ -106,7 +107,34 @@ public class ChatRoomController {
             })
     @GetMapping("/{roomId}/participant")
     public ResponseEntity getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
-        List<ChatParticipantsResponse> participants = chatRoomService.getChatParticipants(roomId, memberId);
+        chatRoomService.verifyRoomId(roomId);
+        chatRoomService.verifyMemberInChatRoom(memberId, roomId);
+
+        List<ChatParticipantsResponse> participants = chatRoomService.getChatParticipants(roomId);
         return ResponseEntity.ok(participants);
+    }
+
+    @Operation(summary = "채팅방 추가 초대", description = "채팅방 번호와 초대할 회원을 입력받고 채팅방에 회원들을 새롭게 초대한다.")
+    @Parameter(name = "roomId", description = "채팅방 번호", required = true)
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "초대 성공"),
+                    @ApiResponse(responseCode = "400", description = "해당 채팅방의 참여자가 아닐 경우"
+                    )
+            })
+    @PostMapping("/{roomId}/invite")
+    public ResponseEntity addMemberInChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId,
+                                              @RequestBody MemberAddRequest inviteList) {
+        chatRoomService.verifyMemberInChatRoom(memberId, roomId);
+
+        chatRoomService.addParticipantsInChatRoom(inviteList.inviteList(), roomId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{roomId}/image")
+    public ResponseEntity getImagesInChatRoom(@PathVariable Long roomId) {
+        // todo 채팅방 내 파일조회 구현
+        //chatRoomService.getImages(roomId);
+        return null;
     }
 }
