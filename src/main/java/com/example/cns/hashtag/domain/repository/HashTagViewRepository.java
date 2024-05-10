@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface HashTagViewRepository extends JpaRepository<HashTagView,Long> {
+public interface HashTagViewRepository extends JpaRepository<HashTagView, Long> {
     @Query("SELECT hv FROM hashtag_view hv where hv.name= :keyword")
     Optional<HashTagView> findHashTagViewByName(@Param("keyword") String keyword);
+
+
+    List<HashTagView> findHashTagViewsByNameContainingIgnoreCase(String keyword);
 }
