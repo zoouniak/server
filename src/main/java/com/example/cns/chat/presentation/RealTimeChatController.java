@@ -6,7 +6,6 @@ import com.example.cns.chat.service.ChatService;
 import com.example.cns.chat.service.MessagePublisher;
 import com.example.cns.chat.service.MessageSubscriber;
 import com.example.cns.common.service.S3Service;
-import com.example.cns.feed.post.dto.request.PostFileRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -46,7 +45,8 @@ public class RealTimeChatController {
 
         List<MultipartFile> fileList = new ArrayList<>();
         fileList.add(new MultipartFileConverter(imgByte));
-        List<PostFileResponse> postFileResponses = fileUploader.uploadPostFile(new PostFileRequest(fileList));
+        List<PostFileResponse> postFileResponses = fileUploader.uploadPostFile(fileList, "resume");
+
         chatService.saveImageMessage(imageMessage, postFileResponses);
 
         publisher.publish(roomId, imageMessage);
