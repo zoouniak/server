@@ -6,8 +6,11 @@ import com.example.cns.common.service.S3Service;
 import com.example.cns.common.type.FileType;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
+import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
+import com.example.cns.feed.post.domain.repository.PostLikeRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
+import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
@@ -43,6 +46,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final PostFileRepository postFileRepository;
+    private final PostLikeRepository postLikeRepository;
 
     /*
     게시글 저장
@@ -252,7 +256,40 @@ public class PostService {
         }
     }
 
-    public List<String> extractMention(String content) {
+    @Transactional
+    public void addLike(Long id, PostLikeRequest postLikeRequest){
+        Long postId = postLikeRequest.postId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Post> post = postRepository.findById(postId);
+        if(post.isPresent() && member.isPresent()){
+            Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
+            if(postLike.isEmpty()){ //좋아요 중복 방지
+                PostLike like = PostLike.builder()
+                        .member(member.get())
+                        .post(post.get())
+                        .build();
+                postLikeRepository.save(like);
+                post.get().plusLikeCnt();
+            }
+        }
+    }
+
+    @Transactional
+    public void deleteLike(Long id, PostLikeRequest postLikeRequest) {
+        Long postId = postLikeRequest.postId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Post> post = postRepository.findById(postId);
+        if (post.isPresent() && member.isPresent()) {
+            Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
+            if(postLike.isPresent()){
+                postLikeRepository.deletePostLikeByMemberIdAndPostId(member.get().getId(), post.get().getId());
+                post.get().minusLikeCnt();
+            }
+        }
+    }
+
+
+    private List<String> extractMention(String content) {
         List<String> mentions = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("@(\\w+)");
@@ -265,7 +302,7 @@ public class PostService {
         return mentions;
     }
 
-    public List<String> extractHashTag(String content) {
+    private List<String> extractHashTag(String content) {
         List<String> hashtags = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("#\\S+");

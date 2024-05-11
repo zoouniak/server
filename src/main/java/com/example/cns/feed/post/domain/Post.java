@@ -53,6 +53,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> likes = new ArrayList<>();
+
     @Builder
     public Post(Member member, String content, int mentionCnt, int fileCnt, boolean isCommentEnabled) {
         this.member = member;
@@ -81,5 +84,13 @@ public class Post {
 
     public void updateFileCnt(int fileCnt) {
         this.fileCnt = fileCnt;
+    }
+
+    public void plusLikeCnt(){
+        this.likeCnt += 1;
+    }
+
+    public void minusLikeCnt(){
+        this.likeCnt -= 1;
     }
 }

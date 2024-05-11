@@ -3,6 +3,7 @@ package com.example.cns.feed.post.presentation;
 import com.example.cns.auth.config.Auth;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.request.PostFileRequest;
+import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
@@ -153,6 +154,24 @@ public class PostController {
     public ResponseEntity<List<PostFileResponse>> getPostMedia(@PathVariable Long postId) {
         List<PostFileResponse> postMedia = postService.getPostMedia(postId);
         return ResponseEntity.ok(postMedia);
+    }
+
+    /*
+    게시글 좋아요 기능
+     */
+    @PostMapping("/post/like")
+    public ResponseEntity addLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
+        postService.addLike(id,postLikeRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    /*
+    게시글 좋아요 취소 기능
+     */
+    @DeleteMapping("/post/like")
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
+        postService.deleteLike(id,postLikeRequest);
+        return ResponseEntity.ok().build();
     }
 
 }
