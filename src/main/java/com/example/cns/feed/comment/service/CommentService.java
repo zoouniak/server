@@ -3,8 +3,11 @@ package com.example.cns.feed.comment.service;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.feed.comment.domain.Comment;
+import com.example.cns.feed.comment.domain.CommentLike;
+import com.example.cns.feed.comment.domain.repository.CommentLikeRepository;
 import com.example.cns.feed.comment.domain.repository.CommentRepository;
 import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.dto.request.CommentLikeRequest;
 import com.example.cns.feed.comment.dto.request.CommentPostRequest;
 import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
@@ -33,6 +36,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     /*
     댓글 달기
@@ -129,6 +133,9 @@ public class CommentService {
         return responses;
     }
 
+    /*
+    대댓글 조회
+     */
     public List<CommentResponse> getCommentReply(Long postId, Long commentId) {
         List<Comment> comments = commentRepository.findAllCommentReplyByPostId(postId, commentId);
         List<CommentResponse> responses = new ArrayList<>();
@@ -145,6 +152,46 @@ public class CommentService {
                 }
         );
         return responses;
+    }
+
+    /*
+    댓글 좋아요 기능
+     */
+    @Transactional
+    public void addLike(Long id, CommentLikeRequest commentLikeRequest){
+        Long commentId = commentLikeRequest.commentId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Comment> comment = commentRepository.findById(commentId);
+
+        if(member.isPresent() && comment.isPresent()){
+            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
+            if(commentLike.isEmpty()){
+                CommentLike like = CommentLike.builder()
+                        .comment(comment.get())
+                        .member(member.get())
+                        .build();
+                commentLikeRepository.save(like);
+                comment.get().plusLikeCnt();
+            }
+        }
+    }
+
+    /*
+    댓글 좋아요 취소 기능
+     */
+    @Transactional
+    public void deleteLike(Long id, CommentLikeRequest commentLikeRequest){
+        Long commentId = commentLikeRequest.commentId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Comment> comment = commentRepository.findById(commentId);
+
+        if(member.isPresent() && comment.isPresent()){
+            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
+            if(commentLike.isPresent()){
+                commentLikeRepository.deleteByMemberIdAndCommentId(member.get().getId(),comment.get().getId());
+                comment.get().minusLikeCnt();
+            }
+        }
     }
 
 }

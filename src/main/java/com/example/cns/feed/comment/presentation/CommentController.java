@@ -2,6 +2,7 @@ package com.example.cns.feed.comment.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.dto.request.CommentLikeRequest;
 import com.example.cns.feed.comment.dto.request.CommentPostRequest;
 import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
@@ -132,5 +133,20 @@ public class CommentController {
     public ResponseEntity getCommentReply(@PathVariable Long postId, @PathVariable Long commentId) {
         List<CommentResponse> commentReply = commentService.getCommentReply(postId, commentId);
         return ResponseEntity.ok(commentReply);
+    }
+
+    /*
+    댓글 좋아요 기능
+     */
+    @PostMapping("/comment/like")
+    public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
+        commentService.addLike(id, commentLikeRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/comment/like")
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
+        commentService.deleteLike(id,commentLikeRequest);
+        return ResponseEntity.ok().build();
     }
 }
