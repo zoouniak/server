@@ -46,6 +46,7 @@ public class ChatRoomService {
                     .lastChatSendAt(chatRoom.getLastChatSendAt())
                     .isRead(chatParticipationRepository.findIsRead(memberId, chatRoom.getId())) // 회원의 채팅방 읽음 여부 조회
                     .lastChat(chatRoom.getLastChat())
+                    .roomType(chatRoom.getRoomType())
                     .build());
         }
 
