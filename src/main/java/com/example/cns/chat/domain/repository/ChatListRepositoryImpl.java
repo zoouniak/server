@@ -26,6 +26,7 @@ public class ChatListRepositoryImpl extends QuerydslRepositorySupport {
                         chat.id.as("chatId"),
                         chat.content,
                         chat.from.nickname.as("from"),
+                        chat.from.id.as("memberId"),
                         chat.createdAt,
                         chat.messageType))
                 .from(chat)
