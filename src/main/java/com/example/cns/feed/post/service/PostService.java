@@ -4,6 +4,8 @@ import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.common.type.FileType;
+import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.service.CommentService;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.PostLike;
@@ -42,6 +44,7 @@ public class PostService {
     private final HashTagService hashTagService;
     private final MentionService mentionService;
     private final S3Service s3Service;
+    private final CommentService commentService;
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
@@ -97,6 +100,12 @@ public class PostService {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isPresent()) {
             if (post.get().getMember().getId() == id) {
+                //게시글의 댓글들 삭제 로직
+                post.get().getComments().forEach(
+                        comment -> {
+                            commentService.deleteComment(-1L,new CommentDeleteRequest(postId,comment.getId()));
+                        }
+                );
                 hashTagService.deleteHashTag(postId); //해시태그 삭제
                 mentionService.deletePostMention(postId); //멘션 테이블 삭제
                 postRepository.deleteById(postId); //게시글 삭제

@@ -101,7 +101,7 @@ public class CommentService {
     public void deleteComment(Long id, CommentDeleteRequest commentDeleteRequest) {
         Optional<Comment> comment = commentRepository.findById(commentDeleteRequest.commentId());
         if (comment.isPresent()) {
-            if (Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) {
+            if ((Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
 
                 //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
                 if(comment.get().getChildComments().size() > 0){
