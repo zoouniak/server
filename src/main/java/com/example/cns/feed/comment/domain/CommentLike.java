@@ -25,7 +25,7 @@ public class CommentLike {
     private Member member;
 
     @Builder
-    public CommentLike(Comment comment, Member member){
+    public CommentLike(Comment comment, Member member) {
         this.comment = comment;
         this.member = member;
     }

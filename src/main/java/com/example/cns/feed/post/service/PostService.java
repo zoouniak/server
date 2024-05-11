@@ -103,7 +103,7 @@ public class PostService {
                 //게시글의 댓글들 삭제 로직
                 post.get().getComments().forEach(
                         comment -> {
-                            commentService.deleteComment(-1L,new CommentDeleteRequest(postId,comment.getId()));
+                            commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
                         }
                 );
                 hashTagService.deleteHashTag(postId); //해시태그 삭제
@@ -134,7 +134,7 @@ public class PostService {
 
             boolean liked = false;
 
-            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(),id);
+            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(), id);
 
             postResponses.add(PostResponse.builder()
                     .id(post.getId())
@@ -276,13 +276,13 @@ public class PostService {
     }
 
     @Transactional
-    public void addLike(Long id, PostLikeRequest postLikeRequest){
+    public void addLike(Long id, PostLikeRequest postLikeRequest) {
         Long postId = postLikeRequest.postId();
         Optional<Member> member = memberRepository.findById(id);
         Optional<Post> post = postRepository.findById(postId);
-        if(post.isPresent() && member.isPresent()){
+        if (post.isPresent() && member.isPresent()) {
             Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
-            if(postLike.isEmpty()){ //좋아요 중복 방지
+            if (postLike.isEmpty()) { //좋아요 중복 방지
                 PostLike like = PostLike.builder()
                         .member(member.get())
                         .post(post.get())
@@ -300,7 +300,7 @@ public class PostService {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isPresent() && member.isPresent()) {
             Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
-            if(postLike.isPresent()){
+            if (postLike.isPresent()) {
                 postLikeRepository.deletePostLikeByMemberIdAndPostId(member.get().getId(), post.get().getId());
                 post.get().minusLikeCnt();
             }

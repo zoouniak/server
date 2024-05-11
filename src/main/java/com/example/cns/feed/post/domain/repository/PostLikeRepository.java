@@ -17,7 +17,7 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     void deletePostLikeByMemberIdAndPostId(@Param("memberId") Long memberId, @Param("postId") Long postId);
 
     @Query("SELECT pk FROM PostLike pk where pk.member.id = :memberId and pk.post.id = :postId")
-    Optional<PostLike> findByMemberIdAndPostId(@Param("memberId")Long memberId, @Param("postId") Long postId);
+    Optional<PostLike> findByMemberIdAndPostId(@Param("memberId") Long memberId, @Param("postId") Long postId);
 
     @Query("SELECT CASE WHEN COUNT(pl) > 0 THEN true ELSE false END FROM PostLike pl WHERE pl.post.id = :postId AND pl.member.id = :memberId")
     boolean existsByPostIdAndMemberId(@Param("postId") Long postId, @Param("memberId") Long memberId);

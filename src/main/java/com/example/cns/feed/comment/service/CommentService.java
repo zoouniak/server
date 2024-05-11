@@ -104,7 +104,7 @@ public class CommentService {
             if ((Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
 
                 //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
-                if(comment.get().getChildComments().size() > 0){
+                if (comment.get().getChildComments().size() > 0) {
                     //대댓글들의 멘션 삭제
                     comment.get().getChildComments().forEach(
                             childComment -> {
@@ -170,14 +170,14 @@ public class CommentService {
     댓글 좋아요 기능
      */
     @Transactional
-    public void addLike(Long id, CommentLikeRequest commentLikeRequest){
+    public void addLike(Long id, CommentLikeRequest commentLikeRequest) {
         Long commentId = commentLikeRequest.commentId();
         Optional<Member> member = memberRepository.findById(id);
         Optional<Comment> comment = commentRepository.findById(commentId);
 
-        if(member.isPresent() && comment.isPresent()){
+        if (member.isPresent() && comment.isPresent()) {
             Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
-            if(commentLike.isEmpty()){
+            if (commentLike.isEmpty()) {
                 CommentLike like = CommentLike.builder()
                         .comment(comment.get())
                         .member(member.get())
@@ -192,15 +192,15 @@ public class CommentService {
     댓글 좋아요 취소 기능
      */
     @Transactional
-    public void deleteLike(Long id, CommentLikeRequest commentLikeRequest){
+    public void deleteLike(Long id, CommentLikeRequest commentLikeRequest) {
         Long commentId = commentLikeRequest.commentId();
         Optional<Member> member = memberRepository.findById(id);
         Optional<Comment> comment = commentRepository.findById(commentId);
 
-        if(member.isPresent() && comment.isPresent()){
+        if (member.isPresent() && comment.isPresent()) {
             Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
-            if(commentLike.isPresent()){
-                commentLikeRepository.deleteByMemberIdAndCommentId(member.get().getId(),comment.get().getId());
+            if (commentLike.isPresent()) {
+                commentLikeRepository.deleteByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
                 comment.get().minusLikeCnt();
             }
         }

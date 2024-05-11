@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -58,11 +57,11 @@ public class Comment {
         this.createdAt = createdAt;
     }
 
-    public void plusLikeCnt(){
+    public void plusLikeCnt() {
         this.likeCnt += 1;
     }
 
-    public void minusLikeCnt(){
+    public void minusLikeCnt() {
         this.likeCnt -= 1;
     }
 }

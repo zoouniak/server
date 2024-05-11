@@ -86,11 +86,11 @@ public class Post {
         this.fileCnt = fileCnt;
     }
 
-    public void plusLikeCnt(){
+    public void plusLikeCnt() {
         this.likeCnt += 1;
     }
 
-    public void minusLikeCnt(){
+    public void minusLikeCnt() {
         this.likeCnt -= 1;
     }
 }

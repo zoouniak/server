@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -131,7 +130,7 @@ public class PostController {
             "v1 - 변경 가능성 높음 : 초기값은 0 or null값 -> 최신 10개 조회, 이후부터 커서값(게시글 인덱스값)을 입력하면 해당 게시글 이후 내용을 가져옵니다.")
     @Parameters(
             value = {
-                    @Parameter (name = "id",description = "JWT/사용자 id"),
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
                     @Parameter(name = "cursorValue", description = "마지막으로 본 게시글 인덱스")
             }
     )
@@ -143,7 +142,7 @@ public class PostController {
     )
     @GetMapping("/post/home")
     public ResponseEntity<List<PostResponse>> getPosts(
-            @Auth Long id,@RequestParam(name = "cursorValue", required = false) Long cursorValue) {
+            @Auth Long id, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
 
         List<PostResponse> posts = postService.getPosts(cursorValue, id);
         return ResponseEntity.ok(posts);
@@ -179,12 +178,12 @@ public class PostController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "좋아요 성공시 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
             }
     )
     @PostMapping("/post/like")
-    public ResponseEntity addLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
-        postService.addLike(id,postLikeRequest);
+    public ResponseEntity addLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest) {
+        postService.addLike(id, postLikeRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -205,8 +204,8 @@ public class PostController {
             }
     )
     @DeleteMapping("/post/like")
-    public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
-        postService.deleteLike(id,postLikeRequest);
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest) {
+        postService.deleteLike(id, postLikeRequest);
         return ResponseEntity.ok().build();
     }
 

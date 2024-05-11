@@ -25,4 +25,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(httpStatus).body(exceptionResponse);
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ExceptionResponse> handleAuthException(final IllegalStateException e) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(4002, "요청에 대한 권한이 없습니다.");
+        return ResponseEntity.status(403).body(exceptionResponse);
+    }
+
 }

@@ -152,7 +152,7 @@ public class CommentController {
             }
     )
     @PostMapping("/comment/like")
-    public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
+    public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
         commentService.addLike(id, commentLikeRequest);
         return ResponseEntity.ok().build();
     }
@@ -171,8 +171,8 @@ public class CommentController {
             }
     )
     @DeleteMapping("/comment/like")
-    public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
-        commentService.deleteLike(id,commentLikeRequest);
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
+        commentService.deleteLike(id, commentLikeRequest);
         return ResponseEntity.ok().build();
     }
 }
