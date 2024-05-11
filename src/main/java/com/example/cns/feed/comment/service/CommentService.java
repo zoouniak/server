@@ -95,15 +95,27 @@ public class CommentService {
     1. 사용자가 댓글 작성자인지, 해당 게시글에 맞는건지 확인
     2. 언급 데이터 삭제
     3. 댓글 및 대댓글 삭제
+    4. 게시글에서 댓글 삭제시에는? 사용자 검증 패스해야함... 조건문에 id가 0일경우? 게시글삭제라고할까?
      */
     @Transactional
     public void deleteComment(Long id, CommentDeleteRequest commentDeleteRequest) {
         Optional<Comment> comment = commentRepository.findById(commentDeleteRequest.commentId());
         if (comment.isPresent()) {
-            if (Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getId(), commentDeleteRequest.postId())) {
-                //언급 삭제
+            if (Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) {
+
+                //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
+                if(comment.get().getChildComments().size() > 0){
+                    //대댓글들의 멘션 삭제
+                    comment.get().getChildComments().forEach(
+                            childComment -> {
+                                System.out.println(childComment.getId());
+                                mentionService.deleteCommentMention(new CommentDeleteRequest(commentDeleteRequest.postId(), childComment.getId()));
+                            }
+                    );
+                }
+                //해당 댓글 언급 삭제
                 mentionService.deleteCommentMention(commentDeleteRequest);
-                //댓글 삭제
+                //해당 댓글 및 자식 댓글 삭제
                 commentRepository.deleteById(commentDeleteRequest.commentId());
             } else throw new BusinessException(ExceptionCode.INCORRECT_INFO);
         } else throw new BusinessException(ExceptionCode.COMMENT_NOT_EXIST);

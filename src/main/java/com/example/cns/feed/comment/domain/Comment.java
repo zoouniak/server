@@ -43,7 +43,7 @@ public class Comment {
     @ColumnDefault("0")
     private int likeCnt;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     private List<Comment> childComments;
 
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)

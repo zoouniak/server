@@ -91,7 +91,7 @@ public class CommentController {
             }
     )
     @DeleteMapping("/comment")
-    public ResponseEntity deleteComment(@Parameter(name = "id", description = "JWT/사용자 id") @Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
+    public ResponseEntity deleteComment(@Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
         commentService.deleteComment(id, commentDeleteRequest);
         return ResponseEntity.ok().build();
     }
