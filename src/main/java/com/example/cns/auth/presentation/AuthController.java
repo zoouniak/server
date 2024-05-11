@@ -80,14 +80,14 @@ public class AuthController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "토큰 재발급 성공", headers = {
-                            @Header(name = "Set-Cookie", description = "refresh-token"),
+                            @Header(name = "RefreshToken", description = "refresh-token"),
                             @Header(name = "Authorization", description = "access-token")
                     }),
                     @ApiResponse(responseCode = "400", description = "실패(refresh token invalid)",
                             content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
             })
     @PostMapping("/refresh")
-    public ResponseEntity renew(@RequestHeader(name = "refreshToken") String refreshToken
+    public ResponseEntity renew(@RequestHeader(name = "RefreshToken") String refreshToken
     ) {
         AuthTokens refreshTokens = memberAuthService.refreshTokens(refreshToken);
 
