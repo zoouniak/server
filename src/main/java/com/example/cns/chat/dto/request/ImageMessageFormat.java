@@ -30,7 +30,7 @@ public record ImageMessageFormat(
                 .messageType(MessageType.IMAGE)
                 .createdAt(now)
                 .subjectId(null)
-                .content(content)
+                .content("")
                 .chatRoom(chatRoom)
                 .build();
     }
