@@ -21,7 +21,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -78,8 +77,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:5173");
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"));
-        configuration.setAllowedHeaders(List.of("Set-Cookie", "Authorization", "Content-Type", "Cache-Control"));
-        configuration.setExposedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));
+        configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
