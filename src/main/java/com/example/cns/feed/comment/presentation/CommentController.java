@@ -138,12 +138,38 @@ public class CommentController {
     /*
     댓글 좋아요 기능
      */
+    @Operation(summary = "댓글 좋아요 api", description = "특정 댓글 인덱스값을 받아 좋아요를 한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "commentLikeRequest", description = "댓글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 성공시 200을 반환한다.",
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
     @PostMapping("/comment/like")
     public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
         commentService.addLike(id, commentLikeRequest);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "댓글 좋아요 취소 api", description = "특정 댓글 인덱스값을 받아 좋아요를 취소한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "commentLikeRequest", description = "댓글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 취소 성공시 200을 반환한다.",
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
     @DeleteMapping("/comment/like")
     public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest){
         commentService.deleteLike(id,commentLikeRequest);
