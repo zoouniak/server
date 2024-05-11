@@ -4,10 +4,15 @@ import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.common.type.FileType;
+import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.service.CommentService;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
+import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
+import com.example.cns.feed.post.domain.repository.PostLikeRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
+import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
@@ -39,10 +44,12 @@ public class PostService {
     private final HashTagService hashTagService;
     private final MentionService mentionService;
     private final S3Service s3Service;
+    private final CommentService commentService;
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final PostFileRepository postFileRepository;
+    private final PostLikeRepository postLikeRepository;
 
     /*
     게시글 저장
@@ -93,6 +100,12 @@ public class PostService {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isPresent()) {
             if (post.get().getMember().getId() == id) {
+                //게시글의 댓글들 삭제 로직
+                post.get().getComments().forEach(
+                        comment -> {
+                            commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
+                        }
+                );
                 hashTagService.deleteHashTag(postId); //해시태그 삭제
                 mentionService.deletePostMention(postId); //멘션 테이블 삭제
                 postRepository.deleteById(postId); //게시글 삭제
@@ -105,8 +118,12 @@ public class PostService {
 
     /*
     모든 게시글 조회
+    1. cursorValue가 없을 경우 최신 10개
+    1-1. cursorValue가 있을 경우 해당 값에서 10개
+    2. 해당 10개의 게시글중 본인이 좋아요를 했는가?
+    3. 반환
      */
-    public List<PostResponse> getPosts(Long cursorValue) {
+    public List<PostResponse> getPosts(Long cursorValue, Long id) {
 
         if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
 
@@ -114,6 +131,11 @@ public class PostService {
         List<PostResponse> postResponses = new ArrayList<>();
 
         posts.forEach(post -> {
+
+            boolean liked = false;
+
+            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(), id);
+
             postResponses.add(PostResponse.builder()
                     .id(post.getId())
                     .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
@@ -123,6 +145,7 @@ public class PostService {
                     .commentCnt(post.getComments().size())
                     .createdAt(post.getCreatedAt())
                     .isCommentEnabled(post.isCommentEnabled())
+                    .liked(liked)
                     .build());
         });
         return postResponses;
@@ -252,7 +275,40 @@ public class PostService {
         }
     }
 
-    public List<String> extractMention(String content) {
+    @Transactional
+    public void addLike(Long id, PostLikeRequest postLikeRequest) {
+        Long postId = postLikeRequest.postId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Post> post = postRepository.findById(postId);
+        if (post.isPresent() && member.isPresent()) {
+            Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
+            if (postLike.isEmpty()) { //좋아요 중복 방지
+                PostLike like = PostLike.builder()
+                        .member(member.get())
+                        .post(post.get())
+                        .build();
+                postLikeRepository.save(like);
+                post.get().plusLikeCnt();
+            }
+        }
+    }
+
+    @Transactional
+    public void deleteLike(Long id, PostLikeRequest postLikeRequest) {
+        Long postId = postLikeRequest.postId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Post> post = postRepository.findById(postId);
+        if (post.isPresent() && member.isPresent()) {
+            Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.get().getId(), post.get().getId());
+            if (postLike.isPresent()) {
+                postLikeRepository.deletePostLikeByMemberIdAndPostId(member.get().getId(), post.get().getId());
+                post.get().minusLikeCnt();
+            }
+        }
+    }
+
+
+    private List<String> extractMention(String content) {
         List<String> mentions = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("@(\\w+)");
@@ -265,7 +321,7 @@ public class PostService {
         return mentions;
     }
 
-    public List<String> extractHashTag(String content) {
+    private List<String> extractHashTag(String content) {
         List<String> hashtags = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("#\\S+");

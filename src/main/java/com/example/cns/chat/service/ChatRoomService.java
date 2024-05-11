@@ -4,6 +4,7 @@ import com.example.cns.chat.domain.ChatParticipation;
 import com.example.cns.chat.domain.ChatParticipationID;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatParticipationRepository;
+import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.response.ChatParticipantsResponse;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import static com.example.cns.common.exception.ExceptionCode.*;
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
+    private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
@@ -43,9 +46,9 @@ public class ChatRoomService {
             responses.add(ChatRoomResponse.builder()
                     .roomId(chatRoom.getId())
                     .roomName(chatRoom.getName())
-                    .lastChatSendAt(chatRoom.getLastChatSendAt())
+                    .lastChatSendAt(LocalDateTime.now())
                     .isRead(chatParticipationRepository.findIsRead(memberId, chatRoom.getId())) // 회원의 채팅방 읽음 여부 조회
-                    .lastChat(chatRoom.getLastChat())
+                    .lastChat("chatRoom.getLastChat()")
                     .roomType(chatRoom.getRoomType())
                     .build());
         }

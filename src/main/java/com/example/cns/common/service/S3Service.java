@@ -29,9 +29,6 @@ public class S3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Value("${spring.cloud.aws.s3.folder2}")
-    private String postPath;
-
     /*
     게시글 파일 업로드
     1. post 폴더에 저장하는 방식

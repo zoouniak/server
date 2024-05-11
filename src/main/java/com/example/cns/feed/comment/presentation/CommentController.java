@@ -2,6 +2,7 @@ package com.example.cns.feed.comment.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.dto.request.CommentLikeRequest;
 import com.example.cns.feed.comment.dto.request.CommentPostRequest;
 import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
@@ -90,7 +91,7 @@ public class CommentController {
             }
     )
     @DeleteMapping("/comment")
-    public ResponseEntity deleteComment(@Parameter(name = "id", description = "JWT/사용자 id") @Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
+    public ResponseEntity deleteComment(@Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
         commentService.deleteComment(id, commentDeleteRequest);
         return ResponseEntity.ok().build();
     }
@@ -132,5 +133,46 @@ public class CommentController {
     public ResponseEntity getCommentReply(@PathVariable Long postId, @PathVariable Long commentId) {
         List<CommentResponse> commentReply = commentService.getCommentReply(postId, commentId);
         return ResponseEntity.ok(commentReply);
+    }
+
+    /*
+    댓글 좋아요 기능
+     */
+    @Operation(summary = "댓글 좋아요 api", description = "특정 댓글 인덱스값을 받아 좋아요를 한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "commentLikeRequest", description = "댓글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 성공시 200을 반환한다.",
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
+    @PostMapping("/comment/like")
+    public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
+        commentService.addLike(id, commentLikeRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "댓글 좋아요 취소 api", description = "특정 댓글 인덱스값을 받아 좋아요를 취소한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "commentLikeRequest", description = "댓글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 취소 성공시 200을 반환한다.",
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
+    @DeleteMapping("/comment/like")
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
+        commentService.deleteLike(id, commentLikeRequest);
+        return ResponseEntity.ok().build();
     }
 }

@@ -3,8 +3,11 @@ package com.example.cns.feed.comment.service;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.feed.comment.domain.Comment;
+import com.example.cns.feed.comment.domain.CommentLike;
+import com.example.cns.feed.comment.domain.repository.CommentLikeRepository;
 import com.example.cns.feed.comment.domain.repository.CommentRepository;
 import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
+import com.example.cns.feed.comment.dto.request.CommentLikeRequest;
 import com.example.cns.feed.comment.dto.request.CommentPostRequest;
 import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
@@ -33,6 +36,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     /*
     댓글 달기
@@ -91,15 +95,27 @@ public class CommentService {
     1. 사용자가 댓글 작성자인지, 해당 게시글에 맞는건지 확인
     2. 언급 데이터 삭제
     3. 댓글 및 대댓글 삭제
+    4. 게시글에서 댓글 삭제시에는? 사용자 검증 패스해야함... 조건문에 id가 0일경우? 게시글삭제라고할까?
      */
     @Transactional
     public void deleteComment(Long id, CommentDeleteRequest commentDeleteRequest) {
         Optional<Comment> comment = commentRepository.findById(commentDeleteRequest.commentId());
         if (comment.isPresent()) {
-            if (Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getId(), commentDeleteRequest.postId())) {
-                //언급 삭제
+            if ((Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
+
+                //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
+                if (comment.get().getChildComments().size() > 0) {
+                    //대댓글들의 멘션 삭제
+                    comment.get().getChildComments().forEach(
+                            childComment -> {
+                                System.out.println(childComment.getId());
+                                mentionService.deleteCommentMention(new CommentDeleteRequest(commentDeleteRequest.postId(), childComment.getId()));
+                            }
+                    );
+                }
+                //해당 댓글 언급 삭제
                 mentionService.deleteCommentMention(commentDeleteRequest);
-                //댓글 삭제
+                //해당 댓글 및 자식 댓글 삭제
                 commentRepository.deleteById(commentDeleteRequest.commentId());
             } else throw new BusinessException(ExceptionCode.INCORRECT_INFO);
         } else throw new BusinessException(ExceptionCode.COMMENT_NOT_EXIST);
@@ -129,6 +145,9 @@ public class CommentService {
         return responses;
     }
 
+    /*
+    대댓글 조회
+     */
     public List<CommentResponse> getCommentReply(Long postId, Long commentId) {
         List<Comment> comments = commentRepository.findAllCommentReplyByPostId(postId, commentId);
         List<CommentResponse> responses = new ArrayList<>();
@@ -145,6 +164,46 @@ public class CommentService {
                 }
         );
         return responses;
+    }
+
+    /*
+    댓글 좋아요 기능
+     */
+    @Transactional
+    public void addLike(Long id, CommentLikeRequest commentLikeRequest) {
+        Long commentId = commentLikeRequest.commentId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Comment> comment = commentRepository.findById(commentId);
+
+        if (member.isPresent() && comment.isPresent()) {
+            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
+            if (commentLike.isEmpty()) {
+                CommentLike like = CommentLike.builder()
+                        .comment(comment.get())
+                        .member(member.get())
+                        .build();
+                commentLikeRepository.save(like);
+                comment.get().plusLikeCnt();
+            }
+        }
+    }
+
+    /*
+    댓글 좋아요 취소 기능
+     */
+    @Transactional
+    public void deleteLike(Long id, CommentLikeRequest commentLikeRequest) {
+        Long commentId = commentLikeRequest.commentId();
+        Optional<Member> member = memberRepository.findById(id);
+        Optional<Comment> comment = commentRepository.findById(commentId);
+
+        if (member.isPresent() && comment.isPresent()) {
+            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
+            if (commentLike.isPresent()) {
+                commentLikeRepository.deleteByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
+                comment.get().minusLikeCnt();
+            }
+        }
     }
 
 }

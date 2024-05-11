@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @NoArgsConstructor
 @Getter
@@ -26,21 +24,11 @@ public class ChatRoom {
     @Column
     private int memberCnt;
 
-    @Column
-    private String lastChat;
-
-    @Column
-    private LocalDateTime lastChatSendAt;
 
     @Builder
     public ChatRoom(RoomType roomType, String name, int memberCnt) {
         this.roomType = roomType;
         this.name = name;
         this.memberCnt = memberCnt;
-    }
-
-    public void saveLastChat(String chat, LocalDateTime now) {
-        this.lastChat = chat;
-        this.lastChatSendAt = now;
     }
 }

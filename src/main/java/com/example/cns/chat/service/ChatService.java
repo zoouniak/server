@@ -36,7 +36,7 @@ public class ChatService {
 
         LocalDateTime now = LocalDateTime.now();
         // 채팅방의 마지막 채팅 갱신
-        chatRoom.saveLastChat(message.content(), now);
+        //  chatRoom.saveLastChat(message.content(), now);
 
         // 채팅 저장
         Chat chat = message.toChatEntity(chatRoom, sender, now);
@@ -50,7 +50,7 @@ public class ChatService {
 
         LocalDateTime now = LocalDateTime.now();
         // 채팅방의 마지막 채팅 갱신
-        chatRoom.saveLastChat("", now);
+        // chatRoom.saveLastChat("", now);
 
         // 채팅 저장
         Chat save = chatRepository.save(imageMessage.toChatEntity(chatRoom, sender, now));
