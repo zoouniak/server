@@ -1,7 +1,8 @@
 package com.example.cns.chat.presentation;
 
 import com.example.cns.chat.converter.MultipartFileConverter;
-import com.example.cns.chat.dto.request.MessageFormat;
+import com.example.cns.chat.dto.request.ImageMessageFormat;
+import com.example.cns.chat.dto.request.TextMessageFormat;
 import com.example.cns.chat.service.ChatService;
 import com.example.cns.chat.service.MessagePublisher;
 import com.example.cns.chat.service.MessageSubscriber;
@@ -30,16 +31,16 @@ public class RealTimeChatController {
 
     @MessageMapping("/chat-room/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
-    public void sendTextMessage(@DestinationVariable Long roomId, MessageFormat textMessage) {
+    public void sendTextMessage(@DestinationVariable Long roomId, TextMessageFormat textMessage) {
         // 데이터베이스에 채팅 저장
         chatService.saveTextMessage(textMessage);
         // 채팅 전송
-        publisher.publish(roomId, textMessage);
+        publisher.publishTextMessage(roomId, textMessage);
     }
 
     @MessageMapping("/chat-room/image/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
-    public void sendFileMessage(@DestinationVariable Long roomId, MessageFormat imageMessage) {
+    public void sendFileMessage(@DestinationVariable Long roomId, ImageMessageFormat imageMessage) {
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
 
@@ -49,7 +50,7 @@ public class RealTimeChatController {
 
         chatService.saveImageMessage(imageMessage, postFileResponses);
 
-        publisher.publish(roomId, imageMessage);
+        publisher.publishImageMessage(roomId, imageMessage);
     }
 
     @SubscribeMapping("/chat-room/{roomId}")

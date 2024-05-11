@@ -8,7 +8,7 @@ import lombok.NonNull;
 
 import java.time.LocalDateTime;
 
-public record MessageFormat(
+public record TextMessageFormat(
         @NonNull
         String content,
 
@@ -33,15 +33,5 @@ public record MessageFormat(
                 .subjectId(this.subjectId)
                 .build();
     }
-
-    public Chat toChatEntityForImageType(ChatRoom room, Member from, LocalDateTime now) {
-        return Chat.builder()
-                .chatRoom(room)
-                .from(from)
-                .content("")
-                .createdAt(now)
-                .messageType(MessageType.valueOf(messageType))
-                .subjectId(this.subjectId)
-                .build();
-    }
+    
 }

@@ -7,7 +7,8 @@ import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatListRepositoryImpl;
 import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
-import com.example.cns.chat.dto.request.MessageFormat;
+import com.example.cns.chat.dto.request.ImageMessageFormat;
+import com.example.cns.chat.dto.request.TextMessageFormat;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.feed.post.dto.response.PostFileResponse;
 import com.example.cns.member.domain.Member;
@@ -29,7 +30,7 @@ public class ChatService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void saveTextMessage(MessageFormat message) {
+    public void saveTextMessage(TextMessageFormat message) {
         Member sender = memberRepository.findById(message.memberId()).get();
         ChatRoom chatRoom = chatRoomRepository.findById(message.roomId()).get();
 
@@ -43,16 +44,16 @@ public class ChatService {
     }
 
     @Transactional
-    public void saveImageMessage(MessageFormat imageMessage, List<PostFileResponse> fileResponses) {
+    public void saveImageMessage(ImageMessageFormat imageMessage, List<PostFileResponse> fileResponses) {
         Member sender = memberRepository.findById(imageMessage.memberId()).get();
         ChatRoom chatRoom = chatRoomRepository.findById(imageMessage.roomId()).get();
 
         LocalDateTime now = LocalDateTime.now();
         // 채팅방의 마지막 채팅 갱신
-        chatRoom.saveLastChat("image", now);
+        chatRoom.saveLastChat("", now);
 
         // 채팅 저장
-        Chat save = chatRepository.save(imageMessage.toChatEntityForImageType(chatRoom, sender, now));
+        Chat save = chatRepository.save(imageMessage.toChatEntity(chatRoom, sender, now));
 
         // 채팅 파일 저장
         for (PostFileResponse fileInfo : fileResponses) {
