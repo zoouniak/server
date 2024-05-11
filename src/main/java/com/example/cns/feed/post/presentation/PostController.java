@@ -1,6 +1,7 @@
 package com.example.cns.feed.post.presentation;
 
 import com.example.cns.auth.config.Auth;
+import com.example.cns.common.security.jwt.provider.JwtProvider;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.request.PostFileRequest;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +35,7 @@ public class PostController {
 
     private final PostService postService;
     private final S3Service s3Service;
+    private final JwtProvider jwtProvider;
 
     /*
     게시글 작성
@@ -124,9 +127,14 @@ public class PostController {
     최초시에는 0이나 null값으로 할시 제일 최근것을 가져옴
     이후부터는 cursorValue에 따른 페이징
      */
-    @Operation(summary = "홈 화면 게시글 조회", description = "사용자의 커서값을 이용해 무한 스크롤 조회를 한다." +
+    @Operation(summary = "홈 화면 게시글 조회 api", description = "사용자의 커서값을 이용해 무한 스크롤 조회를 한다." +
             "v1 - 변경 가능성 높음 : 초기값은 0 or null값 -> 최신 10개 조회, 이후부터 커서값(게시글 인덱스값)을 입력하면 해당 게시글 이후 내용을 가져옵니다.")
-    @Parameter(name = "cursorValue", description = "마지막으로 본 게시글 인덱스")
+    @Parameters(
+            value = {
+                    @Parameter (name = "id",description = "JWT/사용자 id"),
+                    @Parameter(name = "cursorValue", description = "마지막으로 본 게시글 인덱스")
+            }
+    )
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "페이지 크기 (10) 만큼 게시글을 반환한다.",
@@ -134,15 +142,17 @@ public class PostController {
             }
     )
     @GetMapping("/post/home")
-    public ResponseEntity<List<PostResponse>> getPosts(@RequestParam(name = "cursorValue", required = false) Long cursorValue) {
-        List<PostResponse> posts = postService.getPosts(cursorValue);
+    public ResponseEntity<List<PostResponse>> getPosts(
+            @Auth Long id,@RequestParam(name = "cursorValue", required = false) Long cursorValue) {
+
+        List<PostResponse> posts = postService.getPosts(cursorValue, id);
         return ResponseEntity.ok(posts);
     }
 
     /*
     게시글 미디어 조회
      */
-    @Operation(summary = "특정 게시글 미디어 조회", description = "특정 게시글 인덱스값을 받아 미디어를 반환한다.")
+    @Operation(summary = "특정 게시글 미디어 조회 api", description = "특정 게시글 인덱스값을 받아 미디어를 반환한다.")
     @Parameter(name = "postId", description = "게시글 인덱스")
     @ApiResponses(
             value = {
@@ -159,6 +169,19 @@ public class PostController {
     /*
     게시글 좋아요 기능
      */
+    @Operation(summary = "게시글 좋아요 api", description = "특정 게시글 인덱스값을 받아 좋아요를 한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postLikeRequest", description = "게시글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 성공시 200을 반환한다.",
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
     @PostMapping("/post/like")
     public ResponseEntity addLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
         postService.addLike(id,postLikeRequest);
@@ -168,6 +191,19 @@ public class PostController {
     /*
     게시글 좋아요 취소 기능
      */
+    @Operation(summary = "게시글 좋아요 취소 api", description = "특정 게시글 인덱스값을 받아 좋아요를 취소한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postLikeRequest", description = "게시글 좋아요 요청 DTO")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "좋아요 취소 성공시 200을 반환한다.",
+                            content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+            }
+    )
     @DeleteMapping("/post/like")
     public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest){
         postService.deleteLike(id,postLikeRequest);

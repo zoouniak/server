@@ -109,8 +109,12 @@ public class PostService {
 
     /*
     모든 게시글 조회
+    1. cursorValue가 없을 경우 최신 10개
+    1-1. cursorValue가 있을 경우 해당 값에서 10개
+    2. 해당 10개의 게시글중 본인이 좋아요를 했는가?
+    3. 반환
      */
-    public List<PostResponse> getPosts(Long cursorValue) {
+    public List<PostResponse> getPosts(Long cursorValue, Long id) {
 
         if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
 
@@ -118,6 +122,11 @@ public class PostService {
         List<PostResponse> postResponses = new ArrayList<>();
 
         posts.forEach(post -> {
+
+            boolean liked = false;
+
+            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(),id);
+
             postResponses.add(PostResponse.builder()
                     .id(post.getId())
                     .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
@@ -127,6 +136,7 @@ public class PostService {
                     .commentCnt(post.getComments().size())
                     .createdAt(post.getCreatedAt())
                     .isCommentEnabled(post.isCommentEnabled())
+                    .liked(liked)
                     .build());
         });
         return postResponses;
