@@ -38,9 +38,9 @@ public enum ExceptionCode {
     NOT_COMMENT_WRITER(3102, BAD_REQUEST, "댓글 작성자가 아닙니다."),
 
     //3201 ~ 3300 파일
-    NOT_SUPPORT_EXT(3201,UNSUPPORTED_MEDIA_TYPE,"지원하지 않는 확장자입니다."),
-    IMAGE_UPLOAD_FAILED(3202,BAD_REQUEST,"이미지 업로드에 실패하였습니다."),
-    IMAGE_DELETE_FAILED(3203,BAD_REQUEST,"이미지 삭제에 실패하였습니다."),
+    NOT_SUPPORT_EXT(3201, UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 확장자입니다."),
+    IMAGE_UPLOAD_FAILED(3202, BAD_REQUEST, "이미지 업로드에 실패하였습니다."),
+    IMAGE_DELETE_FAILED(3203, BAD_REQUEST, "이미지 삭제에 실패하였습니다."),
     IMAGE_UPDATE_FAILED(3204, BAD_REQUEST, "이미지 수정에 실패하였습니다."),
 
     // 채팅 4000번대

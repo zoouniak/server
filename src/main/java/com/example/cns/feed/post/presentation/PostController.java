@@ -1,7 +1,6 @@
 package com.example.cns.feed.post.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.common.security.jwt.provider.JwtProvider;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.request.PostFileRequest;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
@@ -35,7 +34,6 @@ public class PostController {
 
     private final PostService postService;
     private final S3Service s3Service;
-    private final JwtProvider jwtProvider;
 
     /*
     게시글 작성
@@ -227,7 +225,7 @@ public class PostController {
             }
     )
     @GetMapping("/post/{postId}")
-    public ResponseEntity<PostDataListResponse> getDataAboutPost(@Auth Long id, @PathVariable Long postId){
+    public ResponseEntity<PostDataListResponse> getDataAboutPost(@Auth Long id, @PathVariable Long postId) {
         PostDataListResponse response = postService.getSpecificPost(id, postId);
         return ResponseEntity.ok(response);
     }

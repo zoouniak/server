@@ -306,12 +306,12 @@ public class PostService {
         }
     }
 
-    public PostDataListResponse getSpecificPost(Long id, Long postId){
+    public PostDataListResponse getSpecificPost(Long id, Long postId) {
         Member member = memberRepository.findById(id).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Post post =  postRepository.findById(postId).orElseThrow(
+        Post post = postRepository.findById(postId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
-        if(Objects.equals(post.getMember().getId(), member.getId())){
+        if (Objects.equals(post.getMember().getId(), member.getId())) {
 
             List<String> mentions = extractMention(post.getContent());
             List<String> hashtags = extractHashTag(post.getContent());
@@ -351,7 +351,7 @@ public class PostService {
         return hashtags;
     }
 
-    private List<String> extractMention(String content){
+    private List<String> extractMention(String content) {
         List<String> mentions = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("@\\S+");

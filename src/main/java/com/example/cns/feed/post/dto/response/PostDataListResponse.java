@@ -13,7 +13,7 @@ public record PostDataListResponse(
         List<String> hashtags
 ) {
     @Builder
-    public PostDataListResponse(List<String> mentions, List<String> hashtags){
+    public PostDataListResponse(List<String> mentions, List<String> hashtags) {
         this.mentions = mentions;
         this.hashtags = hashtags;
     }
