@@ -21,5 +21,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p " +
             "WHERE p.id < :cursorValue " +
             "ORDER BY p.id DESC LIMIT :pageSize")
-    List<Object[]> findPostsAndUserLikesWithCursor(@Param("memberId") Long memberId, @Param("cursorValue") Long cursorValue,@Param("pageSize") Long pageSize);
+    List<Object[]> findPostsAndUserLikesWithCursor(@Param("memberId") Long memberId, @Param("cursorValue") Long cursorValue, @Param("pageSize") Long pageSize);
 }

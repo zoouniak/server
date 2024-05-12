@@ -1,8 +1,5 @@
 package com.example.cns.hashtag.service;
 
-import com.example.cns.common.exception.BusinessException;
-import com.example.cns.common.exception.ExceptionCode;
-import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.HashTagPost;
@@ -11,7 +8,6 @@ import com.example.cns.hashtag.domain.HashTagView;
 import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.domain.repository.HashTagViewRepository;
-import com.example.cns.hashtag.dto.request.HashTagRequest;
 import com.example.cns.hashtag.dto.response.HashTagSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

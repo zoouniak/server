@@ -139,7 +139,7 @@ public class CommentService {
                     Comment comment = (Comment) objects[0];
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
-                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(),comment.getWriter().getUrl()))
+                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(), comment.getWriter().getUrl()))
                             .content(comment.getContent())
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
@@ -162,7 +162,7 @@ public class CommentService {
                     Comment comment = (Comment) objects[0];
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
-                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(),comment.getWriter().getUrl()))
+                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(), comment.getWriter().getUrl()))
                             .content(comment.getContent())
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
