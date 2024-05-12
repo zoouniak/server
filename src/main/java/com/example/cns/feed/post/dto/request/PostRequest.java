@@ -1,7 +1,7 @@
 package com.example.cns.feed.post.dto.request;
 
 import com.example.cns.feed.post.domain.Post;
-import com.example.cns.feed.post.dto.response.PostFileResponse;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.domain.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +21,7 @@ public record PostRequest(
         @NotBlank
         boolean isCommentEnabled,
         @Schema(description = "업로드 된 사진 정보 리스트", defaultValue = "null")
-        List<PostFileResponse> postFileList
+        List<FileResponse> postFileList
 ) {
     public Post toEntity(Member member) {
         return Post.builder()

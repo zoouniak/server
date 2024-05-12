@@ -34,15 +34,15 @@ public class ChatRoomService {
     @Transactional(readOnly = true)
     public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
         // 회원이 참여하고 있는 채팅방 조회 (페이지 단위)
-        List<ChatRoom> ChatRoomList = chatRoomRepository.findChatRoomsByMemberIdByPage(PageRequest.of(pageNumber - 1, 10), memberId);
-
+        // List<ChatRoom> ChatRoomList = chatRoomRepository.findChatRoomsByMemberIdByPage(PageRequest.of(pageNumber - 1, 10), memberId);
+        List<ChatRoom> chatRoomList = chatRoomRepository.getMyChatRoomsByPage(PageRequest.of(pageNumber - 1, 10), memberId);
         // 조회된 채팅방이 없는 경우
-        if (ChatRoomList.isEmpty())
+        if (chatRoomList.isEmpty())
             return null;
 
         List<ChatRoomResponse> responses = new ArrayList<>();
 
-        for (ChatRoom chatRoom : ChatRoomList) {
+        for (ChatRoom chatRoom : chatRoomList) {
             responses.add(ChatRoomResponse.builder()
                     .roomId(chatRoom.getId())
                     .roomName(chatRoom.getName())

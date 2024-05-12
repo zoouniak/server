@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
-    @Query(value = "select room from ChatRoom room where room.id in (select cp.room from ChatParticipation  cp where cp.member = :memberId) order by room.lastChatSendAt desc",nativeQuery = true)
-    List<ChatRoom> findChatRoomsByMemberIdByPage(Pageable pageable, @Param("memberId") Long memberId);
+    @Query("select room from ChatRoom as room where room.id in (select cp.room from ChatParticipation  as cp where cp.member = :memberId)")
+    List<ChatRoom> getMyChatRoomsByPage(Pageable pageable, @Param("memberId") Long memberId);
+
 }

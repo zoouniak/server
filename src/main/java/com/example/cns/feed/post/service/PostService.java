@@ -15,7 +15,7 @@ import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
-import com.example.cns.feed.post.dto.response.PostFileResponse;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.service.HashTagService;
@@ -157,14 +157,14 @@ public class PostService {
     2. url 전달
     3. 끝
      */
-    public List<PostFileResponse> getPostMedia(Long postId) {
+    public List<FileResponse> getPostMedia(Long postId) {
         Optional<Post> post = postRepository.findById(postId);
-        List<PostFileResponse> postFileResponses = new ArrayList<>();
+        List<FileResponse> postFileResponses = new ArrayList<>();
         if (post.isPresent()) {
             List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
             allPostFile.forEach(
                     postFile -> {
-                        postFileResponses.add(PostFileResponse.builder()
+                        postFileResponses.add(FileResponse.builder()
                                 .uploadFileName(postFile.getFileName())
                                 .uploadFileURL(postFile.getUrl())
                                 .fileType(postFile.getFileType())
