@@ -126,11 +126,13 @@ public class CommentService {
     1. 해당 게시글 댓글 생성순으로 오름차순 조회
     2. 데이터 가공후 전달
      */
-    public List<CommentResponse> getComment(Long postId) {
+    public List<CommentResponse> getComment(Long id, Long postId) {
         List<Comment> comments = commentRepository.findAllCommentByPostId(postId);
         List<CommentResponse> responses = new ArrayList<>();
         comments.forEach(
                 comment -> {
+                    boolean liked = false;
+                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(),id);
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
                             .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname()))
@@ -138,6 +140,7 @@ public class CommentService {
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
                             .commentReplyCnt(comment.getChildComments().size())
+                            .liked(liked)
                             .build());
                 }
         );
@@ -148,11 +151,13 @@ public class CommentService {
     /*
     대댓글 조회
      */
-    public List<CommentResponse> getCommentReply(Long postId, Long commentId) {
+    public List<CommentResponse> getCommentReply(Long id, Long postId, Long commentId) {
         List<Comment> comments = commentRepository.findAllCommentReplyByPostId(postId, commentId);
         List<CommentResponse> responses = new ArrayList<>();
         comments.forEach(
                 comment -> {
+                    boolean liked = false;
+                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(), id);
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
                             .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname()))
@@ -160,6 +165,7 @@ public class CommentService {
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
                             .commentReplyCnt(0)
+                            .liked(liked)
                             .build());
                 }
         );
