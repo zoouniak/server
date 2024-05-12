@@ -19,6 +19,7 @@ import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.dto.request.HashTagRequest;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -72,6 +73,8 @@ public class PostService {
 
         //postRequest 에서 언급된 인원 가져와 멘션 테이블 저장
         mentionService.savePostMention(responseId, postRequest.mention());
+        //postRequest 에서 만든 해시태그 저장
+        hashTagService.createHashTag(responseId,postRequest.hashtag());
 
         //파일이 있을시에 DB에 연관된 파일 저장
         if (postRequest.postFileList() != null) {
