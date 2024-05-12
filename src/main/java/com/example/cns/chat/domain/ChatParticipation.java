@@ -21,7 +21,7 @@ public class ChatParticipation implements Persistable<ChatParticipationID> {
     @Id
     @Column(name = "member_id")
     private Long member;
-    
+
     private boolean isRead;
 
     @Builder

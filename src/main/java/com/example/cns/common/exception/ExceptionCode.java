@@ -27,10 +27,21 @@ public enum ExceptionCode {
     MEMBER_NOT_FOUND(2001, BAD_REQUEST, "사용자가 존재하지 않습니다."),
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
 
-    //게시글, 댓글
-    POST_NOT_EXIST(3001, BAD_REQUEST, "게시글이 존재하지 않습니다."),
-    COMMENT_NOT_EXIST(3002, BAD_REQUEST, "댓글이 존재하지 않습니다."),
-    IMAGE_UPDATE_FAILED(3000, BAD_REQUEST, "이미지 수정에 실패하였습니다."),
+    //게시글, 댓글, 파일 3000번대
+    //3001 ~ 3100 게시글
+    POST_NOT_EXIST(3001, NOT_FOUND, "게시글이 존재하지 않습니다."),
+    NOT_POST_WRITER(3002, BAD_REQUEST, "게시글 작성자가 아닙니다."),
+    INVALID_POST_INFO(3003, BAD_REQUEST, "잘못된 게시글 정보입니다."),
+
+    //3101 ~ 3200 댓글
+    COMMENT_NOT_EXIST(3101, NOT_FOUND, "댓글이 존재하지 않습니다."),
+    NOT_COMMENT_WRITER(3102, BAD_REQUEST, "댓글 작성자가 아닙니다."),
+
+    //3201 ~ 3300 파일
+    NOT_SUPPORT_EXT(3201, UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 확장자입니다."),
+    IMAGE_UPLOAD_FAILED(3202, BAD_REQUEST, "이미지 업로드에 실패하였습니다."),
+    IMAGE_DELETE_FAILED(3203, BAD_REQUEST, "이미지 삭제에 실패하였습니다."),
+    IMAGE_UPDATE_FAILED(3204, BAD_REQUEST, "이미지 수정에 실패하였습니다."),
 
     // 채팅 4000번대
     ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),

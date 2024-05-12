@@ -33,5 +33,5 @@ public record TextMessageFormat(
                 .subjectId(this.subjectId)
                 .build();
     }
-    
+
 }

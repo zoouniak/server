@@ -54,10 +54,7 @@ public class S3Service {
         switch (ext) {
             case "png", "PNG" -> fileType = FileType.PNG;
             case "jpg", "JPG", "jpeg", "JPEG" -> fileType = FileType.JPG;
-            default -> {
-                // todo 에러처리
-                //throw new BusinessException();
-            }
+            default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
         }
 
         String fileName = multipartFile.getOriginalFilename();
@@ -80,8 +77,7 @@ public class S3Service {
             uploadFileURL = amazonS3Client.getUrl(bucketName, keyName).toString();
             return new FileResponse(uploadFileName, uploadFileURL, fileType);
         } catch (IOException e) {
-            // todo 에러처리
-            throw new BusinessException(ExceptionCode.FILE_NOT_SAVED);
+            throw new BusinessException(ExceptionCode.IMAGE_UPLOAD_FAILED);
         }
     }
 
@@ -90,7 +86,7 @@ public class S3Service {
             String keyName = path + "/" + fileName;
             amazonS3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
         } catch (SdkClientException e) {
-            throw new IOException("S3에서 삭제 실패", e);
+            throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
         }
     }
 

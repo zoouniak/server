@@ -47,14 +47,16 @@ public class CommentService {
     @Transactional
     public void createComment(Long id, CommentPostRequest commentPostRequest) {
         //댓글 저장
-        Optional<Post> post = postRepository.findById(commentPostRequest.postId());
+        Post post = postRepository.findById(commentPostRequest.postId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
 
         //댓글 허용여부 확인
-        if (post.get().isCommentEnabled()) {
+        if (post.isCommentEnabled()) {
 
-            Optional<Member> member = memberRepository.findById(id);
+            Member member = memberRepository.findById(id).orElseThrow(
+                    () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
-            Comment comment = commentPostRequest.toEntity(member.get(), post.get(), null);
+            Comment comment = commentPostRequest.toEntity(member, post, null);
 
             Long responseId = commentRepository.save(comment).getId();
             //댓글 저장
@@ -75,12 +77,16 @@ public class CommentService {
     @Transactional
     public void createCommentReply(Long id, CommentReplyPostRequest commentReplyPostRequest) {
         //대댓글 저장
-        Optional<Post> post = postRepository.findById(commentReplyPostRequest.postId());
+        Post post = postRepository.findById(commentReplyPostRequest.postId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
 
-        if (post.get().isCommentEnabled()) {
-            Optional<Member> member = memberRepository.findById(id);
-            Optional<Comment> comment = commentRepository.findById(commentReplyPostRequest.commentId());
-            Comment reply = commentReplyPostRequest.toEntity(member.get(), post.get(), comment.get());
+        if (post.isCommentEnabled()) {
+            Member member = memberRepository.findById(id).orElseThrow(
+                    () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+            Comment comment = commentRepository.findById(commentReplyPostRequest.commentId()).orElseThrow(
+                    () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+
+            Comment reply = commentReplyPostRequest.toEntity(member, post, comment);
 
             Long responseId = commentRepository.save(reply).getId();
             //대댓글 저장
@@ -99,26 +105,25 @@ public class CommentService {
      */
     @Transactional
     public void deleteComment(Long id, CommentDeleteRequest commentDeleteRequest) {
-        Optional<Comment> comment = commentRepository.findById(commentDeleteRequest.commentId());
-        if (comment.isPresent()) {
-            if ((Objects.equals(comment.get().getWriter().getId(), id) && Objects.equals(comment.get().getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
+        Comment comment = commentRepository.findById(commentDeleteRequest.commentId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+        if ((Objects.equals(comment.getWriter().getId(), id) && Objects.equals(comment.getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
 
-                //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
-                if (comment.get().getChildComments().size() > 0) {
-                    //대댓글들의 멘션 삭제
-                    comment.get().getChildComments().forEach(
-                            childComment -> {
-                                System.out.println(childComment.getId());
-                                mentionService.deleteCommentMention(new CommentDeleteRequest(commentDeleteRequest.postId(), childComment.getId()));
-                            }
-                    );
-                }
-                //해당 댓글 언급 삭제
-                mentionService.deleteCommentMention(commentDeleteRequest);
-                //해당 댓글 및 자식 댓글 삭제
-                commentRepository.deleteById(commentDeleteRequest.commentId());
-            } else throw new BusinessException(ExceptionCode.INCORRECT_INFO);
-        } else throw new BusinessException(ExceptionCode.COMMENT_NOT_EXIST);
+            //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
+            if (comment.getChildComments().size() > 0) {
+                //대댓글들의 멘션 삭제
+                comment.getChildComments().forEach(
+                        childComment -> {
+                            System.out.println(childComment.getId());
+                            mentionService.deleteCommentMention(new CommentDeleteRequest(commentDeleteRequest.postId(), childComment.getId()));
+                        }
+                );
+            }
+            //해당 댓글 언급 삭제
+            mentionService.deleteCommentMention(commentDeleteRequest);
+            //해당 댓글 및 자식 댓글 삭제
+            commentRepository.deleteById(commentDeleteRequest.commentId());
+        } else throw new BusinessException(ExceptionCode.NOT_COMMENT_WRITER);
     }
 
     /*
@@ -132,7 +137,7 @@ public class CommentService {
         comments.forEach(
                 comment -> {
                     boolean liked = false;
-                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(),id);
+                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(), id);
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
                             .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname()))
@@ -177,20 +182,19 @@ public class CommentService {
      */
     @Transactional
     public void addLike(Long id, CommentLikeRequest commentLikeRequest) {
-        Long commentId = commentLikeRequest.commentId();
-        Optional<Member> member = memberRepository.findById(id);
-        Optional<Comment> comment = commentRepository.findById(commentId);
+        Member member = memberRepository.findById(id).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Comment comment = commentRepository.findById(commentLikeRequest.commentId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
 
-        if (member.isPresent() && comment.isPresent()) {
-            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
-            if (commentLike.isEmpty()) {
-                CommentLike like = CommentLike.builder()
-                        .comment(comment.get())
-                        .member(member.get())
-                        .build();
-                commentLikeRepository.save(like);
-                comment.get().plusLikeCnt();
-            }
+        Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.getId(), comment.getId());
+        if (commentLike.isEmpty()) {
+            CommentLike like = CommentLike.builder()
+                    .comment(comment)
+                    .member(member)
+                    .build();
+            commentLikeRepository.save(like);
+            comment.plusLikeCnt();
         }
     }
 
@@ -199,16 +203,15 @@ public class CommentService {
      */
     @Transactional
     public void deleteLike(Long id, CommentLikeRequest commentLikeRequest) {
-        Long commentId = commentLikeRequest.commentId();
-        Optional<Member> member = memberRepository.findById(id);
-        Optional<Comment> comment = commentRepository.findById(commentId);
+        Member member = memberRepository.findById(id).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Comment comment = commentRepository.findById(commentLikeRequest.commentId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
 
-        if (member.isPresent() && comment.isPresent()) {
-            Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
-            if (commentLike.isPresent()) {
-                commentLikeRepository.deleteByMemberIdAndCommentId(member.get().getId(), comment.get().getId());
-                comment.get().minusLikeCnt();
-            }
+        Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.getId(), comment.getId());
+        if (commentLike.isPresent()) {
+            commentLikeRepository.deleteByMemberIdAndCommentId(member.getId(), comment.getId());
+            comment.minusLikeCnt();
         }
     }
 
