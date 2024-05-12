@@ -13,8 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -98,6 +98,15 @@ public class MemberSearchService {
         return memberRepository.existsByNickname(nickname);
     }
 
+    private static List<MemberSearchResponse> getMemberSearchResponses(List<Member> memberList) {
+        return memberList.stream()
+                .map(member -> MemberSearchResponse.builder()
+                        .memberId(member.getId())
+                        .nickname(member.getNickname())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     /*
      * 파라미터로 시작하는 닉네임을 가진 사용자를 찾는다.
      * Params: nickname
@@ -106,18 +115,8 @@ public class MemberSearchService {
     @Transactional(readOnly = true)
     public List<MemberSearchResponse> findMemberContainsNickname(String nickname) {
         List<Member> memberList = memberRepository.findAllByNicknameStartsWith(nickname);
-        // 검색 결과가 없는 경우
-        if (memberList.isEmpty())
-            return null;
 
-        List<MemberSearchResponse> responses = new ArrayList<>();
-        for (Member member : memberList) {
-            responses.add(MemberSearchResponse.builder()
-                    .memberId(member.getId())
-                    .nickname(member.getNickname())
-                    .build());
-        }
-        return responses;
+        return getMemberSearchResponses(memberList);
     }
 
     /*
@@ -129,18 +128,9 @@ public class MemberSearchService {
     public List<MemberSearchResponse> findMemberContainsNicknameInSameCompany(Long memberId, String nickname) {
         Company company = findMemberById(memberId).getCompany();
         List<Member> memberList = memberRepository.findAllByNicknameStartsWithAndCompany(nickname, company);
-        // 검색 결과가 없는 경우
-        if (memberList.isEmpty())
-            return null;
 
-        List<MemberSearchResponse> responses = new ArrayList<>();
-        for (Member member : memberList) {
-            responses.add(MemberSearchResponse.builder()
-                    .memberId(member.getId())
-                    .nickname(member.getNickname())
-                    .build());
-        }
-        return responses;
+        return getMemberSearchResponses(memberList);
+
     }
 
     /*
