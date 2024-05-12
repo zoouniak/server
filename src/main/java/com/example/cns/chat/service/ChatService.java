@@ -10,7 +10,8 @@ import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ImageMessageFormat;
 import com.example.cns.chat.dto.request.TextMessageFormat;
 import com.example.cns.chat.dto.response.ChatResponse;
-import com.example.cns.feed.post.dto.response.PostFileResponse;
+import com.example.cns.chat.type.MessageType;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +36,6 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(message.roomId()).get();
 
         LocalDateTime now = LocalDateTime.now();
-        // 채팅방의 마지막 채팅 갱신
-        //  chatRoom.saveLastChat(message.content(), now);
 
         // 채팅 저장
         Chat chat = message.toChatEntity(chatRoom, sender, now);
@@ -44,27 +43,32 @@ public class ChatService {
     }
 
     @Transactional
-    public void saveImageMessage(ImageMessageFormat imageMessage, List<PostFileResponse> fileResponses) {
+    public void saveImageMessage(ImageMessageFormat imageMessage, FileResponse fileInfo) {
         Member sender = memberRepository.findById(imageMessage.memberId()).get();
         ChatRoom chatRoom = chatRoomRepository.findById(imageMessage.roomId()).get();
 
         LocalDateTime now = LocalDateTime.now();
-        // 채팅방의 마지막 채팅 갱신
-        // chatRoom.saveLastChat("", now);
 
+        Chat newChat = Chat.builder().chatRoom(chatRoom)
+                .from(sender)
+                .content(fileInfo.uploadFileURL())
+                .messageType(MessageType.IMAGE)
+                .createdAt(now)
+                .subjectId(null)
+                .build();
         // 채팅 저장
-        Chat save = chatRepository.save(imageMessage.toChatEntity(chatRoom, sender, now));
+        Chat save = chatRepository.save(newChat);
 
         // 채팅 파일 저장
-        for (PostFileResponse fileInfo : fileResponses) {
-            ChatFile chatFile = ChatFile.builder().fileName(fileInfo.uploadFileName())
-                    .url(fileInfo.uploadFileURL())
-                    .fileType(fileInfo.fileType())
-                    .createdAt(now)
-                    .chat(save)
-                    .build();
-            chatFileRepository.save(chatFile);
-        }
+        ChatFile chatFile = ChatFile.builder().fileName(fileInfo.uploadFileName())
+                .url(fileInfo.uploadFileURL())
+                .fileType(fileInfo.fileType())
+                .createdAt(now)
+                .chat(save)
+                .build();
+        chatFileRepository.save(chatFile);
+
+
     }
 
     @Transactional(readOnly = true)

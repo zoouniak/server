@@ -7,7 +7,7 @@ import com.example.cns.feed.post.dto.request.PostFileRequest;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
-import com.example.cns.feed.post.dto.response.PostFileResponse;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.feed.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,12 +111,12 @@ public class PostController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "미디어 저장에 성공시에 해당 미디어의 저장정보를 반환한다.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = FileResponse.class))))
             }
     )
     @PostMapping("/post/media")
     public ResponseEntity uploadPostFile(PostFileRequest postFileRequest) {
-        List<PostFileResponse> postFileResponses = s3Service.uploadPostFile(postFileRequest.files(),"post");
+        List<FileResponse> postFileResponses = s3Service.uploadFileList(postFileRequest.files(), "post");
         return ResponseEntity.ok(postFileResponses);
     }
 
@@ -156,12 +156,12 @@ public class PostController {
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "해당 게시글에 미디어가 있을시 미디어의 정보를 반환한다.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostFileResponse.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = FileResponse.class))))
             }
     )
     @GetMapping("/post/{postId}/media")
-    public ResponseEntity<List<PostFileResponse>> getPostMedia(@PathVariable Long postId) {
-        List<PostFileResponse> postMedia = postService.getPostMedia(postId);
+    public ResponseEntity<List<FileResponse>> getPostMedia(@PathVariable Long postId) {
+        List<FileResponse> postMedia = postService.getPostMedia(postId);
         return ResponseEntity.ok(postMedia);
     }
 

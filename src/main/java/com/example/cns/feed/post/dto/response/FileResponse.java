@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 @Schema(description = "게시물 미디어 등록 응답 DTO")
-public record PostFileResponse(
+public record FileResponse(
         @Schema(description = "서버에 업로드된 파일 제목")
         String uploadFileName,
         @Schema(description = "서버에 업로드된 파일 경로")
@@ -14,7 +14,7 @@ public record PostFileResponse(
         FileType fileType
 ) {
     @Builder
-    public PostFileResponse(String uploadFileName, String uploadFileURL, FileType fileType) {
+    public FileResponse(String uploadFileName, String uploadFileURL, FileType fileType) {
         this.uploadFileName = uploadFileName;
         this.uploadFileURL = uploadFileURL;
         this.fileType = fileType;
