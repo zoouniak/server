@@ -59,14 +59,13 @@ public class HashTagService {
     public void createHashTag(HashTagRequest hashTagRequest) {
 
         //게시글 가져오기
-        Optional<Post> post = postRepository.findById(hashTagRequest.postId());
-
-        if (post.isPresent()) { // 게시글이 존재한다면
+        Post post = postRepository.findById(hashTagRequest.postId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
 
             List<HashTag> hashTags = new ArrayList<>(); //게시글에 추가할 해시태그 리스트
 
             //해시태그 request를 한개씩 확인하면서 존재하는지? 확인 후 추가
-            hashTagRequest.hashTags().stream().forEach(requestHashTag -> {
+            hashTagRequest.hashTags().forEach(requestHashTag -> {
                 Optional<HashTag> hashTag = hashTagRepository.findByName(requestHashTag);
                 if (hashTag.isEmpty()) { //해당하는 해시태그가 없을경우 생성후 선언
                     hashTag = Optional.of(hashTagRepository.save(HashTag.builder().name(requestHashTag).build()));
@@ -76,7 +75,7 @@ public class HashTagService {
                 //해시태그 연관관계 테이블 추가
                 HashTagPostId id = HashTagPostId.builder()
                         .hashtagId(hashTag.get().getId())
-                        .postId(post.get().getId())
+                        .postId(post.getId())
                         .build();
 
                 HashTagPost hashTagPost = HashTagPost.builder()
@@ -86,9 +85,6 @@ public class HashTagService {
                 hashTagPostRepository.save(hashTagPost);
 
             });
-        } else { //게시글이 없다면 해시태그 없다고 선언
-            throw new BusinessException(ExceptionCode.POST_NOT_EXIST);
-        }
     }
 
     /*
@@ -103,7 +99,7 @@ public class HashTagService {
         //게시글과 관련된 연관관계 데이터 가져오기
         List<HashTagPost> hashTagPostList = hashTagPostRepository.findAllByPostId(postId);
 
-        hashTagPostList.stream().forEach(
+        hashTagPostList.forEach(
                 hashTagPost -> {
                     List<HashTagPost> hashTagPostListByHashTag = hashTagPostRepository.findAllByHashTagId(hashTagPost.getId().getHashtag());
                     if (hashTagPostListByHashTag.size() <= 1) { //연관된 게시글이 단 한개라면 테이블 삭제 + 해시태그 삭제
