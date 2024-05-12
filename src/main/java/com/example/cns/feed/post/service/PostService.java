@@ -16,6 +16,7 @@ import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.service.HashTagService;
@@ -193,7 +194,7 @@ public class PostService {
             post.updateContent(postPatchRequest.content());
 
             //멘션 수정 로직
-            List<String> previousMentions = extractMention(previousContent);
+            List<String> previousMentions = extractMentionNickname(previousContent);
             List<String> updateMentions = postPatchRequest.mention();
             List<String> addedMentions = updateMentions.stream()
                     .filter(mention -> !previousMentions.contains(mention))
@@ -305,8 +306,26 @@ public class PostService {
         }
     }
 
+    public PostDataListResponse getSpecificPost(Long id, Long postId){
+        Member member = memberRepository.findById(id).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Post post =  postRepository.findById(postId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        if(Objects.equals(post.getMember().getId(), member.getId())){
 
-    private List<String> extractMention(String content) {
+            List<String> mentions = extractMention(post.getContent());
+            List<String> hashtags = extractHashTag(post.getContent());
+
+            return PostDataListResponse.builder()
+                    .mentions(mentions)
+                    .hashtags(hashtags)
+                    .build();
+
+        } else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
+    }
+
+
+    private List<String> extractMentionNickname(String content) {
         List<String> mentions = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
         Pattern pattern = Pattern.compile("@(\\w+)");
@@ -330,6 +349,19 @@ public class PostService {
             }
         }
         return hashtags;
+    }
+
+    private List<String> extractMention(String content){
+        List<String> mentions = new ArrayList<>();
+        String[] lines = content.split("\\r?\\n");
+        Pattern pattern = Pattern.compile("@\\S+");
+        for (String line : lines) {
+            Matcher matcher = pattern.matcher(line);
+            while (matcher.find()) {
+                mentions.add(matcher.group());
+            }
+        }
+        return mentions;
     }
 
 }

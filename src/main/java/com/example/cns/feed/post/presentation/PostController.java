@@ -8,6 +8,7 @@ import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.feed.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -207,6 +208,28 @@ public class PostController {
     public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest) {
         postService.deleteLike(id, postLikeRequest);
         return ResponseEntity.ok().build();
+    }
+
+    /*
+    게시글 수정 요청
+     */
+    @Operation(summary = "게시글 수정 요청 api", description = "특정 게시글 인덱스 값을 받아 게시글관련 데이터를 반환한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postId", description = "게시글 인덱스")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "해당 게시글의 해시태그, 멘션 리스트를 반환한다.",
+                            content = @Content(schema = @Schema(implementation = PostDataListResponse.class)))
+            }
+    )
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<PostDataListResponse> getDataAboutPost(@Auth Long id, @PathVariable Long postId){
+        PostDataListResponse response = postService.getSpecificPost(id, postId);
+        return ResponseEntity.ok(response);
     }
 
 }
