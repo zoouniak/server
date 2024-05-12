@@ -19,15 +19,12 @@ import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
-import com.example.cns.hashtag.dto.request.HashTagRequest;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.service.MentionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -143,7 +140,7 @@ public class PostService {
                     postResponses.add(
                             PostResponse.builder()
                                     .id(post.getId())
-                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
+                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname(),post.getMember().getUrl()))
                                     .content(post.getContent())
                                     .likeCnt(post.getLikeCnt())
                                     .fileCnt(post.getFileCnt())
