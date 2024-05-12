@@ -25,6 +25,8 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.service.MentionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,27 +130,28 @@ public class PostService {
 
         if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
 
-        List<Post> posts = postRepository.findPostsByCursor(10, cursorValue);
         List<PostResponse> postResponses = new ArrayList<>();
 
-        posts.forEach(post -> {
+        List<Object[]> posts = postRepository.findPostsAndUserLikesWithCursor(id, cursorValue, 10L);
 
-            boolean liked = false;
-
-            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(), id);
-
-            postResponses.add(PostResponse.builder()
-                    .id(post.getId())
-                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
-                    .content(post.getContent())
-                    .likeCnt(post.getLikeCnt())
-                    .fileCnt(post.getFileCnt())
-                    .commentCnt(post.getComments().size())
-                    .createdAt(post.getCreatedAt())
-                    .isCommentEnabled(post.isCommentEnabled())
-                    .liked(liked)
-                    .build());
-        });
+        posts.forEach(
+                objects -> {
+                    Post post = (Post) objects[0];
+                    postResponses.add(
+                            PostResponse.builder()
+                                    .id(post.getId())
+                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
+                                    .content(post.getContent())
+                                    .likeCnt(post.getLikeCnt())
+                                    .fileCnt(post.getFileCnt())
+                                    .commentCnt(post.getComments().size())
+                                    .createdAt(post.getCreatedAt())
+                                    .isCommentEnabled(post.isCommentEnabled())
+                                    .liked((Boolean) objects[1])
+                                    .build()
+                    );
+                }
+        );
         return postResponses;
     }
 
@@ -323,7 +326,6 @@ public class PostService {
 
         } else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
-
 
     private List<String> extractMentionNickname(String content) {
         List<String> mentions = new ArrayList<>();
