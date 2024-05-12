@@ -100,7 +100,12 @@ public class CommentController {
     특정 게시글 댓글 조회
      */
     @Operation(summary = "특정 게시글 댓글 조회 api", description = "게시글 인덱스를 받아 해당 게시글의 댓글을 조회한다.")
-    @Parameter(name = "postId", description = "게시글 인덱스")
+    @Parameters(
+            value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "postId", description = "게시글 인덱스")
+            }
+    )
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "해당 게시글의 댓글을 댓글등록순으로 불러온다.",
@@ -108,8 +113,8 @@ public class CommentController {
             }
     )
     @GetMapping("/{postId}/comment/list")
-    public ResponseEntity<List<CommentResponse>> getComment(@PathVariable Long postId) {
-        List<CommentResponse> comments = commentService.getComment(postId);
+    public ResponseEntity<List<CommentResponse>> getComment(@Auth Long id, @PathVariable Long postId) {
+        List<CommentResponse> comments = commentService.getComment(id,postId);
         return ResponseEntity.ok(comments);
     }
 
@@ -119,6 +124,7 @@ public class CommentController {
     @Operation(summary = "특정 게시글 대댓글 조회 api", description = "게시글 인덱스, 해당 댓글의 인덱스를 받아 대댓글을 조회한다.")
     @Parameters(
             value = {
+                    @Parameter(name = "id", description = "JWT/사용자 id"),
                     @Parameter(name = "postId", description = "게시글 인덱스"),
                     @Parameter(name = "commentId", description = "댓글 인덱스")
             }
@@ -130,8 +136,8 @@ public class CommentController {
             }
     )
     @GetMapping("/{postId}/comment/{commentId}/list")
-    public ResponseEntity getCommentReply(@PathVariable Long postId, @PathVariable Long commentId) {
-        List<CommentResponse> commentReply = commentService.getCommentReply(postId, commentId);
+    public ResponseEntity getCommentReply(@Auth Long id, @PathVariable Long postId, @PathVariable Long commentId) {
+        List<CommentResponse> commentReply = commentService.getCommentReply(id, postId, commentId);
         return ResponseEntity.ok(commentReply);
     }
 
