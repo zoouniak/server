@@ -7,6 +7,8 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.example.cns.common.exception.BusinessException;
+import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.type.FileType;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +81,7 @@ public class S3Service {
             return new FileResponse(uploadFileName, uploadFileURL, fileType);
         } catch (IOException e) {
             // todo 에러처리
-            throw new RuntimeException(e);
+            throw new BusinessException(ExceptionCode.FILE_NOT_SAVED);
         }
     }
 

@@ -34,7 +34,10 @@ public enum ExceptionCode {
 
     // 채팅 4000번대
     ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
-    NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다.");
+    NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
+
+    // 파일 5000번대
+    FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;
