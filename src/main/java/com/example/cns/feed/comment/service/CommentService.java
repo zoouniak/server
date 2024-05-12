@@ -132,12 +132,11 @@ public class CommentService {
     2. 데이터 가공후 전달
      */
     public List<CommentResponse> getComment(Long id, Long postId) {
-        List<Comment> comments = commentRepository.findAllCommentByPostId(postId);
+        List<Object[]> comments = commentRepository.findAllCommentByPostIdWithUserLiked(postId, id);
         List<CommentResponse> responses = new ArrayList<>();
         comments.forEach(
-                comment -> {
-                    boolean liked = false;
-                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(), id);
+                objects -> {
+                    Comment comment = (Comment) objects[0];
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
                             .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname()))
@@ -145,11 +144,10 @@ public class CommentService {
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
                             .commentReplyCnt(comment.getChildComments().size())
-                            .liked(liked)
+                            .liked((Boolean) objects[1])
                             .build());
                 }
         );
-
         return responses;
     }
 
@@ -157,12 +155,11 @@ public class CommentService {
     대댓글 조회
      */
     public List<CommentResponse> getCommentReply(Long id, Long postId, Long commentId) {
-        List<Comment> comments = commentRepository.findAllCommentReplyByPostId(postId, commentId);
+        List<Object[]> comments = commentRepository.findAllCommentReplyByPostIdWithUserLiked(postId, id, commentId);
         List<CommentResponse> responses = new ArrayList<>();
         comments.forEach(
-                comment -> {
-                    boolean liked = false;
-                    liked = commentLikeRepository.existsCommentLikeByCommentIdAndAndMemberId(comment.getId(), id);
+                objects -> {
+                    Comment comment = (Comment) objects[0];
                     responses.add(CommentResponse.builder()
                             .commentId(comment.getId())
                             .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname()))
@@ -170,7 +167,7 @@ public class CommentService {
                             .likeCnt(comment.getLikeCnt())
                             .createdAt(comment.getCreatedAt())
                             .commentReplyCnt(0)
-                            .liked(liked)
+                            .liked((Boolean) objects[1])
                             .build());
                 }
         );

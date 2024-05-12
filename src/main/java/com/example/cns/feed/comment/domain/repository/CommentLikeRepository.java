@@ -18,6 +18,4 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     @Query("DELETE FROM CommentLike cl WHERE cl.member.id = :memberId AND cl.comment.id = :commentId")
     void deleteByMemberIdAndCommentId(@Param("memberId") Long memberId, @Param("commentId") Long commentId);
 
-    @Query("SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :memberId")
-    boolean existsCommentLikeByCommentIdAndAndMemberId(@Param("commentId") Long commentId, @Param("memberId") Long memberId);
 }
