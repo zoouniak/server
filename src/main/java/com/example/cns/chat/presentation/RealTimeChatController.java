@@ -29,23 +29,24 @@ public class RealTimeChatController {
     @MessageMapping("/chat-room/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
     public void sendTextMessage(@DestinationVariable Long roomId, TextMessageFormat textMessage) {
-        // 데이터베이스에 채팅 저장
-        chatService.saveTextMessage(textMessage);
         // 채팅 전송
         publisher.publishTextMessage(roomId, textMessage);
+
+        // 데이터베이스에 채팅 저장
+        chatService.saveTextMessage(textMessage);
     }
 
     @MessageMapping("/chat-room/image/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
     public void sendFileMessage(@DestinationVariable Long roomId, ImageMessageFormat imageMessage) {
+        publisher.publishImageMessage(roomId, imageMessage);
+
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
 
         FileResponse FileResponse = fileUploader.uploadFile(new MultipartFileConverter(imgByte), "resume");
 
         chatService.saveImageMessage(imageMessage, FileResponse);
-
-        publisher.publishImageMessage(roomId, imageMessage);
     }
 
     @SubscribeMapping("/chat-room/{roomId}")
