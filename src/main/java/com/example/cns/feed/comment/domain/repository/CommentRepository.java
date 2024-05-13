@@ -11,9 +11,15 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c WHERE c.post.id = :postId and c.parentComment is null ORDER BY c.createdAt ASC")
-    List<Comment> findAllCommentByPostId(@Param("postId") Long postId);
+    @Query(value = "SELECT c, CASE WHEN (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c AND cl.member.id = :memberId) > 0 THEN true ELSE false END AS userLiked " +
+            "FROM Comment c " +
+            "WHERE c.post.id = :postId AND c.parentComment IS NULL " +
+            "ORDER BY c.createdAt ASC")
+    List<Object[]> findAllCommentByPostIdWithUserLiked(@Param("postId") Long postId, @Param("memberId") Long memberId);
 
-    @Query("SELECT c FROM Comment c WHERE c.post.id = :postId and c.parentComment.id = :commentId ORDER BY c.createdAt ASC")
-    List<Comment> findAllCommentReplyByPostId(@Param("postId") Long postId, @Param("commentId") Long commentId);
+    @Query(value = "SELECT c, CASE WHEN (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c AND cl.member.id = :memberId) > 0 THEN true ELSE false END AS userLiked " +
+            "FROM Comment c " +
+            "WHERE c.post.id = :postId AND c.parentComment.id = :commentId " +
+            "ORDER BY c.createdAt ASC")
+    List<Object[]> findAllCommentReplyByPostIdWithUserLiked(@Param("postId") Long postId, @Param("memberId") Long memberId, @Param("commentId") Long commentId);
 }

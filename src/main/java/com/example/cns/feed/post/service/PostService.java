@@ -70,6 +70,8 @@ public class PostService {
 
         //postRequest 에서 언급된 인원 가져와 멘션 테이블 저장
         mentionService.savePostMention(responseId, postRequest.mention());
+        //postRequest 에서 만든 해시태그 저장
+        hashTagService.createHashTag(responseId, postRequest.hashtag());
 
         //파일이 있을시에 DB에 연관된 파일 저장
         if (postRequest.postFileList() != null) {
@@ -107,7 +109,7 @@ public class PostService {
             //게시글의 댓글들 삭제 로직
             post.getComments().forEach(
                     comment -> {
-                        commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
+                        if(comment.getParentComment() == null) commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
                     }
             );
             hashTagService.deleteHashTag(postId); //해시태그 삭제
@@ -128,27 +130,28 @@ public class PostService {
 
         if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
 
-        List<Post> posts = postRepository.findPostsByCursor(10, cursorValue);
         List<PostResponse> postResponses = new ArrayList<>();
 
-        posts.forEach(post -> {
+        List<Object[]> posts = postRepository.findPostsAndUserLikesWithCursor(id, cursorValue, 10L);
 
-            boolean liked = false;
-
-            liked = postLikeRepository.existsByPostIdAndMemberId(post.getId(), id);
-
-            postResponses.add(PostResponse.builder()
-                    .id(post.getId())
-                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname()))
-                    .content(post.getContent())
-                    .likeCnt(post.getLikeCnt())
-                    .fileCnt(post.getFileCnt())
-                    .commentCnt(post.getComments().size())
-                    .createdAt(post.getCreatedAt())
-                    .isCommentEnabled(post.isCommentEnabled())
-                    .liked(liked)
-                    .build());
-        });
+        posts.forEach(
+                objects -> {
+                    Post post = (Post) objects[0];
+                    postResponses.add(
+                            PostResponse.builder()
+                                    .id(post.getId())
+                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname(), post.getMember().getUrl()))
+                                    .content(post.getContent())
+                                    .likeCnt(post.getLikeCnt())
+                                    .fileCnt(post.getFileCnt())
+                                    .commentCnt(post.getComments().size())
+                                    .createdAt(post.getCreatedAt())
+                                    .isCommentEnabled(post.isCommentEnabled())
+                                    .liked((Boolean) objects[1])
+                                    .build()
+                    );
+                }
+        );
         return postResponses;
     }
 
@@ -323,7 +326,6 @@ public class PostService {
 
         } else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
-
 
     private List<String> extractMentionNickname(String content) {
         List<String> mentions = new ArrayList<>();

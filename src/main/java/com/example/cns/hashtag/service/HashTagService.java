@@ -1,8 +1,5 @@
 package com.example.cns.hashtag.service;
 
-import com.example.cns.common.exception.BusinessException;
-import com.example.cns.common.exception.ExceptionCode;
-import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.HashTagPost;
@@ -11,7 +8,6 @@ import com.example.cns.hashtag.domain.HashTagView;
 import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.domain.repository.HashTagViewRepository;
-import com.example.cns.hashtag.dto.request.HashTagRequest;
 import com.example.cns.hashtag.dto.response.HashTagSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,26 +52,22 @@ public class HashTagService {
     2. 게시글과 해시태그 연결
      */
     @Transactional
-    public void createHashTag(HashTagRequest hashTagRequest) {
+    public void createHashTag(Long postId, List<String> hashtags) {
 
-        //게시글 가져오기
-        Post post = postRepository.findById(hashTagRequest.postId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
-
-        List<HashTag> hashTags = new ArrayList<>(); //게시글에 추가할 해시태그 리스트
+        List<HashTag> responses = new ArrayList<>(); //게시글에 추가할 해시태그 리스트
 
         //해시태그 request를 한개씩 확인하면서 존재하는지? 확인 후 추가
-        hashTagRequest.hashTags().forEach(requestHashTag -> {
+        hashtags.forEach(requestHashTag -> {
             Optional<HashTag> hashTag = hashTagRepository.findByName(requestHashTag);
             if (hashTag.isEmpty()) { //해당하는 해시태그가 없을경우 생성후 선언
                 hashTag = Optional.of(hashTagRepository.save(HashTag.builder().name(requestHashTag).build()));
             }
-            hashTags.add(hashTag.get()); //해시태그 리스트에 추가
+            responses.add(hashTag.get()); //해시태그 리스트에 추가
 
             //해시태그 연관관계 테이블 추가
             HashTagPostId id = HashTagPostId.builder()
                     .hashtagId(hashTag.get().getId())
-                    .postId(post.getId())
+                    .postId(postId)
                     .build();
 
             HashTagPost hashTagPost = HashTagPost.builder()
@@ -130,7 +122,7 @@ public class HashTagService {
         //지워진 해시태그 삭제
 
         //추가된 해시태그 생성
-        createHashTag(new HashTagRequest(postId, addedHashTags));
+        createHashTag(postId, addedHashTags);
         //추가된 해시태그 생성
     }
 }

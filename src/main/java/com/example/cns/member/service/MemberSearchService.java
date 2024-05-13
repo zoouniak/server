@@ -22,6 +22,15 @@ public class MemberSearchService {
     private final MemberRepository memberRepository;
     private final CustomMemberRepository customMemberRepository;
 
+    private static List<MemberSearchResponse> getMemberSearchResponses(List<Member> memberList) {
+        return memberList.stream()
+                .map(member -> MemberSearchResponse.builder()
+                        .memberId(member.getId())
+                        .nickname(member.getNickname())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     /*
      * 사용자를 저장한다.
      * Params: member
@@ -96,15 +105,6 @@ public class MemberSearchService {
     @Transactional(readOnly = true)
     public boolean isExistByNickname(String nickname) {
         return memberRepository.existsByNickname(nickname);
-    }
-
-    private static List<MemberSearchResponse> getMemberSearchResponses(List<Member> memberList) {
-        return memberList.stream()
-                .map(member -> MemberSearchResponse.builder()
-                        .memberId(member.getId())
-                        .nickname(member.getNickname())
-                        .build())
-                .collect(Collectors.toList());
     }
 
     /*

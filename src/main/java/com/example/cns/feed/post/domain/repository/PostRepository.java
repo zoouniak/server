@@ -16,4 +16,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT MAX(p.id) FROM Post p")
     Long getMaxPostId();
+
+    @Query(value = "SELECT p, CASE WHEN (SELECT COUNT(pl) FROM PostLike pl WHERE pl.post = p AND pl.member.id = :memberId) > 0 THEN true ELSE false END AS userLiked " +
+            "FROM Post p " +
+            "WHERE p.id < :cursorValue " +
+            "ORDER BY p.id DESC LIMIT :pageSize")
+    List<Object[]> findPostsAndUserLikesWithCursor(@Param("memberId") Long memberId, @Param("cursorValue") Long cursorValue, @Param("pageSize") Long pageSize);
 }
