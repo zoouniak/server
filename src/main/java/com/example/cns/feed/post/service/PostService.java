@@ -109,7 +109,7 @@ public class PostService {
             //게시글의 댓글들 삭제 로직
             post.getComments().forEach(
                     comment -> {
-                        commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
+                        if(comment.getParentComment() == null) commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
                     }
             );
             hashTagService.deleteHashTag(postId); //해시태그 삭제
