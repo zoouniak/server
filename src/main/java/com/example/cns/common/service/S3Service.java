@@ -46,16 +46,23 @@ public class S3Service {
                 .collect(Collectors.toList());
     }
 
-    public FileResponse uploadFile(MultipartFile multipartFile, String path) {
-        FileType fileType = null;
+    private static FileType getFileType(String ext) {
+        return switch (ext) {
+            case "png", "PNG" -> FileType.PNG;
+            case "jpg", "jpeg", "JPG", "JPEG" -> FileType.JPG;
+            case "pdf", "PDF" -> FileType.PDF;
+            case "xlsx", "XLSX" -> FileType.XLSX;
+            case "ppt", "PPT" -> FileType.PPT;
+            case "pptx", "PPTX" -> FileType.PPTX;
+            case "doc", "docx", "DOCS", "DOCX" -> FileType.DOCS;
+            default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
+        };
+    }
 
+    public FileResponse uploadFile(MultipartFile multipartFile, String path) {
         String ext = extractType(multipartFile.getOriginalFilename());
 
-        switch (ext) {
-            case "png", "PNG" -> fileType = FileType.PNG;
-            case "jpg", "JPG", "jpeg", "JPEG" -> fileType = FileType.JPG;
-            default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
-        }
+        FileType fileType = getFileType(ext);
 
         String fileName = multipartFile.getOriginalFilename();
         String uploadFileName = getUUIDFileName(fileName);

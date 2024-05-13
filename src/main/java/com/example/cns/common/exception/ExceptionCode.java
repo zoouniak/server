@@ -48,7 +48,8 @@ public enum ExceptionCode {
     NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
 
     // 파일 5000번대
-    FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다.");
+    FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다."),
+    FILE_NOT_SUPPORT(5002, BAD_REQUEST, "지원하지 않는 파일 형식입니다");
 
     private final int errorCode;
     private final HttpStatus httpStatus;

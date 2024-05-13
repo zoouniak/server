@@ -44,7 +44,9 @@ public class RealTimeChatController {
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
 
-        FileResponse FileResponse = fileUploader.uploadFile(new MultipartFileConverter(imgByte), "resume");
+        FileResponse FileResponse = fileUploader.uploadFile(
+                new MultipartFileConverter(imgByte, imageMessage.originalFileName(), imageMessage.extension()),
+                "chat");
 
         chatService.saveImageMessage(imageMessage, FileResponse);
     }
