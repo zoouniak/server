@@ -33,8 +33,7 @@ public class ChatRoomService {
 
     @Transactional(readOnly = true)
     public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
-        // 회원이 참여하고 있는 채팅방 조회 (페이지 단위)
-        // List<ChatRoom> ChatRoomList = chatRoomRepository.findChatRoomsByMemberIdByPage(PageRequest.of(pageNumber - 1, 10), memberId);
+        // 회원이 참여하고 있는 채팅방 조회 (페이지 단위) todo 수정필요
         List<ChatRoom> chatRoomList = chatRoomRepository.getMyChatRoomsByPage(PageRequest.of(pageNumber - 1, 10), memberId);
         // 조회된 채팅방이 없는 경우
         if (chatRoomList.isEmpty())
@@ -60,9 +59,8 @@ public class ChatRoomService {
      * 채팅방 생성
      */
     @Transactional
-    public Long createChatRoom(ChatRoomCreateRequest request, Long inviter) {
+    public Long createChatRoom(ChatRoomCreateRequest request) {
         // 초대한 사람 리스트에 추가
-        request.inviteList().add(inviter);
         ChatRoom chatRoom = request.toChatRoomEntity();
         ChatRoom save = chatRoomRepository.save(chatRoom);
 

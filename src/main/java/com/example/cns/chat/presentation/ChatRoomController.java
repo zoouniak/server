@@ -62,9 +62,9 @@ public class ChatRoomController {
             })
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody ChatRoomCreateRequest request) {
+    public ResponseEntity createChatRoom(@RequestBody ChatRoomCreateRequest request) {
         // 채팅방 저장
-        Long chatRoom = chatRoomService.createChatRoom(request, memberId);
+        Long chatRoom = chatRoomService.createChatRoom(request);
         return ResponseEntity.ok(new ChatRoomIdResponse(chatRoom));
     }
 
