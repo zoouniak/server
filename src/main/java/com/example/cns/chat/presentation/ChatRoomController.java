@@ -5,7 +5,7 @@ import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberAddRequest;
 import com.example.cns.chat.dto.response.ChatParticipantsResponse;
 import com.example.cns.chat.dto.response.ChatResponse;
-import com.example.cns.chat.dto.response.ChatRoomIdResponse;
+import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
 import com.example.cns.chat.service.ChatRoomService;
 import com.example.cns.chat.service.ChatService;
@@ -54,6 +54,7 @@ public class ChatRoomController {
      * 채팅방 신규 개설
      */
     @Operation(summary = "채팅방 신규 개설", description = "채팅방 정보를 입력받고 새로운 채팅방을 생성한다.")
+    @Parameter(name = "inviteList", description = "초대할 사용자 정보", required = true, schema = @Schema(implementation = MemberAddRequest.class))
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "생성 완료"),
@@ -62,24 +63,21 @@ public class ChatRoomController {
             })
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity createChatRoom(@RequestBody ChatRoomCreateRequest request) {
-        // 채팅방 저장
-        Long chatRoom = chatRoomService.createChatRoom(request);
-        return ResponseEntity.ok(new ChatRoomIdResponse(chatRoom));
+    public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody ChatRoomCreateRequest request) {
+        return ResponseEntity.ok(chatRoomService.createChatRoom(memberId, request));
     }
 
-    @Operation(summary = "채팅방 나가기", description = "채팅방 번호를 입력 받고 채팅방 참여 정보를 삭제한다.")
+    @Operation(summary = "채팅방 나가기", description = "채팅방 번호를 입력 받아 채팅방 참여 정보를 삭제하고 메시지를 반환한다.")
     @Parameter(name = "roomId", description = "나갈 채팅방 번호, path variable", required = true)
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "나가기 완료"),
+                    @ApiResponse(responseCode = "200", description = "나가기 완료", content = @Content(schema = @Schema(implementation = ChatRoomMsgResponse.class))),
                     @ApiResponse(responseCode = "500", description = "나가기 실패"
                     )
             })
     @DeleteMapping("/{roomId}")
     public ResponseEntity leaveChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
-        chatRoomService.leaveChatRoom(memberId, roomId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(chatRoomService.leaveChatRoom(memberId, roomId));
     }
 
     @Operation(summary = "채팅 내역 조회", description = "채팅방 번호를 입력 받고 해당 채팅방의 채팅 내역을 반환한다." +
@@ -88,8 +86,8 @@ public class ChatRoomController {
             @Parameter(name = "roomId", description = "채팅방 번호", required = true),
             @Parameter(name = "chatId", description = "스크롤 페이징을 위한 채팅 번호")
     })
-    @ApiResponse(responseCode = "200", description = "조회된 채팅 내역",
-            content = @Content(schema = @Schema(implementation = ChatResponse.class)))
+    @ApiResponse(responseCode = "200", description = "조회된 채팅 내역", content = @Content(schema = @Schema(implementation = ChatResponse.class)))
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{roomId}")
     public ResponseEntity getChatList(@PathVariable(name = "roomId") Long roomId, @RequestParam(name = "chatId", required = false) Long chatId) {
         List<ChatResponse> chat = chatService.getPaginationChat(roomId, chatId);
@@ -100,11 +98,11 @@ public class ChatRoomController {
     @Parameter(name = "roomId", description = "채팅방 번호", required = true)
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "채팅방 참여자 리스트",
-                            content = @Content(schema = @Schema(implementation = ChatParticipantsResponse.class))),
+                    @ApiResponse(responseCode = "200", description = "채팅방 참여자 리스트", content = @Content(schema = @Schema(implementation = ChatParticipantsResponse.class))),
                     @ApiResponse(responseCode = "400", description = "존재하지 않는 채팅방일 경우/해당 채팅방의 참여자가 아닐 경우"
                     )
             })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{roomId}/participant")
     public ResponseEntity getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
         chatRoomService.verifyRoomId(roomId);
@@ -114,21 +112,26 @@ public class ChatRoomController {
         return ResponseEntity.ok(participants);
     }
 
-    @Operation(summary = "채팅방 추가 초대", description = "채팅방 번호와 초대할 회원을 입력받고 채팅방에 회원들을 새롭게 초대한다.")
+    @Operation(summary = "채팅방 추가 초대", description = "채팅방 번호와 초대할 회원을 입력받고 채팅방에 회원들을 추가하고 초대 메시지를 반환한다.")
+    @Parameters({
+            @Parameter(name = "inviteList", description = "초대할 사용자 정보", required = true, schema = @Schema(implementation = MemberAddRequest.class)),
+            @Parameter(name = "roomId", description = "채팅방 번호", required = true)
+    })
     @Parameter(name = "roomId", description = "채팅방 번호", required = true)
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "초대 성공"),
+                    @ApiResponse(responseCode = "200", description = "초대 성공", content = @Content(schema = @Schema(implementation = ChatParticipantsResponse.class))),
                     @ApiResponse(responseCode = "400", description = "해당 채팅방의 참여자가 아닐 경우"
                     )
             })
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{roomId}/invite")
     public ResponseEntity addMemberInChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId,
                                               @RequestBody MemberAddRequest inviteList) {
+        // 검증
         chatRoomService.verifyMemberInChatRoom(memberId, roomId);
 
-        chatRoomService.addParticipantsInChatRoom(inviteList.inviteList(), roomId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(chatRoomService.inviteMemberInChatRoom(memberId, inviteList.inviteList(), roomId));
     }
 
     @GetMapping("/{roomId}/image")

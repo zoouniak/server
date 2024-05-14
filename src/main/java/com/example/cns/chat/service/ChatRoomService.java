@@ -7,7 +7,10 @@ import com.example.cns.chat.domain.repository.ChatParticipationRepository;
 import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
+import com.example.cns.chat.dto.request.MemberInfo;
 import com.example.cns.chat.dto.response.ChatParticipantsResponse;
+import com.example.cns.chat.dto.response.ChatRoomCreateResponse;
+import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
@@ -59,27 +62,43 @@ public class ChatRoomService {
      * 채팅방 생성
      */
     @Transactional
-    public Long createChatRoom(ChatRoomCreateRequest request) {
-        // 초대한 사람 리스트에 추가
+    public ChatRoomCreateResponse createChatRoom(Long memberId, ChatRoomCreateRequest request) {
+        // 채팅방 수용 인원 검증
+        if (request.inviteList().size() > 10)
+            throw new BusinessException(ROOM_CAPACITY_EXCEEDED);
+
+
         ChatRoom chatRoom = request.toChatRoomEntity();
         ChatRoom save = chatRoomRepository.save(chatRoom);
 
         // 참여 저장
         saveChatParticipation(request.inviteList(), save.getId());
 
-        //todo 채팅반 상단에 초대 멘트를 위한 회원 닉네임 전송 필요 여부?
-        return save.getId();
+        // 초대 메시지 생성
+        String msg = createInviteMsg(memberId, request.inviteList());
+
+        return new ChatRoomCreateResponse(save.getId(), msg);
+    }
+
+
+    private String createInviteMsg(Long memberId, List<MemberInfo> inviteList) {
+        String inviter = memberRepository.findById(memberId).get().getNickname();
+        StringBuilder inviteMsg = new StringBuilder(inviter + "님이 ");
+
+        for (MemberInfo guest : inviteList) {
+            inviteMsg.append(guest.nickname()).append("님, ");
+        }
+
+        return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다";
     }
 
     /*
      * 채팅 참여 정보 저장
      */
-    private void saveChatParticipation(List<Long> inviteList, Long roomId) {
-        for (Long guestId : inviteList) {
-            // 사용자 존재 검증
-            verifyMember(guestId);
+    private void saveChatParticipation(List<MemberInfo> inviteList, Long roomId) {
+        for (MemberInfo guest : inviteList) {
             chatParticipationRepository.save(ChatParticipation.builder()
-                    .member(guestId)
+                    .member(guest.memberId())
                     .room(roomId)
                     .build());
         }
@@ -89,21 +108,42 @@ public class ChatRoomService {
      * 채팅 참여 정보 삭제
      */
     @Transactional
-    public void leaveChatRoom(Long memberId, Long roomId) {
+    public ChatRoomMsgResponse leaveChatRoom(Long memberId, Long roomId) {
         chatParticipationRepository.deleteByMemberAndRoom(memberId, roomId);
+
+        // 채팅방 인원 수 감소, 0명일 경우 채팅방 삭제
+        chatRoomRepository.findById(roomId)
+                .ifPresentOrElse(
+                        chatRoom -> {
+                            if (chatRoom.getMemberCnt() == 1) {
+                                chatRoomRepository.deleteById(roomId);
+                            } else {
+                                chatRoom.decreaseMemberCnt();
+                            }
+                        },
+                        () -> {
+                            throw new BusinessException(ChatROOM_NOT_EXIST);
+                        }
+                );
+        String nickname = memberRepository.findById(memberId).get().getNickname();
+        return new ChatRoomMsgResponse(nickname + "님이 나갔습니다.");
     }
 
     /*
-     * 채팅방 회원 추가
+     * 기존 채팅방에 참여자 추가
      */
     @Transactional
-    public void addParticipantsInChatRoom(List<Long> inviteList, Long roomId) {
+    public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> inviteList, Long roomId) {
         saveChatParticipation(inviteList, roomId);
+        return new ChatRoomMsgResponse(createInviteMsg(memberId, inviteList));
     }
 
+    /*
+     * 채팅방 참여자 조회
+     */
     @Transactional(readOnly = true)
     public List<ChatParticipantsResponse> getChatParticipants(Long roomId) {
-        // 참여자 조회
+
         List<ChatParticipation> participants = chatParticipationRepository.findMemberByRoom(roomId);
 
         List<ChatParticipantsResponse> responses = new ArrayList<>();
@@ -135,11 +175,4 @@ public class ChatRoomService {
         chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
                 .orElseThrow(() -> new BusinessException(NOT_PARTICIPANTS));
     }
-
-    private void verifyMember(Long memberId) {
-        memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
-    }
-
-
 }

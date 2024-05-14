@@ -31,4 +31,8 @@ public class ChatRoom {
         this.name = name;
         this.memberCnt = memberCnt;
     }
+
+    public void decreaseMemberCnt() {
+        memberCnt--;
+    }
 }
