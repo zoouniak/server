@@ -1,11 +1,9 @@
 package com.example.cns.chat.domain.repository;
 
-import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,11 +11,10 @@ import java.util.List;
 import static com.example.cns.chat.domain.QChat.chat;
 
 @Repository
-public class ChatListRepositoryImpl extends QuerydslRepositorySupport {
+public class ChatListRepositoryImpl {
     private final JPAQueryFactory queryFactory;
 
     public ChatListRepositoryImpl(JPAQueryFactory queryFactory) {
-        super(Chat.class);
         this.queryFactory = queryFactory;
     }
 
