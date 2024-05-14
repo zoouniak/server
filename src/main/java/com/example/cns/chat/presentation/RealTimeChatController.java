@@ -36,7 +36,7 @@ public class RealTimeChatController {
         chatService.saveTextMessage(textMessage);
     }
 
-    @MessageMapping("/chat-room/image/{roomId}")
+    @MessageMapping("/chat-room/file/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
     public void sendFileMessage(@DestinationVariable Long roomId, ImageMessageFormat imageMessage) {
         publisher.publishImageMessage(roomId, imageMessage);
