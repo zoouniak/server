@@ -54,6 +54,7 @@ public class S3Service {
         switch (ext) {
             case "png", "PNG" -> fileType = FileType.PNG;
             case "jpg", "JPG", "jpeg", "JPEG" -> fileType = FileType.JPG;
+            case "PDF", "pdf" -> fileType = FileType.PDF;
             default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
         }
 
