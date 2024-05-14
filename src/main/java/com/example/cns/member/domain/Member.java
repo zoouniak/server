@@ -2,15 +2,18 @@ package com.example.cns.member.domain;
 
 import com.example.cns.common.FileEntity;
 import com.example.cns.company.domain.Company;
+import com.example.cns.feed.post.domain.Post;
+import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.member.type.RoleType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -51,13 +54,11 @@ public class Member extends FileEntity {
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
-    @Column
-    @ColumnDefault("false")
-    private boolean isProfileExisted;
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> likes = new ArrayList<>();
 
-    @Column
-    @ColumnDefault("false")
-    private boolean isResumeExisted;
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>();
 
     @Builder
     public Member(Long id, String nickname, String password, String email, String firstName, String lastName, LocalDate birth, RoleType role, String position) {

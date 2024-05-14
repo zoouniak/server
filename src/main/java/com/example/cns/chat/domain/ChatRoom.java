@@ -24,8 +24,8 @@ public class ChatRoom {
     @Column
     private int memberCnt;
 
-    @Builder
 
+    @Builder
     public ChatRoom(RoomType roomType, String name, int memberCnt) {
         this.roomType = roomType;
         this.name = name;

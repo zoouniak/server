@@ -1,6 +1,6 @@
 package com.example.cns.feed.post.dto.request;
 
-import com.example.cns.feed.post.dto.response.PostFileResponse;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
@@ -18,6 +18,6 @@ public record PostPatchRequest(
         @Schema(description = "수정된 댓글 허용 여부")
         boolean isCommentEnabled,
         @Schema(description = "수정된 미디어 내용")
-        List<PostFileResponse> postFileList
+        List<FileResponse> postFileList
 ) {
 }

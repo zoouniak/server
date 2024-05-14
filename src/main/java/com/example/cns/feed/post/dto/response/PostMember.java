@@ -11,10 +11,13 @@ public class PostMember {
     private Long id;
     @Schema(description = "사용자 아이디")
     private String nickname;
+    @Schema(description = "사용자 프로필")
+    private String profile;
 
     @Builder
-    public PostMember(Long id, String nickname) {
+    public PostMember(Long id, String nickname, String profile) {
         this.id = id;
         this.nickname = nickname;
+        this.profile = profile;
     }
 }

@@ -18,7 +18,7 @@ public class Company {
     @Column(unique = true, insertable = false, updatable = false)
     private String email;
 
-    @Column(unique = true, insertable = false, updatable = false)
+    @Column(insertable = false, updatable = false)
     private String field;
 
     public Company(Long id, String name, String email, String field) {

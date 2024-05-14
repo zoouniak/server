@@ -42,8 +42,11 @@ public class Comment {
     @ColumnDefault("0")
     private int likeCnt;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     private List<Comment> childComments;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
+    private List<CommentLike> commentLikes;
 
     @Builder
     public Comment(Member writer, Post post, Comment parentComment, String content, LocalDateTime createdAt) {
@@ -52,5 +55,13 @@ public class Comment {
         this.parentComment = parentComment;
         this.content = content;
         this.createdAt = createdAt;
+    }
+
+    public void plusLikeCnt() {
+        this.likeCnt += 1;
+    }
+
+    public void minusLikeCnt() {
+        this.likeCnt -= 1;
     }
 }

@@ -70,9 +70,7 @@ public class MentionService {
         extractRemovedMentions.forEach(
                 nickname -> {
                     Optional<Member> member = memberRepository.findByNickname(nickname);
-                    if (member.isPresent()) {
-                        mentionRepository.deleteMentionBySubjectIdAndMentionTypeAndMember(postId, MentionType.FEED, member.get().getId());
-                    }
+                    member.ifPresent(value -> mentionRepository.deleteMentionBySubjectIdAndMentionTypeAndMember(postId, MentionType.FEED, value.getId()));
                 }
         );
 

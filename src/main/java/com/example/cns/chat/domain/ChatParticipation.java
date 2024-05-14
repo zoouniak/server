@@ -15,20 +15,20 @@ import org.springframework.data.domain.Persistable;
 @IdClass(ChatParticipationID.class)
 public class ChatParticipation implements Persistable<ChatParticipationID> {
     @Id
-    @Column(name = "member_id")
-    private Long member;
-
-    @Id
     @Column(name = "room_id")
     private Long room;
 
-    private boolean is_read;
+    @Id
+    @Column(name = "member_id")
+    private Long member;
+
+    private boolean isRead;
 
     @Builder
     public ChatParticipation(Long member, Long room) {
         this.member = member;
         this.room = room;
-        this.is_read = false;
+        this.isRead = false;
     }
 
     @Override

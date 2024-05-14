@@ -39,11 +39,11 @@ public class Chat {
     private Long subjectId;
 
     @Builder
-    public Chat(ChatRoom chatRoom, Member from, String content, MessageType messageType, Long subjectId) {
+    public Chat(ChatRoom chatRoom, Member from, String content, LocalDateTime createdAt, MessageType messageType, Long subjectId) {
         this.chatRoom = chatRoom;
         this.from = from;
         this.content = content;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = createdAt;
         this.messageType = messageType;
         this.subjectId = subjectId;
     }

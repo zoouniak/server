@@ -22,10 +22,12 @@ public record PostResponse(
         @Schema(description = "게시글 댓글 개수")
         int commentCnt,
         @Schema(description = "게시글 댓글 허용 여부")
-        boolean isCommentEnabled
+        boolean isCommentEnabled,
+        @Schema(description = "사용자 좋아요 여부")
+        boolean liked
 ) {
     @Builder
-    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled) {
+    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
         this.id = id;
         this.postMember = postMember;
         this.content = content;
@@ -34,5 +36,6 @@ public record PostResponse(
         this.fileCnt = fileCnt;
         this.commentCnt = commentCnt;
         this.isCommentEnabled = isCommentEnabled;
+        this.liked = liked;
     }
 }
