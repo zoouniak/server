@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/*
+ * 각 채팅방의 마지막 채팅 정보를 주기적으로 갱신한다.
+ */
 @Service
 @RequiredArgsConstructor
 public class LastChatUpdateService {
