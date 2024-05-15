@@ -28,6 +28,9 @@ public class ChatService {
     private final ChatFileRepository chatFileRepository;
     private final MemberRepository memberRepository;
 
+    /*
+     * 채팅(텍스트 타입) 저장
+     */
     @Transactional
     public Long saveTextMessage(TextMessageFormat message) {
         Member sender = memberRepository.findById(message.memberId()).get();
@@ -39,21 +42,22 @@ public class ChatService {
         return save.getId();
     }
 
+    /*
+     * 채팅(파일 타입) 저장
+     */
     @Transactional
-    public Long saveImageMessage(FileMessageFormat fileMessage, FileResponse fileInfo) {
+    public Long saveFileMessage(FileMessageFormat fileMessage, FileResponse fileInfo) {
         Member sender = memberRepository.findById(fileMessage.memberId()).get();
         ChatRoom chatRoom = chatRoomRepository.findById(fileMessage.roomId()).get();
 
-
-        Chat newChat = Chat.builder().chatRoom(chatRoom)
+        // 채팅 저장
+        Chat save = chatRepository.save(Chat.builder().chatRoom(chatRoom)
                 .from(sender)
                 .content(fileInfo.uploadFileURL())
                 .messageType(fileMessage.messageType())
                 .createdAt(fileMessage.createdAt())
                 .subjectId(null)
-                .build();
-        // 채팅 저장
-        Chat save = chatRepository.save(newChat);
+                .build());
 
         // 채팅 파일 저장
         ChatFile chatFile = ChatFile.builder().fileName(fileInfo.uploadFileName())
@@ -68,6 +72,9 @@ public class ChatService {
         return save.getId();
     }
 
+    /*
+     * 채팅 내역 페이지네이션
+     */
     @Transactional(readOnly = true)
     public List<ChatResponse> getPaginationChat(Long roomId, Long chatId) {
         // 스크롤에 따라 no offset 페이징

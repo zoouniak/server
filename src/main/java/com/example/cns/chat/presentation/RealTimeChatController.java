@@ -60,7 +60,7 @@ public class RealTimeChatController {
                         .build(),
                 "chat");
 
-        Long save = chatService.saveImageMessage(imageMessage, FileResponse);
+        Long save = chatService.saveFileMessage(imageMessage, FileResponse);
 
         messagePublisher.publishMessage(roomId, ChatResponse.builder()
                 .chatId(save)
