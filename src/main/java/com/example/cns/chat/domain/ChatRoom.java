@@ -24,6 +24,9 @@ public class ChatRoom {
     @Column
     private int memberCnt;
 
+    @Column
+    private Long lastChatId;
+
 
     @Builder
     public ChatRoom(RoomType roomType, String name, int memberCnt) {
@@ -34,5 +37,9 @@ public class ChatRoom {
 
     public void decreaseMemberCnt() {
         memberCnt--;
+    }
+
+    public void updateLastChat(Long chatId) {
+        this.lastChatId = chatId;
     }
 }

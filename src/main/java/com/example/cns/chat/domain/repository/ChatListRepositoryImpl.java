@@ -1,6 +1,7 @@
 package com.example.cns.chat.domain.repository;
 
 import com.example.cns.chat.dto.response.ChatResponse;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,7 +26,8 @@ public class ChatListRepositoryImpl {
                         chat.from.nickname.as("from"),
                         chat.from.id.as("memberId"),
                         chat.createdAt,
-                        chat.messageType))
+                        chat.messageType
+                ))
                 .from(chat)
                 .where(
                         ltChatId(chatId),
@@ -45,5 +47,13 @@ public class ChatListRepositoryImpl {
             return null;
         }
         return chat.id.lt(chatId);
+    }
+
+    public List<Tuple> getLastChatByChatRoom() {
+        return queryFactory
+                .select(chat.chatRoom.id, chat.id.max())
+                .from(chat)
+                .groupBy(chat.chatRoom.id)
+                .fetch();
     }
 }
