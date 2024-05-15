@@ -37,9 +37,12 @@ public class ChatRoomService {
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
 
+    /*
+     * 회원이 참여하고 있는 채팅방 조회 (페이지 단위), 마지막 채팅 최신순으로
+     */
     @Transactional(readOnly = true)
     public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
-        // 회원이 참여하고 있는 채팅방 조회 (페이지 단위) todo 수정필요
+
         List<ChatRoom> chatRoomList = chatRoomRepository.getMyChatRoomsByPage(PageRequest.of(pageNumber - 1, 10), memberId);
 
         return chatRoomList.stream()
@@ -47,7 +50,7 @@ public class ChatRoomService {
                 .map(chatRoom -> {
                     Chat lastChat = chatRepository.findById(chatRoom.getLastChatId())
                             .orElseThrow();
-                    boolean isRead = chatParticipationRepository.findIsRead(memberId, chatRoom.getId());
+                    boolean isRead = chatParticipationRepository.findIsRead(memberId, chatRoom.getId()); // 읽음 여부 확인
                     return ChatRoomResponse.builder()
                             .roomId(chatRoom.getId())
                             .roomName(chatRoom.getName())
@@ -75,9 +78,10 @@ public class ChatRoomService {
 
         // 초대 메시지 생성
         String msg = createInviteMsg(memberId, request.inviteList());
-        // 메시지 저장
+        // 초대 상태 메시지 저장
         saveStatusMsg(save, msg);
 
+        // 초대자 추가
         request.inviteList().add(new MemberInfo(null, memberId));
         // 참여 저장
         saveChatParticipation(request.inviteList(), save.getId());
@@ -85,7 +89,9 @@ public class ChatRoomService {
         return new ChatRoomCreateResponse(save.getId(), msg);
     }
 
-
+    /*
+     * 상태 메시지 생성
+     */
     private String createInviteMsg(Long memberId, List<MemberInfo> inviteList) {
         String inviter = memberRepository.findById(memberId).get().getNickname();
         StringBuilder inviteMsg = new StringBuilder(inviter + "님이 ");
@@ -97,10 +103,14 @@ public class ChatRoomService {
         return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다";
     }
 
+    /*
+     * 상태 메시지 저장
+     */
     private void saveStatusMsg(ChatRoom chatRoom, String msg) {
         chatRepository.save(Chat.builder()
                 .chatRoom(chatRoom)
                 .content(msg)
+                .from(memberRepository.findById(11L).get())
                 .messageType(MessageType.STATUS)
                 .createdAt(LocalDateTime.now())
                 .build()
@@ -149,16 +159,22 @@ public class ChatRoomService {
      * 기존 채팅방에 참여자 추가
      */
     @Transactional
-    public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> inviteList, Long roomId) {
-        saveChatParticipation(inviteList, roomId);
+    public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> request, Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
 
-        return chatRoomRepository.findById(roomId)
-                .map(chatRoom -> {
-                    String msg = createInviteMsg(memberId, inviteList);
-                    saveStatusMsg(chatRoom, msg); // 상태 변경 메시지 저장
-                    return new ChatRoomMsgResponse(msg);
-                })
-                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
+        // 채팅방 수용 인원 검증
+        if (chatRoom.getMemberCnt() + request.size() > 10)
+            throw new BusinessException(ROOM_CAPACITY_EXCEEDED);
+
+        // 추가 참여자 저장
+        saveChatParticipation(request, roomId);
+
+        // 초대 상태 메시지 생성
+        String msg = createInviteMsg(memberId, request);
+        // 상태 메시지 저장
+        saveStatusMsg(chatRoom, msg);
+
+        return new ChatRoomMsgResponse(msg);
     }
 
     /*
