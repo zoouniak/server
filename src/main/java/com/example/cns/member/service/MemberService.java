@@ -3,7 +3,12 @@ package com.example.cns.member.service;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.service.S3Service;
+import com.example.cns.feed.post.domain.Post;
+import com.example.cns.feed.post.domain.repository.PostLikeRepository;
+import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostMember;
+import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.MemberResume;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -17,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -29,6 +36,8 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberResumeRepository memberResumeRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostRepository postRepository;
 
     public MemberProfileResponse getMemberProfile(Long memberId){
 
@@ -150,5 +159,43 @@ public class MemberService {
         } else {
             return null;
         }
+    }
+
+    public FileResponse getMemberProfileImage(Long memberId){
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        return FileResponse.builder()
+                .uploadFileName(member.getFileName())
+                .uploadFileURL(member.getUrl())
+                .fileType(member.getFileType())
+                .build();
+    }
+
+    public List<PostResponse> getMemberLikedPost(Long memberId, Long cursorValue){
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
+
+        List<Post> posts = postLikeRepository.findPostLikesByMemberId(member.getId(), cursorValue, 10L);
+        List<PostResponse> responses = new ArrayList<>();
+        posts.forEach(
+                post -> {
+                    responses.add(
+                            PostResponse.builder()
+                                    .id(post.getId())
+                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname(), post.getMember().getUrl()))
+                                    .content(post.getContent())
+                                    .likeCnt(post.getLikeCnt())
+                                    .fileCnt(post.getFileCnt())
+                                    .commentCnt(post.getComments().size())
+                                    .createdAt(post.getCreatedAt())
+                                    .isCommentEnabled(post.isCommentEnabled())
+                                    .liked(true)
+                                    .build()
+                    );
+                }
+        );
+
+        return responses;
     }
 }

@@ -2,6 +2,7 @@ package com.example.cns.member.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.member.dto.request.MemberFileRequest;
 import com.example.cns.member.dto.request.MemberProfilePatchRequest;
 import com.example.cns.member.dto.response.MemberProfileResponse;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -88,4 +91,34 @@ public class MemberController {
         memberService.deleteProfile(memberId);
         return ResponseEntity.ok().build();
     }
+
+    /*
+    회원 프로필 조회
+     */
+    @GetMapping("/{memberId}/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity getMemberProfileImage(@Auth Long id,@PathVariable Long memberId){
+        FileResponse image = memberService.getMemberProfileImage(memberId);
+        return ResponseEntity.ok(image);
+    }
+
+    /*
+    회원 회사 및 직무 수정
+    프로젝트랑 연관시켜야 함
+     */
+    @PutMapping("/company")
+    public ResponseEntity putMemberCompanyInfo(@Auth Long id){
+        return ResponseEntity.ok().build();
+    }
+
+    /*
+    해당 회원이 좋아요 누른 글/ 최신순
+     */
+    @GetMapping("/{memberId}/post/liked")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity getMemberLikedPost(@PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue){
+        List<PostResponse> likedPost = memberService.getMemberLikedPost(memberId, cursorValue);
+        return ResponseEntity.ok(likedPost);
+    }
+
 }
