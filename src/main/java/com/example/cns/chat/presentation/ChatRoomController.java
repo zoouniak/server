@@ -5,7 +5,6 @@ import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberAddRequest;
 import com.example.cns.chat.dto.response.ChatParticipantsResponse;
 import com.example.cns.chat.dto.response.ChatResponse;
-import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
 import com.example.cns.chat.service.ChatRoomService;
 import com.example.cns.chat.service.ChatService;
@@ -44,7 +43,7 @@ public class ChatRoomController {
     public ResponseEntity getChatRoomPaging(@Auth Long memberId, @RequestParam(name = "page", defaultValue = "1") int page) {
         List<ChatRoomResponse> allChatroom = chatRoomService.findChatRoomsByPage(memberId, page);
 
-        if (allChatroom == null) // 조회된 채팅방이 없는 경우
+        if (allChatroom.isEmpty()) // 조회된 채팅방이 없는 경우
             return ResponseEntity.noContent().build();
 
         return ResponseEntity.ok(allChatroom);
@@ -71,13 +70,14 @@ public class ChatRoomController {
     @Parameter(name = "roomId", description = "나갈 채팅방 번호, path variable", required = true)
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "200", description = "나가기 완료", content = @Content(schema = @Schema(implementation = ChatRoomMsgResponse.class))),
+                    @ApiResponse(responseCode = "200", description = "나가기 완료"),
                     @ApiResponse(responseCode = "500", description = "나가기 실패"
                     )
             })
     @DeleteMapping("/{roomId}")
     public ResponseEntity leaveChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
-        return ResponseEntity.ok(chatRoomService.leaveChatRoom(memberId, roomId));
+        chatRoomService.leaveChatRoom(memberId, roomId);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "채팅 내역 조회", description = "채팅방 번호를 입력 받고 해당 채팅방의 채팅 내역을 반환한다." +

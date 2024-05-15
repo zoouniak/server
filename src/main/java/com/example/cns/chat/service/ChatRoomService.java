@@ -1,5 +1,6 @@
 package com.example.cns.chat.service;
 
+import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.domain.ChatParticipation;
 import com.example.cns.chat.domain.ChatParticipationID;
 import com.example.cns.chat.domain.ChatRoom;
@@ -12,6 +13,7 @@ import com.example.cns.chat.dto.response.ChatParticipantsResponse;
 import com.example.cns.chat.dto.response.ChatRoomCreateResponse;
 import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
+import com.example.cns.chat.type.MessageType;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.cns.common.exception.ExceptionCode.*;
 
@@ -38,24 +41,24 @@ public class ChatRoomService {
     public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
         // 회원이 참여하고 있는 채팅방 조회 (페이지 단위) todo 수정필요
         List<ChatRoom> chatRoomList = chatRoomRepository.getMyChatRoomsByPage(PageRequest.of(pageNumber - 1, 10), memberId);
-        // 조회된 채팅방이 없는 경우
-        if (chatRoomList.isEmpty())
-            return null;
 
-        List<ChatRoomResponse> responses = new ArrayList<>();
+        return chatRoomList.stream()
+                .filter(chatRoom -> chatRoom.getLastChatId() != null) // null이 아닌 경우만 필터링
+                .map(chatRoom -> {
+                    Chat lastChat = chatRepository.findById(chatRoom.getLastChatId())
+                            .orElseThrow();
+                    boolean isRead = chatParticipationRepository.findIsRead(memberId, chatRoom.getId());
+                    return ChatRoomResponse.builder()
+                            .roomId(chatRoom.getId())
+                            .roomName(chatRoom.getName())
+                            .lastChatSendAt(lastChat.getCreatedAt())
+                            .isRead(isRead)
+                            .lastChat(lastChat.getContent())
+                            .roomType(chatRoom.getRoomType())
+                            .build();
+                })
+                .collect(Collectors.toList());
 
-        for (ChatRoom chatRoom : chatRoomList) {
-            responses.add(ChatRoomResponse.builder()
-                    .roomId(chatRoom.getId())
-                    .roomName(chatRoom.getName())
-                    .lastChatSendAt(LocalDateTime.now())
-                    .isRead(chatParticipationRepository.findIsRead(memberId, chatRoom.getId())) // 회원의 채팅방 읽음 여부 조회
-                    .lastChat("chatRoom.getLastChat()")
-                    .roomType(chatRoom.getRoomType())
-                    .build());
-        }
-
-        return responses;
     }
 
     /*
@@ -67,15 +70,17 @@ public class ChatRoomService {
         if (request.inviteList().size() > 10)
             throw new BusinessException(ROOM_CAPACITY_EXCEEDED);
 
-
-        ChatRoom chatRoom = request.toChatRoomEntity();
-        ChatRoom save = chatRoomRepository.save(chatRoom);
-
-        // 참여 저장
-        saveChatParticipation(request.inviteList(), save.getId());
+        // 채팅방 저장
+        ChatRoom save = chatRoomRepository.save(request.toChatRoomEntity());
 
         // 초대 메시지 생성
         String msg = createInviteMsg(memberId, request.inviteList());
+        // 메시지 저장
+        saveStatusMsg(save, msg);
+
+        request.inviteList().add(new MemberInfo(null, memberId));
+        // 참여 저장
+        saveChatParticipation(request.inviteList(), save.getId());
 
         return new ChatRoomCreateResponse(save.getId(), msg);
     }
@@ -90,6 +95,16 @@ public class ChatRoomService {
         }
 
         return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다";
+    }
+
+    private void saveStatusMsg(ChatRoom chatRoom, String msg) {
+        chatRepository.save(Chat.builder()
+                .chatRoom(chatRoom)
+                .content(msg)
+                .messageType(MessageType.STATUS)
+                .createdAt(LocalDateTime.now())
+                .build()
+        );
     }
 
     /*
@@ -108,8 +123,10 @@ public class ChatRoomService {
      * 채팅 참여 정보 삭제
      */
     @Transactional
-    public ChatRoomMsgResponse leaveChatRoom(Long memberId, Long roomId) {
+    public void leaveChatRoom(Long memberId, Long roomId) {
         chatParticipationRepository.deleteByMemberAndRoom(memberId, roomId);
+        String nickname = memberRepository.findById(memberId).get().getNickname();
+        String msg = nickname + "님이 나갔습니다.";
 
         // 채팅방 인원 수 감소, 0명일 경우 채팅방 삭제
         chatRoomRepository.findById(roomId)
@@ -118,6 +135,7 @@ public class ChatRoomService {
                             if (chatRoom.getMemberCnt() == 1) {
                                 chatRoomRepository.deleteById(roomId);
                             } else {
+                                saveStatusMsg(chatRoom, msg);
                                 chatRoom.decreaseMemberCnt();
                             }
                         },
@@ -125,8 +143,6 @@ public class ChatRoomService {
                             throw new BusinessException(ChatROOM_NOT_EXIST);
                         }
                 );
-        String nickname = memberRepository.findById(memberId).get().getNickname();
-        return new ChatRoomMsgResponse(nickname + "님이 나갔습니다.");
     }
 
     /*
@@ -135,7 +151,14 @@ public class ChatRoomService {
     @Transactional
     public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> inviteList, Long roomId) {
         saveChatParticipation(inviteList, roomId);
-        return new ChatRoomMsgResponse(createInviteMsg(memberId, inviteList));
+
+        return chatRoomRepository.findById(roomId)
+                .map(chatRoom -> {
+                    String msg = createInviteMsg(memberId, inviteList);
+                    saveStatusMsg(chatRoom, msg); // 상태 변경 메시지 저장
+                    return new ChatRoomMsgResponse(msg);
+                })
+                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
     }
 
     /*
