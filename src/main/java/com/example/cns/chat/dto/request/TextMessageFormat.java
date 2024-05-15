@@ -16,20 +16,26 @@ public record TextMessageFormat(
         Long roomId,
 
         @NonNull
+        LocalDateTime createdAt,
+
+        @NonNull
         Long memberId,
 
         @NonNull
-        String messageType,
+        String from,
+
+        @NonNull
+        MessageType messageType,
 
         Long subjectId
 ) {
-    public Chat toChatEntity(ChatRoom room, Member from, LocalDateTime now) {
+    public Chat toChatEntity(ChatRoom room, Member from) {
         return Chat.builder()
                 .chatRoom(room)
                 .from(from)
                 .content(this.content)
-                .createdAt(now)
-                .messageType(MessageType.valueOf(messageType))
+                .createdAt(createdAt)
+                .messageType(messageType)
                 .subjectId(this.subjectId)
                 .build();
     }

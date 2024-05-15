@@ -1,7 +1,8 @@
 package com.example.cns.chat.service.redisMessageBroker;
 
-import com.example.cns.chat.dto.request.ImageMessageFormat;
+import com.example.cns.chat.dto.request.FileMessageFormat;
 import com.example.cns.chat.dto.request.TextMessageFormat;
+import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.service.MessagePublisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,18 @@ public class RedisMessagePublisher implements MessagePublisher {
     }
 
     @Override
-    public void publishImageMessage(Long roomId, ImageMessageFormat imageMessageFormat) {
+    public void publishImageMessage(Long roomId, FileMessageFormat fileMessageFormat) {
         try {
-            messageOp.convertAndSend("/sub/chat-room/" + roomId, mapper.writeValueAsString(imageMessageFormat));
+            messageOp.convertAndSend("/sub/chat-room/" + roomId, mapper.writeValueAsString(fileMessageFormat));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void publishMessage(Long roomId, ChatResponse chat) {
+        try {
+            messageOp.convertAndSend("/sub/chat-room/" + roomId, mapper.writeValueAsString(chat));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

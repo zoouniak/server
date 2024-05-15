@@ -2,6 +2,7 @@ package com.example.cns.chat.converter;
 
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
+import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -9,11 +10,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+
 public class MultipartFileConverter implements MultipartFile {
     private final byte[] imgBytes;
     private final String originalFileName;
     private final String extension;
 
+    @Builder
     public MultipartFileConverter(byte[] imgBytes, String originalFileName, String extension) {
         this.imgBytes = imgBytes;
         this.originalFileName = originalFileName;
