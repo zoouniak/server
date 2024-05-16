@@ -3,5 +3,11 @@ package com.example.cns.common.type;
 public enum FileType {
     JPG,
     PNG,
-    PDF
+    JPEG,
+    PDF,
+    XLSX,
+    PPT,
+    PPTX,
+    DOCS,
+    DOC
 }

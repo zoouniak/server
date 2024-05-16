@@ -7,7 +7,7 @@ import java.util.List;
 
 public record ChatRoomCreateRequest(
         String roomName,
-        List<Long> inviteList
+        List<MemberInfo> inviteList
 ) {
     public ChatRoom toChatRoomEntity() {
         return ChatRoom.builder()

@@ -1,11 +1,10 @@
 package com.example.cns.chat.domain.repository;
 
-import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.dto.response.ChatResponse;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,11 +12,10 @@ import java.util.List;
 import static com.example.cns.chat.domain.QChat.chat;
 
 @Repository
-public class ChatListRepositoryImpl extends QuerydslRepositorySupport {
+public class ChatListRepositoryImpl {
     private final JPAQueryFactory queryFactory;
 
     public ChatListRepositoryImpl(JPAQueryFactory queryFactory) {
-        super(Chat.class);
         this.queryFactory = queryFactory;
     }
 
@@ -28,7 +26,8 @@ public class ChatListRepositoryImpl extends QuerydslRepositorySupport {
                         chat.from.nickname.as("from"),
                         chat.from.id.as("memberId"),
                         chat.createdAt,
-                        chat.messageType))
+                        chat.messageType
+                ))
                 .from(chat)
                 .where(
                         ltChatId(chatId),
@@ -48,5 +47,13 @@ public class ChatListRepositoryImpl extends QuerydslRepositorySupport {
             return null;
         }
         return chat.id.lt(chatId);
+    }
+
+    public List<Tuple> getLastChatByChatRoom() {
+        return queryFactory
+                .select(chat.chatRoom.id, chat.id.max())
+                .from(chat)
+                .groupBy(chat.chatRoom.id)
+                .fetch();
     }
 }

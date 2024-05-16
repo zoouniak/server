@@ -49,10 +49,11 @@ public enum ExceptionCode {
     // 채팅 4000번대
     ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
     NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
+    ROOM_CAPACITY_EXCEEDED(4003, BAD_REQUEST, "채팅방 수용 인원(10명)을 초과하였습니다."),
 
     // 파일 5000번대
     FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다."),
-
+    FILE_NOT_SUPPORT(5002, BAD_REQUEST, "지원하지 않는 파일 형식입니다"),
 
     //프로젝트 6000번대
     PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다.");

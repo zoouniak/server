@@ -1,8 +1,9 @@
 package com.example.cns.chat.presentation;
 
 import com.example.cns.chat.converter.MultipartFileConverter;
-import com.example.cns.chat.dto.request.ImageMessageFormat;
+import com.example.cns.chat.dto.request.FileMessageFormat;
 import com.example.cns.chat.dto.request.TextMessageFormat;
+import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.service.ChatService;
 import com.example.cns.chat.service.MessagePublisher;
 import com.example.cns.chat.service.MessageSubscriber;
@@ -21,7 +22,7 @@ import java.util.Base64;
 @Controller
 public class RealTimeChatController {
     public final ChatService chatService;
-    private final MessagePublisher publisher;
+    private final MessagePublisher messagePublisher;
     private final MessageSubscriber messageSubscriber;
     private final S3Service fileUploader;
 
@@ -29,24 +30,46 @@ public class RealTimeChatController {
     @MessageMapping("/chat-room/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
     public void sendTextMessage(@DestinationVariable Long roomId, TextMessageFormat textMessage) {
-        // 채팅 전송
-        publisher.publishTextMessage(roomId, textMessage);
 
         // 데이터베이스에 채팅 저장
-        chatService.saveTextMessage(textMessage);
+        Long save = chatService.saveTextMessage(textMessage);
+        //  publisher.publishTextMessage(roomId, textMessage);
+        // 채팅 전송
+        messagePublisher.publishMessage(roomId, ChatResponse.builder()
+                .chatId(save)
+                .content(textMessage.content())
+                .from(textMessage.from())
+                .memberId(textMessage.memberId())
+                .createdAt(textMessage.createdAt())
+                .messageType(textMessage.messageType())
+                .build());
     }
 
-    @MessageMapping("/chat-room/image/{roomId}")
+    @MessageMapping("/chat-room/file/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
-    public void sendFileMessage(@DestinationVariable Long roomId, ImageMessageFormat imageMessage) {
-        publisher.publishImageMessage(roomId, imageMessage);
+    public void sendFileMessage(@DestinationVariable Long roomId, FileMessageFormat imageMessage) {
+        //  publisher.publishImageMessage(roomId, imageMessage);
 
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
 
-        FileResponse FileResponse = fileUploader.uploadFile(new MultipartFileConverter(imgByte), "resume");
+        FileResponse FileResponse = fileUploader.uploadFile(MultipartFileConverter.builder()
+                        .imgBytes(imgByte)
+                        .originalFileName(imageMessage.originalFileName())
+                        .extension(imageMessage.extension())
+                        .build(),
+                "chat");
 
-        chatService.saveImageMessage(imageMessage, FileResponse);
+        Long save = chatService.saveFileMessage(imageMessage, FileResponse);
+
+        messagePublisher.publishMessage(roomId, ChatResponse.builder()
+                .chatId(save)
+                .content(FileResponse.uploadFileURL())
+                .from(imageMessage.from())
+                .memberId(imageMessage.memberId())
+                .createdAt(imageMessage.createdAt())
+                .messageType(imageMessage.messageType())
+                .build());
     }
 
     @SubscribeMapping("/chat-room/{roomId}")
