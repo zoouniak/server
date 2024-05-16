@@ -3,16 +3,20 @@ package com.example.cns.member.presentation;
 import com.example.cns.auth.config.Auth;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.member.dto.request.MemberCompanyPatchRequest;
 import com.example.cns.member.dto.request.MemberFileRequest;
 import com.example.cns.member.dto.request.MemberProfilePatchRequest;
 import com.example.cns.member.dto.response.MemberProfileResponse;
 import com.example.cns.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -107,7 +111,17 @@ public class MemberController {
     프로젝트랑 연관시켜야 함
      */
     @PutMapping("/company")
-    public ResponseEntity putMemberCompanyInfo(@Auth Long id){
+    public ResponseEntity patchMemberCompanyInfo(@Auth Long id, @RequestBody MemberCompanyPatchRequest memberCompanyPatchRequest){
+        memberService.patchMemberCompany(id, memberCompanyPatchRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    /*
+    회원 회사 및 직무 삭제
+     */
+    @DeleteMapping("/company")
+    public ResponseEntity deleteMemberCompanyInfo(@Auth Long id){
+        memberService.deleteMemberCompany(id);
         return ResponseEntity.ok().build();
     }
 
@@ -119,6 +133,20 @@ public class MemberController {
     public ResponseEntity getMemberLikedPost(@PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue){
         List<PostResponse> likedPost = memberService.getMemberLikedPost(memberId, cursorValue);
         return ResponseEntity.ok(likedPost);
+    }
+
+    /*
+    필터 조회
+     */
+    @GetMapping("/{memberId}/post")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity getMemberPostWithFilter(@PathVariable Long memberId,
+                                                  @RequestParam(name="filter",required = false) String filterType,
+                                                  @RequestParam(name="start",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+                                                  @RequestParam(name="end",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
+                                                  @RequestParam(name="cursorValue",required = false)Long cursorValue){
+        List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue);
+        return ResponseEntity.ok(responses);
     }
 
 }

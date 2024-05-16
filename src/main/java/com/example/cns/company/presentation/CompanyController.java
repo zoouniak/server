@@ -36,7 +36,6 @@ public class CompanyController {
             @ApiResponse(responseCode = "204", description = "키워드가 포함된 회사가 없다.")
     })
     @Parameter(name = "keyword", description = "검색할 키워드")
-    @PreAuthorize("isAnonymous()")
     @GetMapping("/search")
     public ResponseEntity<?> searchCompany(@RequestParam(name = "keyword") String keyword) {
         System.out.println(keyword);

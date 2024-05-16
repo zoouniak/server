@@ -88,6 +88,8 @@ public class Member extends FileEntity {
         this.company = company;
     }
 
+    public void enrollPosition(String position){ this.position = position;}
+
     public void resetPassword(String password) {
         this.password = password;
     }
