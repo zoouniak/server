@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.example.cns.chat.domain.QChat.chat;
+import static com.example.cns.member.domain.QMember.member;
 
 @Repository
 public class ChatListRepositoryImpl {
@@ -29,6 +30,7 @@ public class ChatListRepositoryImpl {
                         chat.messageType
                 ))
                 .from(chat)
+                .leftJoin(chat.from, member)
                 .where(
                         ltChatId(chatId),
                         eqRoomId(roomId)
