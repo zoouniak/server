@@ -88,13 +88,15 @@ public class Member extends FileEntity {
         this.company = company;
     }
 
-    public void enrollPosition(String position){ this.position = position;}
+    public void enrollPosition(String position) {
+        this.position = position;
+    }
 
     public void resetPassword(String password) {
         this.password = password;
     }
 
-    public void updateInformation(String introduction, LocalDate birth){
+    public void updateInformation(String introduction, LocalDate birth) {
         this.introduction = introduction;
         this.birth = birth;
     }
@@ -107,7 +109,7 @@ public class Member extends FileEntity {
         }
     }
 
-    public void updateResume(Boolean isResumeExisted){
+    public void updateResume(Boolean isResumeExisted) {
         this.isResumeExisted = isResumeExisted;
     }
 

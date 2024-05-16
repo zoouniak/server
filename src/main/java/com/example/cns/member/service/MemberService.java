@@ -49,7 +49,7 @@ public class MemberService {
     private final ProjectRepository projectRepository;
     private final ProjectParticipationRepository projectParticipationRepository;
 
-    public MemberProfileResponse getMemberProfile(Long memberId){
+    public MemberProfileResponse getMemberProfile(Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
@@ -66,7 +66,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void patchMemberProfile(Long memberId, MemberProfilePatchRequest memberProfilePatchRequest){
+    public void patchMemberProfile(Long memberId, MemberProfilePatchRequest memberProfilePatchRequest) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
@@ -79,7 +79,7 @@ public class MemberService {
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
         //해당 유저가 프로필이 존재한다면.. 삭제
-        if(member.getIsProfileExisted()) {
+        if (member.getIsProfileExisted()) {
             try {
                 s3Service.deleteFile(member.getFileName(), "profile");
             } catch (IOException e) {
@@ -94,12 +94,12 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteProfile(Long memberId){
+    public void deleteProfile(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        if(member.getIsProfileExisted()) {
+        if (member.getIsProfileExisted()) {
             try {
-                s3Service.deleteFile(member.getFileName(),"profile");
+                s3Service.deleteFile(member.getFileName(), "profile");
                 member.updateProfile(null);
             } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
@@ -110,17 +110,17 @@ public class MemberService {
     @Transactional
     public void saveResume(Long memberId, MemberFileRequest memberFileRequest) {
 
-        if(!Objects.equals(memberFileRequest.file().getContentType(), "application/pdf"))
+        if (!Objects.equals(memberFileRequest.file().getContentType(), "application/pdf"))
             throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
 
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
         //해당 유저가 이력서가 존재한다면?
-        if(member.getIsResumeExisted()) {
+        if (member.getIsResumeExisted()) {
             Optional<MemberResume> resume = memberResumeRepository.findByMemberId(member.getId());
             try {
-                s3Service.deleteFile(resume.get().getFileName(),"resume");
+                s3Service.deleteFile(resume.get().getFileName(), "resume");
             } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
             }
@@ -141,14 +141,14 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteResume(Long memberId){
+    public void deleteResume(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
-        if(member.getIsResumeExisted()){ //이력서가 존재한다면, 찾아서 삭제
+        if (member.getIsResumeExisted()) { //이력서가 존재한다면, 찾아서 삭제
             Optional<MemberResume> resume = memberResumeRepository.findByMemberId(member.getId());
             try {
-                s3Service.deleteFile(resume.get().getFileName(),"resume");
+                s3Service.deleteFile(resume.get().getFileName(), "resume");
                 memberResumeRepository.deleteById(resume.get().getId());
                 member.updateResume(false);
             } catch (IOException e) {
@@ -167,7 +167,7 @@ public class MemberService {
                 .build()).orElse(null);
     }
 
-    public FileResponse getMemberProfileImage(Long memberId){
+    public FileResponse getMemberProfileImage(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
         return FileResponse.builder()
@@ -177,7 +177,7 @@ public class MemberService {
                 .build();
     }
 
-    public List<PostResponse> getMemberLikedPost(Long memberId, Long cursorValue){
+    public List<PostResponse> getMemberLikedPost(Long memberId, Long cursorValue) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
         if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
@@ -213,26 +213,26 @@ public class MemberService {
         List<Object[]> objects = null;
         List<PostResponse> postResponses = new ArrayList<>();
 
-        switch(filterType){
+        switch (filterType) {
             case "newest" -> {
                 objects = postRepository.findNewestPosts(memberId, cursorValue, pageSize);
             }
             case "oldest" -> {
-                objects = postRepository.findOldestPosts(memberId,cursorValue,pageSize);
+                objects = postRepository.findOldestPosts(memberId, cursorValue, pageSize);
             }
             case "period" -> {
                 LocalDateTime startDate = start.atStartOfDay();
                 LocalDateTime endDate = end.atStartOfDay();
-                objects = postRepository.findPostsByPeriod(memberId,cursorValue,pageSize,startDate,endDate);
+                objects = postRepository.findPostsByPeriod(memberId, cursorValue, pageSize, startDate, endDate);
             }
             case "like" -> {
-                objects = postRepository.findPostsByLikeCnt(memberId,cursorValue,pageSize);
+                objects = postRepository.findPostsByLikeCnt(memberId, cursorValue, pageSize);
             }
             default -> {
                 return null;
             }
         }
-        if(objects != null){
+        if (objects != null) {
             objects.forEach(
                     object -> {
                         Post post = (Post) object[0];
@@ -257,24 +257,23 @@ public class MemberService {
     }
 
     @Transactional
-    public void patchMemberCompany(Long memberId, MemberCompanyPatchRequest memberCompanyPatchRequest){
+    public void patchMemberCompany(Long memberId, MemberCompanyPatchRequest memberCompanyPatchRequest) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
-        if(member.getCompany() == null){ //첫 등록시?
+        if (member.getCompany() == null) { //첫 등록시?
             Company company = companySearchService.findByCompanyName(memberCompanyPatchRequest.companyName());
             member.enrollCompany(company);
-        }
-        else if(Objects.equals(member.getCompany().getName(), memberCompanyPatchRequest.companyName())){ //직무만 수정
+        } else if (Objects.equals(member.getCompany().getName(), memberCompanyPatchRequest.companyName())) { //직무만 수정
             member.enrollPosition(memberCompanyPatchRequest.position());
-        }else { //회사가 달라졌다면?
+        } else { //회사가 달라졌다면?
 
             Company company = companySearchService.findByCompanyName(memberCompanyPatchRequest.companyName());
             List<Project> projectList = projectRepository.findAllByMemberId(member.getId());
 
-            if(projectList.size() >= 1){//담당자이면 -> 수정 불가
+            if (projectList.size() >= 1) {//담당자이면 -> 수정 불가
                 throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
-            }else{ //담당자가 아니면, 참여중인 프로젝트에서 나가기
+            } else { //담당자가 아니면, 참여중인 프로젝트에서 나가기
                 projectParticipationRepository.deleteAllByMemberId(member.getId());
             }
             member.enrollCompany(company);
@@ -283,13 +282,13 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteMemberCompany(Long memberId){
+    public void deleteMemberCompany(Long memberId) {
 
         List<Project> projectList = projectRepository.findAllByMemberId(memberId);
 
-        if(projectList.size() >= 1){
+        if (projectList.size() >= 1) {
             throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
-        }else {
+        } else {
             projectParticipationRepository.deleteAllByMemberId(memberId);
         }
 

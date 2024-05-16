@@ -24,7 +24,7 @@ public class MemberResume extends FileEntity {
     private Member member;
 
     @Builder
-    public MemberResume(Member member,String url, String fileName, LocalDateTime createdAt, FileType fileType){
+    public MemberResume(Member member, String url, String fileName, LocalDateTime createdAt, FileType fileType) {
         this.member = member;
         this.setUrl(url);
         this.setFileName(fileName);

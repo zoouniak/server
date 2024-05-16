@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectParticipationID implements Serializable{
+public class ProjectParticipationID implements Serializable {
     private Long member;
     private Long project;
 }

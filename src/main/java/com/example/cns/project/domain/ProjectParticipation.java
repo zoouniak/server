@@ -1,6 +1,5 @@
 package com.example.cns.project.domain;
 
-import com.example.cns.chat.domain.ChatParticipationID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -22,7 +21,7 @@ public class ProjectParticipation implements Persistable<ProjectParticipationID>
 
     @Override
     public ProjectParticipationID getId() {
-        return new ProjectParticipationID(this.member,this.project);
+        return new ProjectParticipationID(this.member, this.project);
     }
 
     @Override

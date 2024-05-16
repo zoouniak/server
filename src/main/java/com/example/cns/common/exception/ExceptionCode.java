@@ -27,8 +27,8 @@ public enum ExceptionCode {
     // 회원 2000번대
     MEMBER_NOT_FOUND(2001, BAD_REQUEST, "사용자가 존재하지 않습니다."),
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
-    COMPANY_UPDATE_FAILED(2002,BAD_REQUEST,"회사 및 직무 수정에 실패하였습니다."),
-    COMPANY_UPDATE_FORBIDDEN(2003, FORBIDDEN,"담당하고 있는 프로젝트가 있습니다."),
+    COMPANY_UPDATE_FAILED(2002, BAD_REQUEST, "회사 및 직무 수정에 실패하였습니다."),
+    COMPANY_UPDATE_FORBIDDEN(2003, FORBIDDEN, "담당하고 있는 프로젝트가 있습니다."),
 
     //게시글, 댓글, 파일 3000번대
     //3001 ~ 3100 게시글
@@ -55,8 +55,7 @@ public enum ExceptionCode {
 
 
     //프로젝트 6000번대
-    PROJECT_NOT_EXIST(6001,NOT_FOUND, "프로젝트가 존재하지 않습니다.");
-
+    PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다.");
 
 
     private final int errorCode;

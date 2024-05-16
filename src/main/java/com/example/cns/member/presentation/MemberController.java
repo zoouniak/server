@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -25,13 +24,14 @@ import java.util.List;
 public class MemberController {
 
     private final MemberService memberService;
+
     /*
     특정 회원 정보 조회
     개인 or 다른 상대방
      */
     @GetMapping("/{memberId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberProfile(@PathVariable Long memberId){
+    public ResponseEntity getMemberProfile(@PathVariable Long memberId) {
         MemberProfileResponse member = memberService.getMemberProfile(memberId);
         return ResponseEntity.ok(member);
     }
@@ -41,8 +41,8 @@ public class MemberController {
      */
     @PatchMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity patchMemberProfile(@Auth Long memberId, @RequestBody @Valid MemberProfilePatchRequest memberProfilePatchRequest){
-        memberService.patchMemberProfile(memberId,memberProfilePatchRequest);
+    public ResponseEntity patchMemberProfile(@Auth Long memberId, @RequestBody @Valid MemberProfilePatchRequest memberProfilePatchRequest) {
+        memberService.patchMemberProfile(memberId, memberProfilePatchRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -52,7 +52,7 @@ public class MemberController {
      */
     @GetMapping("/{memberId}/resume")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberResume(@PathVariable Long memberId){
+    public ResponseEntity getMemberResume(@PathVariable Long memberId) {
         FileResponse resume = memberService.getMemberResume(memberId);
         return ResponseEntity.ok(resume);
     }
@@ -61,8 +61,8 @@ public class MemberController {
     이력서 업로드
      */
     @PostMapping("/resume")
-    public ResponseEntity postMemberResume(@Auth Long memberId,MemberFileRequest memberFileRequest){
-        memberService.saveResume(memberId,memberFileRequest);
+    public ResponseEntity postMemberResume(@Auth Long memberId, MemberFileRequest memberFileRequest) {
+        memberService.saveResume(memberId, memberFileRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -70,7 +70,7 @@ public class MemberController {
     이력서 삭제
      */
     @DeleteMapping("/resume")
-    public ResponseEntity deleteMemberResume(@Auth Long memberId){
+    public ResponseEntity deleteMemberResume(@Auth Long memberId) {
         memberService.deleteResume(memberId);
         return ResponseEntity.ok().build();
     }
@@ -81,7 +81,7 @@ public class MemberController {
      */
     @PostMapping("/profile")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity uploadMemberProfileImage(@Auth Long memberId, MemberFileRequest memberFileRequest){
+    public ResponseEntity uploadMemberProfileImage(@Auth Long memberId, MemberFileRequest memberFileRequest) {
         memberService.saveProfile(memberId, memberFileRequest);
         return ResponseEntity.ok().build();
     }
@@ -91,7 +91,7 @@ public class MemberController {
      */
     @DeleteMapping("/profile")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity deleteMemberProfileImage(@Auth Long memberId){
+    public ResponseEntity deleteMemberProfileImage(@Auth Long memberId) {
         memberService.deleteProfile(memberId);
         return ResponseEntity.ok().build();
     }
@@ -101,7 +101,7 @@ public class MemberController {
      */
     @GetMapping("/{memberId}/profile")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberProfileImage(@Auth Long id,@PathVariable Long memberId){
+    public ResponseEntity getMemberProfileImage(@Auth Long id, @PathVariable Long memberId) {
         FileResponse image = memberService.getMemberProfileImage(memberId);
         return ResponseEntity.ok(image);
     }
@@ -111,7 +111,7 @@ public class MemberController {
     프로젝트랑 연관시켜야 함
      */
     @PutMapping("/company")
-    public ResponseEntity patchMemberCompanyInfo(@Auth Long id, @RequestBody MemberCompanyPatchRequest memberCompanyPatchRequest){
+    public ResponseEntity patchMemberCompanyInfo(@Auth Long id, @RequestBody MemberCompanyPatchRequest memberCompanyPatchRequest) {
         memberService.patchMemberCompany(id, memberCompanyPatchRequest);
         return ResponseEntity.ok().build();
     }
@@ -120,7 +120,7 @@ public class MemberController {
     회원 회사 및 직무 삭제
      */
     @DeleteMapping("/company")
-    public ResponseEntity deleteMemberCompanyInfo(@Auth Long id){
+    public ResponseEntity deleteMemberCompanyInfo(@Auth Long id) {
         memberService.deleteMemberCompany(id);
         return ResponseEntity.ok().build();
     }
@@ -130,7 +130,7 @@ public class MemberController {
      */
     @GetMapping("/{memberId}/post/liked")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberLikedPost(@PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue){
+    public ResponseEntity getMemberLikedPost(@PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
         List<PostResponse> likedPost = memberService.getMemberLikedPost(memberId, cursorValue);
         return ResponseEntity.ok(likedPost);
     }
@@ -141,10 +141,10 @@ public class MemberController {
     @GetMapping("/{memberId}/post")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity getMemberPostWithFilter(@PathVariable Long memberId,
-                                                  @RequestParam(name="filter",required = false) String filterType,
-                                                  @RequestParam(name="start",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
-                                                  @RequestParam(name="end",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
-                                                  @RequestParam(name="cursorValue",required = false)Long cursorValue){
+                                                  @RequestParam(name = "filter", required = false) String filterType,
+                                                  @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+                                                  @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
+                                                  @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
         List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue);
         return ResponseEntity.ok(responses);
     }
