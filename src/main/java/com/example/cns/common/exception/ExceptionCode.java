@@ -56,7 +56,8 @@ public enum ExceptionCode {
     FILE_NOT_SUPPORT(5002, BAD_REQUEST, "지원하지 않는 파일 형식입니다"),
 
     //프로젝트 6000번대
-    PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다.");
+    PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다."),
+    MANAGER_CANNOT_LEAVE(6002,BAD_REQUEST,"담당자는 프로젝트를 나갈수 없습니다.");
 
 
     private final int errorCode;

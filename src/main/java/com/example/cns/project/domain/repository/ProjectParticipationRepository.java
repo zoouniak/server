@@ -13,10 +13,17 @@ import java.util.List;
 @Repository
 public interface ProjectParticipationRepository extends JpaRepository<ProjectParticipation, ProjectParticipationID> {
 
-    @Query("SELECT p FROM ProjectParticipation p WHERE p.member = :memberId")
+    @Query("SELECT pp FROM ProjectParticipation pp WHERE pp.member = :memberId")
     List<ProjectParticipation> findProjectIdsByMemberId(@Param("memberId") Long memberId);
 
     @Modifying
-    @Query("DELETE FROM ProjectParticipation p WHERE p.member = :memberId")
+    @Query("DELETE FROM ProjectParticipation pp WHERE pp.member = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("DELETE FROM ProjectParticipation pp WHERE pp.member = :memberId and pp.project = :projectId")
+    void deleteById(@Param("memberId") Long memberId, @Param("projectId") Long projectId);
+
+    @Query("SELECT pp FROM ProjectParticipation pp WHERE pp.project = :projectId")
+    List<ProjectParticipation> findProjectParticipationsByProjectId(@Param("projectId") Long projectId);
 }
