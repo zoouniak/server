@@ -267,10 +267,11 @@ public class MemberController {
     @Parameters(
             value = {
                     @Parameter(name = "memberId", description = "사용자 id"),
-                    @Parameter(name = "filter", description = "필터의 종류",example = "['newest','oldest','period','liked']"),
+                    @Parameter(name = "filter", description = "필터의 종류",example = "['newest','oldest','period','like']"),
                     @Parameter(name = "start",description = "[period] 시작 날짜"),
                     @Parameter(name = "end", description = "[period] 끝나는 날짜"),
-                    @Parameter(name = "cursorValue", description = "무한 스크롤 커서")
+                    @Parameter(name = "cursorValue", description = "무한 스크롤 커서"),
+                    @Parameter(name = "likeCnt", description = "[like] 좋아요 개수")
             }
     )
     @ApiResponses(value = {
@@ -283,8 +284,10 @@ public class MemberController {
                                                   @RequestParam(name = "filter", required = false) String filterType,
                                                   @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
                                                   @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
-                                                  @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
-        List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue);
+                                                  @RequestParam(name = "cursorValue", required = false) Long cursorValue,
+                                                  @RequestParam(name = "likeCnt" ,required = false) Long likeCnt) {
+        System.out.println(likeCnt);
+        List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue, likeCnt);
         return ResponseEntity.ok(responses);
     }
 

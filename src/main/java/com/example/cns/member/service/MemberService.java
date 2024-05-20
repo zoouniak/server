@@ -205,10 +205,10 @@ public class MemberService {
         return responses;
     }
 
-    public List<PostResponse> getMemberPostWithFilter(Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue) {
+    public List<PostResponse> getMemberPostWithFilter(Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue, Long likeCnt) {
 
         if (cursorValue == null || cursorValue == 0) {
-            cursorValue = filterType.equals("oldest") ? 0L : postRepository.getMaxPostId() + 1;
+            cursorValue = filterType.equals("oldest") || filterType.equals("period") ? 0L : postRepository.getMaxPostId() + 1;
         }
         Long pageSize = 10L;
         List<Object[]> objects = null;
@@ -227,7 +227,8 @@ public class MemberService {
                 objects = postRepository.findPostsByPeriod(memberId, cursorValue, pageSize, startDate, endDate);
             }
             case "like" -> {
-                objects = postRepository.findPostsByLikeCnt(memberId, cursorValue, pageSize);
+                if (likeCnt == -1) likeCnt = postRepository.getMaxLikeCntByMemberId(memberId);
+                objects = postRepository.findPostsByLikeCnt(memberId,likeCnt,cursorValue,pageSize);
             }
             default -> {
                 return null;
