@@ -4,14 +4,17 @@ import com.example.cns.common.FileEntity;
 import com.example.cns.company.domain.Company;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostLike;
+import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.type.RoleType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +57,14 @@ public class Member extends FileEntity {
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
+    @Column(name = "is_profile_existed")
+    @ColumnDefault("false")
+    private Boolean isProfileExisted;
+
+    @Column(name = "is_resume_existed")
+    @ColumnDefault("false")
+    private Boolean isResumeExisted;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostLike> likes = new ArrayList<>();
 
@@ -77,7 +88,44 @@ public class Member extends FileEntity {
         this.company = company;
     }
 
+    public void enrollPosition(String position) {
+        this.position = position;
+    }
+
     public void resetPassword(String password) {
         this.password = password;
+    }
+
+    public void updateInformation(String introduction, LocalDate birth) {
+        this.introduction = introduction;
+        this.birth = birth;
+    }
+
+    public void updateProfile(FileResponse fileResponse) {
+        if (fileResponse == null) {
+            clearProfile();
+        } else {
+            setProfile(fileResponse);
+        }
+    }
+
+    public void updateResume(Boolean isResumeExisted) {
+        this.isResumeExisted = isResumeExisted;
+    }
+
+    private void clearProfile() {
+        this.setFileName(null);
+        this.setUrl(null);
+        this.setFileType(null);
+        this.setCreatedAt(null);
+        this.isProfileExisted = false;
+    }
+
+    private void setProfile(FileResponse fileResponse) {
+        this.setFileName(fileResponse.uploadFileName());
+        this.setUrl(fileResponse.uploadFileURL());
+        this.setFileType(fileResponse.fileType());
+        this.setCreatedAt(LocalDateTime.now());
+        this.isProfileExisted = true;
     }
 }

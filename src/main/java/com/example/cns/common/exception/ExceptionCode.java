@@ -23,9 +23,12 @@ public enum ExceptionCode {
     INCORRECT_AUTHENTICATION_NUMBER(1011, UNAUTHORIZED, "인증번호가 일치하지 않습니다."),
     INVALID_EMAIL(1012, BAD_REQUEST, "인증에 실패하였습니다."),
     INCORRECT_INFO(1013, BAD_REQUEST, "회원정보와 일치하지 않습니다."),
+
     // 회원 2000번대
     MEMBER_NOT_FOUND(2001, BAD_REQUEST, "사용자가 존재하지 않습니다."),
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
+    COMPANY_UPDATE_FAILED(2002, BAD_REQUEST, "회사 및 직무 수정에 실패하였습니다."),
+    COMPANY_UPDATE_FORBIDDEN(2003, FORBIDDEN, "담당하고 있는 프로젝트가 있습니다."),
 
     //게시글, 댓글, 파일 3000번대
     //3001 ~ 3100 게시글
@@ -48,7 +51,12 @@ public enum ExceptionCode {
     NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
 
     // 파일 5000번대
-    FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다.");
+    FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다."),
+
+
+    //프로젝트 6000번대
+    PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다.");
+
 
     private final int errorCode;
     private final HttpStatus httpStatus;
