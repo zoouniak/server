@@ -29,7 +29,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p,CASE WHEN (SELECT COUNT(pl) FROM PostLike pl WHERE pl.post = p AND pl.member.id = :memberId) > 0 THEN true ELSE false END AS userLiked " +
             "FROM Post p " +
-            "WHERE p.member.id = :memberId AND p.id < :cursorValue " +
+            "WHERE p.member.id = :memberId AND p.id > :cursorValue " +
             "ORDER BY p.createdAt ASC LIMIT :pageSize")
     List<Object[]> findOldestPosts(@Param("memberId") Long memberId, @Param("cursorValue") Long cursorValue, @Param("pageSize") Long pageSize);
 

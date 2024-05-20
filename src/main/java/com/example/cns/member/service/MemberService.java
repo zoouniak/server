@@ -207,8 +207,9 @@ public class MemberService {
 
     public List<PostResponse> getMemberPostWithFilter(Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue) {
 
-        if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
-
+        if (cursorValue == null || cursorValue == 0) {
+            cursorValue = filterType.equals("oldest") ? 0L : postRepository.getMaxPostId() + 1;
+        }
         Long pageSize = 10L;
         List<Object[]> objects = null;
         List<PostResponse> postResponses = new ArrayList<>();
