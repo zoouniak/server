@@ -19,7 +19,7 @@ public class LastChatUpdateService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatListRepositoryImpl chatRepository;
 
-    @Scheduled(cron = "*/10 * * * * *") // 10초마다 실행
+    @Scheduled(cron = "* * 1 * * *") // 10초마다 실행
     @Transactional
     public void updateLastChat() {
         List<Tuple> lastChatByChatRoom = chatRepository.getLastChatByChatRoom();
