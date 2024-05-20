@@ -6,6 +6,6 @@ import lombok.Builder;
 public record MemberSearchResponse(
         Long memberId,
         String nickname,
-        String url
+        String profile
 ) {
 }
