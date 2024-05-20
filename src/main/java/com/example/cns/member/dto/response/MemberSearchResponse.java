@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record MemberSearchResponse(
         Long memberId,
-        String nickname
+        String nickname,
+        String url
 ) {
 }
