@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface MemberResumeRepository extends JpaRepository<MemberResume,Long> {
+public interface MemberResumeRepository extends JpaRepository<MemberResume, Long> {
     @Query("SELECT mr FROM member_resume mr WHERE mr.member.id = :memberId")
     Optional<MemberResume> findByMemberId(@Param("memberId") Long memberId);
 

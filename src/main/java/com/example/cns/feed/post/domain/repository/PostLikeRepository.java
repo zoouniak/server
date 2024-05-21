@@ -2,8 +2,6 @@ package com.example.cns.feed.post.domain.repository;
 
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostLike;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

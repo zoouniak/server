@@ -27,6 +27,7 @@ public class MemberSearchService {
                 .map(member -> MemberSearchResponse.builder()
                         .memberId(member.getId())
                         .nickname(member.getNickname())
+                        .profile(member.getUrl())
                         .build())
                 .collect(Collectors.toList());
     }

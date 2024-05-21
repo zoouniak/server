@@ -38,4 +38,10 @@ public record PostResponse(
         this.isCommentEnabled = isCommentEnabled;
         this.liked = liked;
     }
+
+    public PostResponse(Long id, Long memberId, String nickname, String profile, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
+        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked);
+    }
+
+
 }
