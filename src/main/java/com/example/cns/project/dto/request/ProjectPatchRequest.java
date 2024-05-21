@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 
-@Schema(description = "프로젝트 등록/수정 요청 DTO")
-public record ProjectRequest(
+@Schema(description = "프로젝트 수정 요청 DTO")
+public record ProjectPatchRequest(
         @Schema(description = "프로젝트 이름")
         String projectName,
         @Schema(description = "프로젝트 설명")

@@ -2,8 +2,8 @@ package com.example.cns.project.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.member.dto.response.MemberSearchResponse;
-import com.example.cns.project.dto.request.ProjectInviteRequest;
-import com.example.cns.project.dto.request.ProjectRequest;
+import com.example.cns.project.dto.request.ProjectCreateRequest;
+import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
 import com.example.cns.project.dto.response.ProjectResponse;
 import com.example.cns.project.service.ProjectService;
@@ -35,7 +35,6 @@ public class ProjectController {
     @Operation(summary = "프로젝트 생성 api", description = "사용자로부터 프로젝트 정보를 받아와 프로젝트를 생성하고, 프로젝트 인덱스값을 반환한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectRequest", description = "프로젝트 생성 요청 DTO")
             }
     )
@@ -44,9 +43,9 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = long.class)))
     })
     @PostMapping("/project")
-    public ResponseEntity createProject(@Auth Long memberId, @RequestBody ProjectRequest projectRequest){
-        Long response = projectService.createProject(memberId, projectRequest);
-        return ResponseEntity.ok(response);
+    public ResponseEntity createProject( @RequestBody ProjectCreateRequest projectCreateRequest){
+        projectService.createProject(projectCreateRequest);
+        return ResponseEntity.ok().build();
     }
 
     /*
@@ -65,8 +64,8 @@ public class ProjectController {
     })
     @PatchMapping("/project/{projectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody ProjectRequest projectRequest){
-        projectService.patchProject(projectId,projectRequest);
+    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
+        projectService.patchProject(projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -134,27 +133,6 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity getSpecificProject(@PathVariable Long projectId){
         return ResponseEntity.ok(projectService.getSpecificProject(projectId));
-    }
-
-    /*
-    프로젝트 초대
-     */
-    @Operation(summary = "프로젝트 참여자 초대 api", description = "사용자로부터 담당자, 참여자 정보를 받아, 프로젝트에 참여하게 한다.")
-    @Parameters(
-            value = {
-                    @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
-                    @Parameter(name = "projectInviteRequest", description = "프로젝트 참가 요청 DTO")
-            }
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "초대가 성공적일 경우 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
-    })
-    @PostMapping("/project/{projectId}/invite")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity inviteMemberToProject(@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
-        projectService.inviteProject(projectId, projectInviteRequest);
-        return ResponseEntity.ok().build();
     }
 
     /*

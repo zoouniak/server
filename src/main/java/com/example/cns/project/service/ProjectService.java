@@ -10,8 +10,9 @@ import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.ProjectParticipation;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
+import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
-import com.example.cns.project.dto.request.ProjectRequest;
+import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
 import com.example.cns.project.dto.response.ProjectResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,24 +37,12 @@ public class ProjectService {
     프로젝트 생성
      */
     @Transactional
-    public Long createProject(Long memberId, ProjectRequest projectRequest){
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        return projectRepository.save(projectRequest.toEntity(member)).getId();
-    }
+    public void createProject(ProjectCreateRequest projectCreateRequest){
 
-    /*
-    프로젝트 참여자 초대
-     */
-    @Transactional
-    public void inviteProject(Long projectId, ProjectInviteRequest projectInviteRequest){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        Member manager = memberRepository.findById(projectInviteRequest.managerId()).orElseThrow(
+        Member manager = memberRepository.findById(projectCreateRequest.managerId()).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
 
-        project.setManager(manager);
+        Long projectId = projectRepository.save(projectCreateRequest.toProjectEntity(manager)).getId();
 
         List<ProjectParticipation> participationList = new ArrayList<>();
 
@@ -63,7 +52,7 @@ public class ProjectService {
                 .build();
         participationList.add(participation);
 
-        projectInviteRequest.memberList().forEach(
+        projectCreateRequest.memberList().forEach(
                 memberId -> {
                     //조회를 하고 난이후에 추가할까?
                     ProjectParticipation member = ProjectParticipation.builder()
@@ -81,11 +70,11 @@ public class ProjectService {
     프로젝트 수정
      */
     @Transactional
-    public void patchProject(Long projectId, ProjectRequest projectRequest){
+    public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
 
-        project.updateProject(projectRequest);
+        project.updateProject(projectPatchRequest);
     }
 
     /*
