@@ -35,7 +35,7 @@ public class ProjectController {
     @Operation(summary = "프로젝트 생성 api", description = "사용자로부터 프로젝트 정보를 받아와 프로젝트를 생성하고, 프로젝트 인덱스값을 반환한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectRequest", description = "프로젝트 생성 요청 DTO")
             }
     )
@@ -85,7 +85,7 @@ public class ProjectController {
     @Operation(summary = "프로젝트에서 퇴장하는 api", description = "사용자가 프로젝트 퇴장 요청을 보내면, 해당 프로젝트에서 나가게 된다.")
     @Parameters(
             value = {
-                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스값")
             }
     )
@@ -105,7 +105,7 @@ public class ProjectController {
     @Operation(summary = "프로젝트 목록 조회 api", description = "해당 사용자가 참가하고 있는 프로젝트에 대한 목록을 반환한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "id", description = "JWT/사용자 id"),
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
             }
     )
     @ApiResponses(value = {
