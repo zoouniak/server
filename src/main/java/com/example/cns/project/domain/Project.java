@@ -2,7 +2,7 @@ package com.example.cns.project.domain;
 
 import com.example.cns.company.domain.Company;
 import com.example.cns.member.domain.Member;
-import com.example.cns.project.dto.request.ProjectRequest;
+import com.example.cns.project.dto.request.ProjectPatchRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -58,12 +58,12 @@ public class Project {
         this.manager = member;
     }
 
-    public void updateProject(ProjectRequest projectRequest){
-        this.projectName = projectRequest.projectName();
-        this.detail = projectRequest.detail();
-        this.goal = projectRequest.goal();
-        this.start = projectRequest.start();
-        this.end = projectRequest.end();
+    public void updateProject(ProjectPatchRequest projectPatchRequest){
+        this.projectName = projectPatchRequest.projectName();
+        this.detail = projectPatchRequest.detail();
+        this.goal = projectPatchRequest.goal();
+        this.start = projectPatchRequest.start();
+        this.end = projectPatchRequest.end();
     }
 
 }
