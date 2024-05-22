@@ -26,6 +26,7 @@ public class ChatListRepositoryImpl {
                         chat.content,
                         chat.from.nickname.as("from"),
                         chat.from.id.as("memberId"),
+                        chat.from.url.as("profileUrl"),
                         chat.createdAt,
                         chat.messageType
                 ))

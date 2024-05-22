@@ -16,6 +16,8 @@ public record ChatResponse(
 
         Long memberId,
 
+        String profileUrl,
+
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         LocalDateTime createdAt,
 
