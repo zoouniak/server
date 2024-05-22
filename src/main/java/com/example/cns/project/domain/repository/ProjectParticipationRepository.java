@@ -26,4 +26,7 @@ public interface ProjectParticipationRepository extends JpaRepository<ProjectPar
 
     @Query("SELECT pp FROM ProjectParticipation pp WHERE pp.project = :projectId")
     List<ProjectParticipation> findProjectParticipationsByProjectId(@Param("projectId") Long projectId);
+
+    @Query("SELECT pp.member FROM ProjectParticipation pp WHERE pp.project = :projectId")
+    List<Long> findProjectParticipationsIdByProjectId(@Param("projectId") Long projectId);
 }
