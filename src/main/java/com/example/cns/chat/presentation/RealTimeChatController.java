@@ -9,6 +9,7 @@ import com.example.cns.chat.service.MessagePublisher;
 import com.example.cns.chat.service.MessageSubscriber;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,6 +23,7 @@ import java.util.Base64;
 @Controller
 public class RealTimeChatController {
     public final ChatService chatService;
+    public final MemberService memberService;
     private final MessagePublisher messagePublisher;
     private final MessageSubscriber messageSubscriber;
     private final S3Service fileUploader;
@@ -33,6 +35,7 @@ public class RealTimeChatController {
 
         // 데이터베이스에 채팅 저장
         Long save = chatService.saveTextMessage(textMessage);
+        String senderProfile = memberService.getMemberProfileUrl(textMessage.memberId());
         //  publisher.publishTextMessage(roomId, textMessage);
         // 채팅 전송
         messagePublisher.publishMessage(roomId, ChatResponse.builder()
@@ -40,6 +43,7 @@ public class RealTimeChatController {
                 .content(textMessage.content())
                 .from(textMessage.from())
                 .memberId(textMessage.memberId())
+                .profileUrl(senderProfile)
                 .createdAt(textMessage.createdAt())
                 .messageType(textMessage.messageType())
                 .build());
@@ -61,12 +65,14 @@ public class RealTimeChatController {
                 "chat");
 
         Long save = chatService.saveFileMessage(imageMessage, FileResponse);
+        String senderProfileUrl = memberService.getMemberProfileUrl(imageMessage.memberId());
 
         messagePublisher.publishMessage(roomId, ChatResponse.builder()
                 .chatId(save)
                 .content(FileResponse.uploadFileURL())
                 .from(imageMessage.from())
                 .memberId(imageMessage.memberId())
+                .profileUrl(senderProfileUrl)
                 .createdAt(imageMessage.createdAt())
                 .messageType(imageMessage.messageType())
                 .build());

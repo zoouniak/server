@@ -300,4 +300,9 @@ public class MemberService {
         member.enrollCompany(null);
         member.enrollPosition(null);
     }
+
+    public String getMemberProfileUrl(Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
+        return member.getUrl();
+    }
 }
