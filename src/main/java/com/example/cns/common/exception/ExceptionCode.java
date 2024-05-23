@@ -58,6 +58,7 @@ public enum ExceptionCode {
     //프로젝트 6000번대
     PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다."),
     MANAGER_CANNOT_LEAVE(6002, BAD_REQUEST, "담당자는 프로젝트를 나갈수 없습니다."),
+    MANAGER_ONLY_ACTION(6003, FORBIDDEN, "담당자만 사용가능합니다."),
 
     // 일정 7000번대
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
