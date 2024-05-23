@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "일정 API")
@@ -32,6 +33,7 @@ public class PlanController {
             @ApiResponse(responseCode = "200", description = "일정 리스트",
                     content = @Content(schema = @Schema(implementation = PlanListResponse.class)))
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping("/list")
     public ResponseEntity getPlanList(@RequestParam(name = "projectId") Long projectId) {
         return ResponseEntity.ok(planService.getPlanListByProject(projectId));
@@ -43,6 +45,7 @@ public class PlanController {
             @ApiResponse(responseCode = "200", description = "일정 상세정보",
                     content = @Content(schema = @Schema(implementation = PlanDetailResponse.class)))
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping("/{planId}")
     public ResponseEntity getPlanDetail(@PathVariable(name = "planId") Long planId) {
         return ResponseEntity.ok(planService.getPlanDetails(planId));
@@ -54,6 +57,7 @@ public class PlanController {
             @ApiResponse(responseCode = "200", description = "일정 저장 성공",
                     content = @Content(schema = @Schema(implementation = PlanCreateResponse.class)))
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/create/{projectId}")
     public ResponseEntity createPlan(@PathVariable(name = "projectId") Long projectId, @Valid @RequestBody PlanCreateRequest planCreateRequest) {
         return ResponseEntity.ok(planService.createPlan(projectId, planCreateRequest));
@@ -65,6 +69,7 @@ public class PlanController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "일정 수정 성공.")
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PatchMapping("/{planId}")
     public ResponseEntity editPlan(@PathVariable(name = "planId") Long planId, @RequestBody @Valid PlanCreateRequest planEditRequest) {
         planService.editPlan(planId, planEditRequest);
@@ -76,6 +81,7 @@ public class PlanController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "일정 삭제 완료.")
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @DeleteMapping("/{planId}")
     public ResponseEntity deletePlan(@Auth Long memberId, @PathVariable(name = "planId") Long planId) {
         planService.validateManager(memberId, planId);
@@ -88,6 +94,7 @@ public class PlanController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "초대 성공.")
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PatchMapping("/invite/{planId}")
     public ResponseEntity addParticipant(@Auth Long memberId, @PathVariable(name = "planId") Long planId, @RequestBody PlanInviteRequest inviteRequest) {
         planService.inviteParticipant(planId, inviteRequest);
@@ -99,6 +106,7 @@ public class PlanController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "나가기 성공.")
     })
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @DeleteMapping("/exit/{planId}")
     public ResponseEntity exitPlan(@Auth Long memberId, @PathVariable(name = "planId") Long planId) {
         planService.exitPlan(planId, memberId);
