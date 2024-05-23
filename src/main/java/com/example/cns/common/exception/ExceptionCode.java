@@ -60,7 +60,8 @@ public enum ExceptionCode {
     MANAGER_CANNOT_LEAVE(6002, BAD_REQUEST, "담당자는 프로젝트를 나갈수 없습니다."),
 
     // 일정 7000번대
-    PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다.");
+    PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
+    ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다");
 
 
     private final int errorCode;

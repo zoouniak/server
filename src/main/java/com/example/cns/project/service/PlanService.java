@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,5 +79,11 @@ public class PlanService {
                 plan.getContent(),
                 participants
         );
+    }
+
+    public void validateManager(Long memberId, Long planId) {
+        Plan plan = planRepository.findById(planId).orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
+        if (!Objects.equals(plan.getProject().getManager().getId(), memberId))
+            throw new BusinessException(ExceptionCode.ONLY_MANAGER);
     }
 }
