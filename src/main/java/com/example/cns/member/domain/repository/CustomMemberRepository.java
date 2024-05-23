@@ -25,6 +25,7 @@ public class CustomMemberRepository {
                 .select(Projections.constructor(MemberSearchResponseWithChatParticipation.class,
                         member.id,
                         member.nickname,
+                        member.url.as("profile"),
                         chatParticipation.member.isNull().not()))
                 .from(member)
                 .leftJoin(chatParticipation)

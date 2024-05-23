@@ -191,7 +191,8 @@ public class ChatRoomService {
             Member member = memberRepository.findById(participant.getMember()).get();
             responses.add(new ChatParticipantsResponse(
                     member.getId(),
-                    member.getNickname()
+                    member.getNickname(),
+                    member.getUrl()
             ));
         }
         return responses;

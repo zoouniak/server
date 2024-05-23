@@ -43,7 +43,7 @@ public class RealTimeChatController {
                 .content(textMessage.content())
                 .from(textMessage.from())
                 .memberId(textMessage.memberId())
-                .profileUrl(senderProfile)
+                .profile(senderProfile)
                 .createdAt(textMessage.createdAt())
                 .messageType(textMessage.messageType())
                 .build());
@@ -72,7 +72,7 @@ public class RealTimeChatController {
                 .content(FileResponse.uploadFileURL())
                 .from(imageMessage.from())
                 .memberId(imageMessage.memberId())
-                .profileUrl(senderProfileUrl)
+                .profile(senderProfileUrl)
                 .createdAt(imageMessage.createdAt())
                 .messageType(imageMessage.messageType())
                 .build());
