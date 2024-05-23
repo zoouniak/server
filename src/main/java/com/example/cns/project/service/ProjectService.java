@@ -46,22 +46,26 @@ public class ProjectService {
 
         List<ProjectParticipation> participationList = new ArrayList<>();
 
-        ProjectParticipation participation = ProjectParticipation.builder()
+        ProjectParticipation projectManager = ProjectParticipation.builder()
                 .project(projectId)
                 .member(manager.getId())
                 .build();
-        participationList.add(participation);
+        participationList.add(projectManager);
 
-        projectCreateRequest.memberList().forEach(
-                memberId -> {
-                    //조회를 하고 난이후에 추가할까?
-                    ProjectParticipation member = ProjectParticipation.builder()
-                            .project(projectId)
-                            .member(memberId)
-                            .build();
-                    participationList.add(member);
-                }
-        );
+        //초대된 인원이 서비스에 가입된 사람인지?
+        List<Member> participants = memberRepository.findByIdIn(projectCreateRequest.memberList());
+
+        if(participants.size() == projectCreateRequest.memberList().size()){
+            participants.forEach(
+                    member -> {
+                        ProjectParticipation participation = ProjectParticipation.builder()
+                                .project(projectId)
+                                .member(member.getId())
+                                .build();
+                        participationList.add(participation);
+                    }
+            );
+        }
 
         projectParticipationRepository.saveAll(participationList);
     }
@@ -70,9 +74,12 @@ public class ProjectService {
     프로젝트 수정
      */
     @Transactional
-    public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
+    public void patchProject(Long memberId,Long projectId, ProjectPatchRequest projectPatchRequest){
+
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+
+        if(!project.getManager().getId().equals(memberId)) throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
 
         project.updateProject(projectPatchRequest);
     }
@@ -158,5 +165,71 @@ public class ProjectService {
         );
 
         return memberList;
+    }
+
+    /*
+    프로젝트 참여자 수정 / 추가 초대
+     */
+    @Transactional
+    public void patchProjectParticipant(Long managerId,Long projectId,ProjectInviteRequest projectInviteRequest){
+
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+
+        if(!project.getManager().getId().equals(managerId))
+            throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
+
+        //현재 참여자 리스트
+
+        List<Long> previousList = projectParticipationRepository.findProjectParticipationsIdByProjectId(projectId);
+
+        //수정된 참여자 리스트
+        List<Long> updateList = new ArrayList<>(projectInviteRequest.memberList());
+        updateList.add(projectInviteRequest.managerId());
+
+        //새로 추가된 인원
+        List<Long> addedList = updateList.stream()
+                .filter(memberId -> !previousList.contains(memberId))
+                .toList();
+
+        //삭제된 인원
+        List<Long> removedList = previousList.stream()
+                .filter(memberId -> !updateList.contains(memberId))
+                .toList();
+
+        Member manager = memberRepository.findById(projectInviteRequest.managerId()).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+
+        //담당자 교체
+        project.setManager(manager);
+
+        //새로추가된 인원
+        List<ProjectParticipation> addList = new ArrayList<>();
+        addedList.forEach(
+                memberId -> {
+                    ProjectParticipation member = ProjectParticipation.builder()
+                            .project(projectId)
+                            .member(memberId)
+                            .build();
+                    addList.add(member);
+                }
+        );
+
+        projectParticipationRepository.saveAll(addList);
+
+        //삭제된 인원
+        List<ProjectParticipation> removeList = new ArrayList<>();
+        removedList.forEach(
+                memberId -> {
+                    ProjectParticipation member = ProjectParticipation.builder()
+                            .project(projectId)
+                            .member(memberId)
+                            .build();
+                    removeList.add(member);
+                }
+        );
+
+        projectParticipationRepository.deleteAllInBatch(removeList);
+
     }
 }

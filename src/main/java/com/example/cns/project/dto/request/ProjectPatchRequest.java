@@ -1,7 +1,5 @@
 package com.example.cns.project.dto.request;
 
-import com.example.cns.member.domain.Member;
-import com.example.cns.project.domain.Project;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
@@ -19,15 +17,4 @@ public record ProjectPatchRequest(
         @Schema(description = "프로젝트 마감날짜")
         LocalDate end
 ) {
-    public Project toEntity(Member member){
-        return Project.builder()
-                .company(member.getCompany())
-                .manager(member)
-                .projectName(projectName)
-                .detail(detail)
-                .goal(goal)
-                .start(start)
-                .end(end)
-                .build();
-    }
 }

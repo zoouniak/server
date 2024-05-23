@@ -3,6 +3,7 @@ package com.example.cns.project.presentation;
 import com.example.cns.auth.config.Auth;
 import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.project.dto.request.ProjectCreateRequest;
+import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
 import com.example.cns.project.dto.response.ProjectResponse;
@@ -40,7 +41,7 @@ public class ProjectController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "저장된 프로젝트의 인덱스를 반환한다.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project")
     public ResponseEntity createProject( @RequestBody ProjectCreateRequest projectCreateRequest){
@@ -54,18 +55,18 @@ public class ProjectController {
     @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다.")
     @Parameters(
             value = {
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
                     @Parameter(name = "projectRequest", description = "프로젝트 수정 요청 DTO")
             }
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "수정에 성공하면 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
-        projectService.patchProject(projectId, projectPatchRequest);
+    public ResponseEntity patchProject(@Auth Long memberId, @PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
+        projectService.patchProject(memberId,projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -90,7 +91,7 @@ public class ProjectController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "프로젝트에서 성공적으로 나갈시 200을 반환한다.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/project/{projectId}/exit")
     public ResponseEntity exitProject(@Auth Long memberId, @PathVariable Long projectId){
@@ -152,5 +153,26 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity getProjectParticipant(@PathVariable Long projectId){
         return ResponseEntity.ok(projectService.getProjectParticipant(projectId));
+    }
+
+    /*
+    프로젝트 참여자 수정
+     */
+    @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
+                    @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
+                    @Parameter(name = "projectInviteRequest", description = "프로젝트 초대 요청 DTO")
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로젝트 참여자와 담당자를 수정에 성공하면 200을 반환한다.",
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
+    })
+    @PatchMapping("/project/{projectId}/invite")
+    public ResponseEntity patchProjectParticipant(@Auth Long memberId,@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
+        projectService.patchProjectParticipant(memberId,projectId, projectInviteRequest);
+        return ResponseEntity.ok().build();
     }
 }
