@@ -53,7 +53,7 @@ public class PlanService {
     public List<PlanListResponse> getPlanListByProject(Long projectId) {
         List<Plan> planList = planRepository.getAllByProject(projectId);
         return planList.stream()
-                .map(plan -> new PlanListResponse(plan.getPlanName(), plan.getStartedAt(), plan.getEndedAt()))
+                .map(plan -> new PlanListResponse(plan.getId(), plan.getPlanName(), plan.getStartedAt(), plan.getEndedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -76,6 +76,7 @@ public class PlanService {
 
     private PlanDetailResponse toPlanDetailResponse(Plan plan, List<MemberResponse> participants) {
         return new PlanDetailResponse(
+                plan.getId(),
                 plan.getPlanName(),
                 plan.getStartedAt(),
                 plan.getEndedAt(),
