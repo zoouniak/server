@@ -11,4 +11,7 @@ import java.util.List;
 public interface PlanParticipationRepository extends JpaRepository<PlanParticipation, PlanParticipationID> {
     @Query("select pp from PlanParticipation pp where pp.plan = :planId")
     List<PlanParticipation> findAllByPlanId(@Param("planId") Long planId);
+
+    @Query("delete from PlanParticipation pp where pp.plan = :planId and pp.member = :memberId")
+    void deleteByPlanAndMember(@Param("planId") Long planId, @Param("memberId") Long memberId);
 }

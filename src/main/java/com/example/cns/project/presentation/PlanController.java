@@ -2,12 +2,13 @@ package com.example.cns.project.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.project.dto.request.PlanCreateRequest;
+import com.example.cns.project.dto.request.PlanInviteRequest;
+import com.example.cns.project.dto.response.PlanCreateResponse;
 import com.example.cns.project.dto.response.PlanDetailResponse;
 import com.example.cns.project.dto.response.PlanListResponse;
 import com.example.cns.project.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -47,33 +48,22 @@ public class PlanController {
         return ResponseEntity.ok(planService.getPlanDetails(planId));
     }
 
-    @Operation(summary = "일정을 생성하는 api", description = "사용자로부터 일정 정보를 받아와 일정을 생성한다.")
-    @Parameters(
-            value = {
-                    @Parameter(name = "projectId", description = "프로젝트 번호"),
-                    @Parameter(name = "PlanCreateRequest", description = "프로젝트 생성 요청 DTO", required = true)
-            }
-    )
+    @Operation(summary = "일정을 생성하는 api", description = "사용자로부터 일정 정보를 받아와 일정을 생성하고 일정 아이디를 반환한다.")
+    @Parameter(name = "projectId", description = "프로젝트 번호")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "일정 저장 성공",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+                    content = @Content(schema = @Schema(implementation = PlanCreateResponse.class)))
     })
     @PostMapping("/create/{projectId}")
     public ResponseEntity createPlan(@PathVariable(name = "projectId") Long projectId, @Valid @RequestBody PlanCreateRequest planCreateRequest) {
-        planService.createPlan(projectId, planCreateRequest);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(planService.createPlan(projectId, planCreateRequest));
     }
 
     @Operation(summary = "일정을 수정하는 api", description = "사용자로부터 수정된 일정 정보를 받아와 일정을 수정한다.")
-    @Parameters(
-            value = {
-                    @Parameter(name = "planId", description = "일정 번호"),
-                    @Parameter(name = "PlanCreateRequest", description = "일정 수정 DTO")
-            }
-    )
+    @Parameter(name = "planId", description = "일정 번호")
+
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "일정 수정 성공.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+            @ApiResponse(responseCode = "200", description = "일정 수정 성공.")
     })
     @PatchMapping("/{planId}")
     public ResponseEntity editPlan(@PathVariable(name = "planId") Long planId, @RequestBody @Valid PlanCreateRequest planEditRequest) {
@@ -84,13 +74,34 @@ public class PlanController {
     @Operation(summary = "일정을 삭제하는 api", description = "일정을 삭제한다. 단 일정은 프로젝트 관리자만 삭제할 수 있다.")
     @Parameter(name = "planId", description = "일정 번호")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "일정 삭제 완료.",
-                    content = @Content(schema = @Schema(implementation = long.class)))
+            @ApiResponse(responseCode = "200", description = "일정 삭제 완료.")
     })
     @DeleteMapping("/{planId}")
     public ResponseEntity deletePlan(@Auth Long memberId, @PathVariable(name = "planId") Long planId) {
         planService.validateManager(memberId, planId);
         planService.deletePlan(planId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "일정 참여자를 추가로 초대하는 api", description = "추가로 초대할 참여자 정보를 입력 받아 참여자를 추가한다.")
+    @Parameter(name = "planId", description = "일정 번호")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "초대 성공.")
+    })
+    @PatchMapping("/invite/{planId}")
+    public ResponseEntity addParticipant(@Auth Long memberId, @PathVariable(name = "planId") Long planId, @RequestBody PlanInviteRequest inviteRequest) {
+        planService.inviteParticipant(planId, inviteRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "일정에서 나가는 api", description = "일정 번호를 입력받고 해당 일정에서 나간다.")
+    @Parameter(name = "planId", description = "일정 번호")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "나가기 성공.")
+    })
+    @DeleteMapping("/exit/{planId}")
+    public ResponseEntity exitPlan(@Auth Long memberId, @PathVariable(name = "planId") Long planId) {
+        planService.exitPlan(planId, memberId);
         return ResponseEntity.ok().build();
     }
 }

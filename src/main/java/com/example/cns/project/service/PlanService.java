@@ -7,7 +7,9 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectRepository;
 import com.example.cns.project.dto.request.PlanCreateRequest;
+import com.example.cns.project.dto.request.PlanInviteRequest;
 import com.example.cns.project.dto.response.MemberResponse;
+import com.example.cns.project.dto.response.PlanCreateResponse;
 import com.example.cns.project.dto.response.PlanDetailResponse;
 import com.example.cns.project.dto.response.PlanListResponse;
 import com.example.cns.project.plan.domain.Plan;
@@ -32,17 +34,18 @@ public class PlanService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void createPlan(Long projectId, PlanCreateRequest request) {
+    public PlanCreateResponse createPlan(Long projectId, PlanCreateRequest request) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
         Plan save = planRepository.save(request.toPlanEntity(project));
         for (Long memberId : request.inviteList()) {
             planParticipationRepository.save(new PlanParticipation(memberId, save.getId()));
         }
+        return new PlanCreateResponse(save.getId());
     }
 
     @Transactional
     public void editPlan(Long planId, PlanCreateRequest planEditRequest) {
-        Plan plan = planRepository.findById(planId).orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
+        Plan plan = getPlan(planId);
         plan.updatePlan(planEditRequest);
     }
 
@@ -61,7 +64,7 @@ public class PlanService {
 
     @Transactional(readOnly = true)
     public PlanDetailResponse getPlanDetails(Long planId) {
-        Plan plan = planRepository.findById(planId).orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
+        Plan plan = getPlan(planId);
         List<PlanParticipation> allByPlanId = planParticipationRepository.findAllByPlanId(planId);
         List<MemberResponse> participants = new ArrayList<>();
         for (PlanParticipation planParticipation : allByPlanId) {
@@ -82,8 +85,23 @@ public class PlanService {
     }
 
     public void validateManager(Long memberId, Long planId) {
-        Plan plan = planRepository.findById(planId).orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
+        Plan plan = getPlan(planId);
         if (!Objects.equals(plan.getProject().getManager().getId(), memberId))
             throw new BusinessException(ExceptionCode.ONLY_MANAGER);
+    }
+
+    private Plan getPlan(Long planId) {
+        return planRepository.findById(planId)
+                .orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
+    }
+
+    public void inviteParticipant(Long planId, PlanInviteRequest inviteRequest) {
+        for (Long memberId : inviteRequest.memberList()) {
+            planParticipationRepository.save(new PlanParticipation(memberId, planId));
+        }
+    }
+
+    public void exitPlan(Long planId, Long memberId) {
+        planParticipationRepository.deleteByPlanAndMember(planId, memberId);
     }
 }
