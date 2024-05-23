@@ -1,7 +1,7 @@
-package com.example.cns.project.plan.domain;
+package com.example.cns.plan.domain;
 
+import com.example.cns.plan.dto.request.PlanCreateRequest;
 import com.example.cns.project.domain.Project;
-import com.example.cns.project.dto.request.PlanCreateRequest;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

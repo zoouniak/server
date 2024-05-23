@@ -1,4 +1,4 @@
-package com.example.cns.project.plan.domain;
+package com.example.cns.plan.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

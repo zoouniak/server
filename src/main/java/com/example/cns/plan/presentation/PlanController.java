@@ -1,12 +1,12 @@
-package com.example.cns.project.presentation;
+package com.example.cns.plan.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.project.dto.request.PlanCreateRequest;
-import com.example.cns.project.dto.request.PlanInviteRequest;
-import com.example.cns.project.dto.response.PlanCreateResponse;
-import com.example.cns.project.dto.response.PlanDetailResponse;
-import com.example.cns.project.dto.response.PlanListResponse;
-import com.example.cns.project.service.PlanService;
+import com.example.cns.plan.dto.request.PlanCreateRequest;
+import com.example.cns.plan.dto.request.PlanInviteRequest;
+import com.example.cns.plan.dto.response.PlanCreateResponse;
+import com.example.cns.plan.dto.response.PlanDetailResponse;
+import com.example.cns.plan.dto.response.PlanListResponse;
+import com.example.cns.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

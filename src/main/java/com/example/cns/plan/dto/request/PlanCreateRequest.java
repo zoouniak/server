@@ -1,7 +1,7 @@
-package com.example.cns.project.dto.request;
+package com.example.cns.plan.dto.request;
 
+import com.example.cns.plan.domain.Plan;
 import com.example.cns.project.domain.Project;
-import com.example.cns.project.plan.domain.Plan;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;

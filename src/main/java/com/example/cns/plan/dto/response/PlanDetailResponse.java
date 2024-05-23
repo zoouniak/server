@@ -1,4 +1,4 @@
-package com.example.cns.project.dto.response;
+package com.example.cns.plan.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

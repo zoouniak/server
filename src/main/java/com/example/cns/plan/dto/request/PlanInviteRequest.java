@@ -1,4 +1,4 @@
-package com.example.cns.project.dto.request;
+package com.example.cns.plan.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
