@@ -50,7 +50,7 @@ public class MemberAuthService {
         if (passwordEncoder.matches(request.password(), member.getPassword())) {
             JwtMemberInfo memberInfo = new JwtMemberInfo(member.getId(), member.getRole());
 
-            return new LoginResponse(jwtProvider.generateLoginToken(memberInfo), member.getId());
+            return new LoginResponse(jwtProvider.generateLoginToken(memberInfo), member.getId(), member.getUrl());
         }
         throw new AuthException(ExceptionCode.INVALID_PASSWORD);
     }
