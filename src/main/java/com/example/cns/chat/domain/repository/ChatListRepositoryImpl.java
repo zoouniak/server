@@ -1,7 +1,7 @@
 package com.example.cns.chat.domain.repository;
 
 import com.example.cns.chat.dto.response.ChatResponse;
-import com.querydsl.core.Tuple;
+import com.example.cns.chat.dto.response.LastChatInfo;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.example.cns.chat.domain.QChat.chat;
+import static com.example.cns.member.domain.QMember.member;
 
 @Repository
 public class ChatListRepositoryImpl {
@@ -25,10 +26,12 @@ public class ChatListRepositoryImpl {
                         chat.content,
                         chat.from.nickname.as("from"),
                         chat.from.id.as("memberId"),
+                        chat.from.url.as("profileUrl"),
                         chat.createdAt,
                         chat.messageType
                 ))
                 .from(chat)
+                .leftJoin(chat.from, member)
                 .where(
                         ltChatId(chatId),
                         eqRoomId(roomId)
@@ -49,9 +52,9 @@ public class ChatListRepositoryImpl {
         return chat.id.lt(chatId);
     }
 
-    public List<Tuple> getLastChatByChatRoom() {
+    public List<LastChatInfo> getLastChatByChatRoom() {
         return queryFactory
-                .select(chat.chatRoom.id, chat.id.max())
+                .select(Projections.constructor(LastChatInfo.class, chat.chatRoom.id, chat.id.max()))
                 .from(chat)
                 .groupBy(chat.chatRoom.id)
                 .fetch();

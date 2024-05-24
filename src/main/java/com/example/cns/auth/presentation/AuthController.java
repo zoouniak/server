@@ -25,7 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "유저 관리 API", description = "사용자 인증과 관련된 API")
 @RestController
@@ -149,9 +150,12 @@ public class AuthController {
 
     private ResponseEntity<Object> getResponseEntity(LoginResponse response) {
         AuthTokens authTokens = response.authTokens();
+        Map body = new HashMap();
+        body.put("memberId", response.memberId());
+        body.put("profile", response.profileUrl());
         return ResponseEntity.ok()
                 .header("RefreshToken", authTokens.refreshToken())
                 .header("Authorization", authTokens.accessToken())
-                .body(Collections.singletonMap("memberId", response.memberId()));
+                .body(body);
     }
 }
