@@ -18,6 +18,9 @@ jobs:
       run: |
         mkdir -p ./src/main/resources && 
         echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application.yml
+        
+    - name: assign grant gradlew
+      run: chmod +x gradlew
     
     # Spring Boot 어플리케이션 Build (1)
     - name: Spring Boot Build
