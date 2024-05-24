@@ -6,6 +6,7 @@ import com.example.cns.chat.domain.ChatParticipationID;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.domain.repository.ChatParticipationRepository;
 import com.example.cns.chat.domain.repository.ChatRepository;
+import com.example.cns.chat.domain.repository.ChatRoomListRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberInfo;
@@ -18,14 +19,12 @@ import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.cns.common.exception.ExceptionCode.*;
 
@@ -36,32 +35,14 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
+    private final ChatRoomListRepository chatRoomListRepository;
 
     /*
      * 회원이 참여하고 있는 채팅방 조회 (페이지 단위), 마지막 채팅 최신순으로
      */
     @Transactional(readOnly = true)
-    public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int pageNumber) {
-
-        List<ChatRoom> chatRoomList = chatRoomRepository.getMyChatRoomsByPage(PageRequest.of(pageNumber - 1, 10), memberId);
-
-        return chatRoomList.stream()
-                .filter(chatRoom -> chatRoom.getLastChatId() != null) // null이 아닌 경우만 필터링
-                .map(chatRoom -> {
-                    Chat lastChat = chatRepository.findById(chatRoom.getLastChatId())
-                            .orElseThrow();
-                    boolean isRead = chatParticipationRepository.findIsRead(memberId, chatRoom.getId()); // 읽음 여부 확인
-                    return ChatRoomResponse.builder()
-                            .roomId(chatRoom.getId())
-                            .roomName(chatRoom.getName())
-                            .lastChatSendAt(lastChat.getCreatedAt())
-                            .isRead(isRead)
-                            .lastChat(lastChat.getContent())
-                            .roomType(chatRoom.getRoomType())
-                            .build();
-                })
-                .collect(Collectors.toList());
-
+    public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int page) {
+        return chatRoomListRepository.getMyChatRoomList(memberId, 10, page);
     }
 
     /*
