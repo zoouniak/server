@@ -34,7 +34,7 @@ jobs:
     
     # Docker 이미지 Build (2)
     - name: docker image build
-      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cns .
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cns:latest .
     
     # DockerHub Login (3)
     - name: docker login 
@@ -45,4 +45,4 @@ jobs:
 
     # Docker Hub push (4)
     - name: docker Hub push
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/cns
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/cns:latest
