@@ -1,7 +1,7 @@
 package com.example.cns.plan.dto.response;
 
 public record MemberResponse(
-        Long id,
+        Long memberId,
         String nickname,
         String profile
 ) {
