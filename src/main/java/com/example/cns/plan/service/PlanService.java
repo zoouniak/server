@@ -2,7 +2,6 @@ package com.example.cns.plan.service;
 
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
-import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.plan.domain.Plan;
 import com.example.cns.plan.domain.PlanParticipation;
@@ -20,10 +19,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.example.cns.common.exception.ExceptionCode.MEMBER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -66,11 +66,14 @@ public class PlanService {
     public PlanDetailResponse getPlanDetails(Long planId) {
         Plan plan = getPlan(planId);
         List<PlanParticipation> allByPlanId = planParticipationRepository.findAllByPlanId(planId);
-        List<MemberResponse> participants = new ArrayList<>();
-        for (PlanParticipation planParticipation : allByPlanId) {
-            Member member = memberRepository.findById(planParticipation.getMember()).get();
-            participants.add(new MemberResponse(member.getNickname(), member.getUrl()));
-        }
+        List<MemberResponse> participants = allByPlanId.stream()
+                .map(planParticipation -> memberRepository.findById(planParticipation.getMember())
+                        .map(member -> new MemberResponse(
+                                member.getId(),
+                                member.getNickname(),
+                                member.getUrl()))
+                        .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND)))
+                .collect(Collectors.toList());
         return toPlanDetailResponse(plan, participants);
     }
 
