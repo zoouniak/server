@@ -41,7 +41,8 @@ public class ChatRoomListRepository {
                 .where(chatParticipation.member.eq(memberId))
                 .orderBy(chatRoom.lastChatId.desc())
                 .limit(pageSize)
-                .offset((offset - 1) * pageSize)
+                .offset((long) (offset - 1) * pageSize)
                 .fetch();
     }
+
 }
