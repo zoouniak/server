@@ -18,6 +18,12 @@ jobs:
       run: |
         mkdir -p ./src/main/resources && 
         echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application.yml
+    
+    - name: install java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: 17
+        distribution: 'corretto'
         
     - name: assign grant gradlew
       run: chmod +x gradlew
