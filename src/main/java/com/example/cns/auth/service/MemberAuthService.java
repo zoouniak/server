@@ -5,8 +5,8 @@ import com.example.cns.auth.dto.request.LoginRequest;
 import com.example.cns.auth.dto.request.PasswordResetRequest;
 import com.example.cns.auth.dto.request.SignUpRequest;
 import com.example.cns.auth.dto.response.AuthTokens;
+import com.example.cns.auth.dto.response.LoginResponse;
 import com.example.cns.auth.dto.response.NicknameInquiryResponse;
-import com.example.cns.chat.dto.response.LoginResponse;
 import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.exception.MemberVerificationRequest;
 import com.example.cns.common.security.exception.AuthException;
@@ -50,7 +50,7 @@ public class MemberAuthService {
         if (passwordEncoder.matches(request.password(), member.getPassword())) {
             JwtMemberInfo memberInfo = new JwtMemberInfo(member.getId(), member.getRole());
 
-            return new LoginResponse(jwtProvider.generateLoginToken(memberInfo), member.getId());
+            return new LoginResponse(jwtProvider.generateLoginToken(memberInfo), member.getId(), member.getUrl());
         }
         throw new AuthException(ExceptionCode.INVALID_PASSWORD);
     }

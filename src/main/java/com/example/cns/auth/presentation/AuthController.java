@@ -4,10 +4,10 @@ import com.example.cns.auth.dto.request.LoginRequest;
 import com.example.cns.auth.dto.request.PasswordResetRequest;
 import com.example.cns.auth.dto.request.SignUpRequest;
 import com.example.cns.auth.dto.response.AuthTokens;
+import com.example.cns.auth.dto.response.LoginResponse;
 import com.example.cns.auth.dto.response.NicknameCheckResponse;
 import com.example.cns.auth.dto.response.NicknameInquiryResponse;
 import com.example.cns.auth.service.MemberAuthService;
-import com.example.cns.chat.dto.response.LoginResponse;
 import com.example.cns.common.exception.ExceptionResponse;
 import com.example.cns.common.exception.MemberVerificationRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "유저 관리 API", description = "사용자 인증과 관련된 API")
 @RestController
@@ -149,9 +150,12 @@ public class AuthController {
 
     private ResponseEntity<Object> getResponseEntity(LoginResponse response) {
         AuthTokens authTokens = response.authTokens();
+        Map body = new HashMap();
+        body.put("memberId", response.memberId());
+        body.put("profile", response.profileUrl());
         return ResponseEntity.ok()
                 .header("RefreshToken", authTokens.refreshToken())
                 .header("Authorization", authTokens.accessToken())
-                .body(Collections.singletonMap("memberId", response.memberId()));
+                .body(body);
     }
 }

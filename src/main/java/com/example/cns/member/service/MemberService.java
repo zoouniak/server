@@ -271,7 +271,7 @@ public class MemberService {
         } else { //회사가 달라졌다면?
 
             Company company = companySearchService.findByCompanyName(memberCompanyPatchRequest.companyName());
-            List<Project> projectList = projectRepository.findAllByMemberId(member.getId());
+            List<Project> projectList = projectRepository.findAllByManagerId(member.getId());
 
             if (projectList.size() >= 1) {//담당자이면 -> 수정 불가
                 throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
@@ -286,7 +286,7 @@ public class MemberService {
     @Transactional
     public void deleteMemberCompany(Long memberId) {
 
-        List<Project> projectList = projectRepository.findAllByMemberId(memberId);
+        List<Project> projectList = projectRepository.findAllByManagerId(memberId);
 
         if (projectList.size() >= 1) {
             throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
@@ -299,5 +299,10 @@ public class MemberService {
 
         member.enrollCompany(null);
         member.enrollPosition(null);
+    }
+
+    public String getMemberProfileUrl(Long memberId) {
+        Member member = memberRepository.findById(memberId).get();
+        return member.getUrl();
     }
 }

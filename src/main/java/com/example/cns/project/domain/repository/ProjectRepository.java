@@ -11,5 +11,8 @@ import java.util.List;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT p FROM Project p WHERE p.manager.id = :memberId")
-    List<Project> findAllByMemberId(@Param("memberId") Long memberId);
+    List<Project> findAllByManagerId(@Param("memberId") Long memberId);
+
+    @Query("SELECT p FROM Project p join ProjectParticipation pp ON p.id = pp.project WHERE pp.member = :memberId")
+    List<Project> findProjectsByMemberId(@Param("memberId") Long memberId);
 }

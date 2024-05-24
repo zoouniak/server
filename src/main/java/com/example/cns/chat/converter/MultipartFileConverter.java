@@ -1,18 +1,26 @@
 package com.example.cns.chat.converter;
 
+import com.example.cns.common.exception.BusinessException;
+import com.example.cns.common.exception.ExceptionCode;
+import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
+
 
 public class MultipartFileConverter implements MultipartFile {
     private final byte[] imgBytes;
+    private final String originalFileName;
+    private final String extension;
 
-    public MultipartFileConverter(byte[] imgBytes) {
+    @Builder
+    public MultipartFileConverter(byte[] imgBytes, String originalFileName, String extension) {
         this.imgBytes = imgBytes;
+        this.originalFileName = originalFileName;
+        this.extension = extension;
     }
 
     @Override
@@ -22,12 +30,22 @@ public class MultipartFileConverter implements MultipartFile {
 
     @Override
     public String getOriginalFilename() {
-        return generateRandomFileName();
+        return originalFileName;
     }
 
     @Override
     public String getContentType() {
-        return "image/png";
+        return switch (extension) {
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpg";
+            case "pdf" -> "application/pdf";
+            case "ppt" -> "application/vnd.ms-powerpoint";
+            case "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "doc" -> "application/msword";
+            case "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default -> throw new BusinessException(ExceptionCode.FILE_NOT_SUPPORT);
+        };
     }
 
     @Override
@@ -55,13 +73,4 @@ public class MultipartFileConverter implements MultipartFile {
 
     }
 
-    private String generateRandomFileName() {
-        // UUID 생성
-        UUID uuid = UUID.randomUUID();
-
-        // UUID를 문자열로 변환하고 '-'를 제거하여 파일 이름에 사용합니다.
-        String fileName = uuid.toString().replace("-", "");
-
-        return fileName + ".png";
-    }
 }

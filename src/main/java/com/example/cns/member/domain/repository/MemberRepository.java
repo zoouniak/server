@@ -21,4 +21,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findAllByNicknameStartsWith(String nickname);
 
     List<Member> findAllByNicknameStartsWithAndCompany(String nickname, Company company);
+
+    List<Member> findByIdIn(List<Long> ids);
+
 }

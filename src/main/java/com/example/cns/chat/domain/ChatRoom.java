@@ -24,11 +24,22 @@ public class ChatRoom {
     @Column
     private int memberCnt;
 
+    @Column
+    private Long lastChatId;
+
 
     @Builder
     public ChatRoom(RoomType roomType, String name, int memberCnt) {
         this.roomType = roomType;
         this.name = name;
         this.memberCnt = memberCnt;
+    }
+
+    public void decreaseMemberCnt() {
+        memberCnt--;
+    }
+
+    public void updateLastChat(Long chatId) {
+        this.lastChatId = chatId;
     }
 }

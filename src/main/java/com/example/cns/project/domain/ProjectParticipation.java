@@ -4,11 +4,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ProjectParticipationID.class)
 public class ProjectParticipation implements Persistable<ProjectParticipationID> {
     @Id
@@ -28,4 +32,11 @@ public class ProjectParticipation implements Persistable<ProjectParticipationID>
     public boolean isNew() {
         return this.member != null && this.project != null;
     }
+
+    @Builder
+    public ProjectParticipation(Long member, Long project){
+        this.member = member;
+        this.project = project;
+    }
+
 }
