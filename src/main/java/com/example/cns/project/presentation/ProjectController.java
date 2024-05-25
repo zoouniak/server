@@ -52,7 +52,7 @@ public class ProjectController {
     /*
     프로젝트 수정
      */
-    @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다.")
+    @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다. 단 관리자만 수정할 수 있다.")
     @Parameters(
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
@@ -72,8 +72,17 @@ public class ProjectController {
 
     /*
     프로젝트 삭제
-    프로젝트 삭제시 일정,게시글 전부다 삭제해야함
      */
+    @Operation(summary = "프로젝트 삭제 api", description = "프로젝트에 대한 모든 정보를 삭제한다. 단 관리자만 삭제할수 있다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
+                    @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "삭제에 성공하면 200을 반환한다.")
+    })
     @DeleteMapping("/project/{projectId}")
     public ResponseEntity deleteProject(@Auth Long memberId,@PathVariable Long projectId){
         projectService.deleteProject(memberId,projectId);
@@ -83,7 +92,7 @@ public class ProjectController {
     /*
     프로젝트 나가기
      */
-    @Operation(summary = "프로젝트에서 퇴장하는 api", description = "사용자가 프로젝트 퇴장 요청을 보내면, 해당 프로젝트에서 나가게 된다.")
+    @Operation(summary = "프로젝트에서 퇴장하는 api", description = "사용자가 프로젝트 퇴장 요청을 보내면, 해당 프로젝트에서 나가게 된다. 단 관리자는 나갈 수 없다.")
     @Parameters(
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
@@ -159,7 +168,7 @@ public class ProjectController {
     /*
     프로젝트 참여자 수정
      */
-    @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다.")
+    @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다. 단 관리자만 수정이 가능하다.")
     @Parameters(
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
