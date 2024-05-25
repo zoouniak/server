@@ -53,10 +53,9 @@ public class ProjectController {
     /*
     프로젝트 수정
      */
-    @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다. 단 관리자만 수정할 수 있다.")
+    @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
                     @Parameter(name = "projectRequest", description = "프로젝트 수정 요청 DTO")
             }
@@ -66,18 +65,17 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}")
-    public ResponseEntity patchProject(@Auth Long memberId, @PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
-        projectService.patchProject(memberId,projectId, projectPatchRequest);
+    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
+        projectService.patchProject(projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
 
     /*
     프로젝트 삭제
      */
-    @Operation(summary = "프로젝트 삭제 api", description = "프로젝트에 대한 모든 정보를 삭제한다. 단 관리자만 삭제할수 있다.")
+    @Operation(summary = "프로젝트 삭제 api", description = "프로젝트에 대한 모든 정보를 삭제한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
             }
     )
@@ -85,8 +83,8 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "삭제에 성공하면 200을 반환한다.")
     })
     @DeleteMapping("/project/{projectId}")
-    public ResponseEntity deleteProject(@Auth Long memberId,@PathVariable Long projectId){
-        projectService.deleteProject(memberId,projectId);
+    public ResponseEntity deleteProject(@PathVariable Long projectId){
+        projectService.deleteProject(projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -169,7 +167,7 @@ public class ProjectController {
     /*
     프로젝트 참여자 수정
      */
-    @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다. 단 관리자만 수정이 가능하다.")
+    @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다.")
     @Parameters(
             value = {
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),

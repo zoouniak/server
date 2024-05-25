@@ -75,12 +75,10 @@ public class ProjectService {
     프로젝트 수정
      */
     @Transactional
-    public void patchProject(Long memberId,Long projectId, ProjectPatchRequest projectPatchRequest){
+    public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
 
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(memberId)) throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
 
         project.updateProject(projectPatchRequest);
     }
@@ -89,13 +87,11 @@ public class ProjectService {
     프로젝트 삭제
      */
     @Transactional
-    public void deleteProject(Long memberId, Long projectId){
+    public void deleteProject(Long projectId){
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-        if(project.getManager().getId().equals(memberId)){
-            projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 프로젝트 참여자, 일정, 일정 참여자 삭제
-        }
-        else throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
+        projectParticipationRepository.deleteAllByProjectId(projectId); //프로젝트 참여자 삭제
+        projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 일정, 일정 참여자 삭제
     }
 
     /*
