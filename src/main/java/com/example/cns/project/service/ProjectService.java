@@ -14,6 +14,7 @@ import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
+import com.example.cns.project.dto.response.ProjectParticipantInfo;
 import com.example.cns.project.dto.response.ProjectResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -74,12 +75,10 @@ public class ProjectService {
     프로젝트 수정
      */
     @Transactional
-    public void patchProject(Long memberId,Long projectId, ProjectPatchRequest projectPatchRequest){
+    public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
 
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(memberId)) throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
 
         project.updateProject(projectPatchRequest);
     }
@@ -87,6 +86,13 @@ public class ProjectService {
     /*
     프로젝트 삭제
      */
+    @Transactional
+    public void deleteProject(Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        projectParticipationRepository.deleteAllByProjectId(projectId); //프로젝트 참여자 삭제
+        projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 일정, 일정 참여자 삭제
+    }
 
     /*
     프로젝트 나가기
@@ -144,8 +150,10 @@ public class ProjectService {
     /*
     프로젝트 참여자 조회
      */
-    public List<MemberSearchResponse> getProjectParticipant(Long projectId){
+    public ProjectParticipantInfo getProjectParticipant(Long projectId){
 
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
         List<ProjectParticipation> participationList = projectParticipationRepository.findProjectParticipationsByProjectId(projectId);
         List<MemberSearchResponse> memberList = new ArrayList<>();
 
@@ -164,20 +172,22 @@ public class ProjectService {
                 }
         );
 
-        return memberList;
+        ProjectParticipantInfo response = ProjectParticipantInfo.builder()
+                .managerId(project.getManager().getId())
+                .memberList(memberList)
+                .build();
+
+        return response;
     }
 
     /*
     프로젝트 참여자 수정 / 추가 초대
      */
     @Transactional
-    public void patchProjectParticipant(Long managerId,Long projectId,ProjectInviteRequest projectInviteRequest){
+    public void patchProjectParticipant(Long projectId,ProjectInviteRequest projectInviteRequest){
 
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(managerId))
-            throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
 
         //현재 참여자 리스트
 

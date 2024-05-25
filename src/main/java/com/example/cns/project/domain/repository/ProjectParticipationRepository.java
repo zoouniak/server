@@ -13,9 +13,6 @@ import java.util.List;
 @Repository
 public interface ProjectParticipationRepository extends JpaRepository<ProjectParticipation, ProjectParticipationID> {
 
-    @Query("SELECT pp FROM ProjectParticipation pp WHERE pp.member = :memberId")
-    List<ProjectParticipation> findProjectIdsByMemberId(@Param("memberId") Long memberId);
-
     @Modifying
     @Query("DELETE FROM ProjectParticipation pp WHERE pp.member = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
@@ -29,4 +26,8 @@ public interface ProjectParticipationRepository extends JpaRepository<ProjectPar
 
     @Query("SELECT pp.member FROM ProjectParticipation pp WHERE pp.project = :projectId")
     List<Long> findProjectParticipationsIdByProjectId(@Param("projectId") Long projectId);
+
+    @Modifying
+    @Query("DELETE FROM ProjectParticipation pp WHERE pp.project = :projectId")
+    void deleteAllByProjectId(@Param("projectId") Long projectId);
 }
