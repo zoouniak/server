@@ -1,4 +1,4 @@
-package com.example.cns.project.projectPost.dto.response;
+package com.example.cns.projectPost.projectPost.dto.response;
 
 import com.example.cns.feed.post.dto.response.PostMember;
 import lombok.Builder;

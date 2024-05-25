@@ -1,8 +1,8 @@
-package com.example.cns.project.projectPost.dto.request;
+package com.example.cns.projectPost.projectPost.dto.request;
 
 import com.example.cns.member.domain.Member;
 import com.example.cns.project.domain.Project;
-import com.example.cns.project.projectPost.domain.ProjectPost;
+import com.example.cns.projectPost.projectPost.domain.ProjectPost;
 
 public record ProjectPostRequest(
         String content

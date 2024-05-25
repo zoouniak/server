@@ -1,7 +1,7 @@
-package com.example.cns.project.projectPost.domain;
+package com.example.cns.projectPost.projectPost.domain;
 
 import com.example.cns.member.domain.Member;
-import com.example.cns.project.projectPost.type.OpinionType;
+import com.example.cns.projectPost.projectPost.type.OpinionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -1,10 +1,10 @@
-package com.example.cns.project.projectPost.presentation;
+package com.example.cns.projectPost.projectPost.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.project.projectPost.dto.request.ProjectPostOpinionRequest;
-import com.example.cns.project.projectPost.dto.request.ProjectPostRequest;
-import com.example.cns.project.projectPost.dto.response.ProjectPostResponse;
-import com.example.cns.project.projectPost.service.ProjectPostService;
+import com.example.cns.projectPost.projectPost.dto.request.ProjectPostOpinionRequest;
+import com.example.cns.projectPost.projectPost.dto.request.ProjectPostRequest;
+import com.example.cns.projectPost.projectPost.dto.response.ProjectPostResponse;
+import com.example.cns.projectPost.projectPost.service.ProjectPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,6 @@
-package com.example.cns.project.projectPost.domain.repository;
+package com.example.cns.projectPost.projectPost.domain.repository;
 
-import com.example.cns.project.projectPost.dto.response.ProjectPostResponse;
+import com.example.cns.projectPost.projectPost.dto.response.ProjectPostResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
