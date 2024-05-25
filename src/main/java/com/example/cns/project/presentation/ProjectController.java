@@ -172,7 +172,6 @@ public class ProjectController {
     @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다. 단 관리자만 수정이 가능하다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
                     @Parameter(name = "projectInviteRequest", description = "프로젝트 초대 요청 DTO")
             }
@@ -182,8 +181,8 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}/invite")
-    public ResponseEntity patchProjectParticipant(@Auth Long memberId,@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
-        projectService.patchProjectParticipant(memberId,projectId, projectInviteRequest);
+    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
+        projectService.patchProjectParticipant(projectId, projectInviteRequest);
         return ResponseEntity.ok().build();
     }
 }

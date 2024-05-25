@@ -188,13 +188,10 @@ public class ProjectService {
     프로젝트 참여자 수정 / 추가 초대
      */
     @Transactional
-    public void patchProjectParticipant(Long managerId,Long projectId,ProjectInviteRequest projectInviteRequest){
+    public void patchProjectParticipant(Long projectId,ProjectInviteRequest projectInviteRequest){
 
         Project project = projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(managerId))
-            throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
 
         //현재 참여자 리스트
 
