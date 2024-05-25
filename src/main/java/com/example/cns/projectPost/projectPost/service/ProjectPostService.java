@@ -39,11 +39,6 @@ public class ProjectPostService {
 
     }
 
-//    public List<ChatResponse> getPaginationChat(Long roomId, Long chatId) {
-//        // 스크롤에 따라 no offset 페이징
-//        return chatListRepository.paginationChat(roomId, chatId, 10);
-//    }
-
     //게시글 작성
     @Transactional
     public void createProjectPost(Long memberId, Long projectId, ProjectPostRequest projectPostRequest){

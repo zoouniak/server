@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.example.cns.project.projectPost.domain.QProjectPost.projectPost;
-import static com.example.cns.project.projectPost.domain.QProjectPostOpinion.projectPostOpinion;
+import static com.example.cns.projectPost.projectPost.domain.QProjectPost.projectPost;
+import static com.example.cns.projectPost.projectPost.domain.QProjectPostOpinion.projectPostOpinion;
 
 @Repository
 public class ProjectPostListRepositoryImpl {
@@ -57,41 +57,5 @@ public class ProjectPostListRepositoryImpl {
                 .limit(pageSize)
                 .fetch();
     }
-
-//        return results.stream().map(tuple -> {
-//            Long postId = tuple.get(projectPost.id);
-//            Long projectId = tuple.get(projectPost.project.id);
-//            Long postMemberId = tuple.get(projectPost.member.id);
-//            String postMemberNickname = tuple.get(projectPost.member.nickname);
-//            String postMemberUrl = tuple.get(projectPost.member.url);
-//            String content = tuple.get(projectPost.content);
-//            LocalDateTime createdAt = tuple.get(projectPost.createdAt);
-//            int prosCnt = tuple.get(projectPost.prosCnt);
-//            int consCnt = tuple.get(projectPost.consCnt);
-//            int checkCnt = tuple.get(projectPost.checkCnt);
-//            String opinion = tuple.get(new CaseBuilder()
-//                    .when(projectPostOpinion.id.isNotNull())
-//                    .then(projectPostOpinion.opinionType.stringValue())
-//                    .otherwise((String) null));
-//
-//            PostMember postMember = PostMember.builder()
-//                    .id(postMemberId)
-//                    .nickname(postMemberNickname)
-//                    .profile(postMemberUrl)
-//                    .build();
-//
-//            return ProjectPostResponse.builder()
-//                    .id(postId)
-//                    .projectId(projectId)
-//                    .postMember(postMember)
-//                    .content(content)
-//                    .createdAt(createdAt)
-//                    .prosCnt(prosCnt)
-//                    .consCnt(consCnt)
-//                    .checkCnt(checkCnt)
-//                    .opinion(opinion)
-//                    .build();
-//        }).collect(Collectors.toList());
-
-    }
+}
 

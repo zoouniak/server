@@ -75,7 +75,8 @@ public class ProjectController {
     프로젝트 삭제시 일정,게시글 전부다 삭제해야함
      */
     @DeleteMapping("/project/{projectId}")
-    public ResponseEntity deleteProject(@PathVariable Long projectId){
+    public ResponseEntity deleteProject(@Auth Long memberId,@PathVariable Long projectId){
+        projectService.deleteProject(memberId,projectId);
         return ResponseEntity.ok().build();
     }
 

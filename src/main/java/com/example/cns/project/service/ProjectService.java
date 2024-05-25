@@ -87,6 +87,15 @@ public class ProjectService {
     /*
     프로젝트 삭제
      */
+    @Transactional
+    public void deleteProject(Long memberId, Long projectId){
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        if(project.getManager().getId().equals(memberId)){
+            projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 프로젝트 참여자, 일정, 일정 참여자 삭제
+        }
+        else throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
+    }
 
     /*
     프로젝트 나가기
