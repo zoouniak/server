@@ -26,12 +26,12 @@ public class ChatListRepositoryImpl {
                         chat.content,
                         chat.from.nickname.as("from"),
                         chat.from.id.as("memberId"),
-                        chat.from.url.as("profileUrl"),
+                        chat.from.url.as("profile"),
                         chat.createdAt,
                         chat.messageType
                 ))
                 .from(chat)
-                .leftJoin(chat.from, member)
+                .innerJoin(chat.from, member)
                 .where(
                         ltChatId(chatId),
                         eqRoomId(roomId)

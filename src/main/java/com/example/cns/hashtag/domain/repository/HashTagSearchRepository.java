@@ -14,7 +14,6 @@ import java.util.List;
 import static com.example.cns.chat.domain.QChat.chat;
 import static com.example.cns.feed.post.domain.QPost.post;
 import static com.example.cns.feed.post.domain.QPostLike.postLike;
-import static com.example.cns.hashtag.domain.QHashTag.hashTag;
 import static com.example.cns.hashtag.domain.QHashTagPost.hashTagPost;
 
 @Repository
@@ -45,8 +44,6 @@ public class HashTagSearchRepository {
                                 ).exists(), "liked")
                 ))
                 .from(hashTagPost)
-                .join(hashTag)
-                .on(hashTagPost.id.hashtag.eq(hashTag.id))
                 .join(post)
                 .on(hashTagPost.id.post.eq(post.id))
                 .where(hashTagPost.id.hashtag.eq(hashtagId),
