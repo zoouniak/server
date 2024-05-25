@@ -14,6 +14,7 @@ import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
+import com.example.cns.project.dto.response.ProjectParticipantInfo;
 import com.example.cns.project.dto.response.ProjectResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -153,8 +154,10 @@ public class ProjectService {
     /*
     프로젝트 참여자 조회
      */
-    public List<MemberSearchResponse> getProjectParticipant(Long projectId){
+    public ProjectParticipantInfo getProjectParticipant(Long projectId){
 
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
         List<ProjectParticipation> participationList = projectParticipationRepository.findProjectParticipationsByProjectId(projectId);
         List<MemberSearchResponse> memberList = new ArrayList<>();
 
@@ -173,7 +176,12 @@ public class ProjectService {
                 }
         );
 
-        return memberList;
+        ProjectParticipantInfo response = ProjectParticipantInfo.builder()
+                .managerId(project.getManager().getId())
+                .memberList(memberList)
+                .build();
+
+        return response;
     }
 
     /*

@@ -6,6 +6,7 @@ import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
+import com.example.cns.project.dto.response.ProjectParticipantInfo;
 import com.example.cns.project.dto.response.ProjectResponse;
 import com.example.cns.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -157,7 +158,7 @@ public class ProjectController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "프로젝트 참여자에 대한 정보를 반환한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = MemberSearchResponse.class))))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectParticipantInfo.class))))
     })
     @GetMapping("/project/{projectId}/participant")
     @PreAuthorize("isAuthenticated()")
