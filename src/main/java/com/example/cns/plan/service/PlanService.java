@@ -37,9 +37,7 @@ public class PlanService {
     public PlanCreateResponse createPlan(Long projectId, PlanCreateRequest request) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
         Plan save = planRepository.save(request.toPlanEntity(project));
-        for (Long memberId : request.inviteList()) {
-            planParticipationRepository.save(new PlanParticipation(memberId, save.getId()));
-        }
+        saveParticipant(request.inviteList(), save.getId());
         return new PlanCreateResponse(save.getId());
     }
 
@@ -47,6 +45,7 @@ public class PlanService {
     public void editPlan(Long planId, PlanCreateRequest planEditRequest) {
         Plan plan = getPlan(planId);
         plan.updatePlan(planEditRequest);
+        saveParticipant(planEditRequest.inviteList(), planId);
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +99,11 @@ public class PlanService {
     }
 
     public void inviteParticipant(Long planId, PlanInviteRequest inviteRequest) {
-        for (Long memberId : inviteRequest.memberList()) {
+        saveParticipant(inviteRequest.memberList(), planId);
+    }
+
+    private void saveParticipant(List<Long> inviteRequest, Long planId) {
+        for (Long memberId : inviteRequest) {
             planParticipationRepository.save(new PlanParticipation(memberId, planId));
         }
     }
