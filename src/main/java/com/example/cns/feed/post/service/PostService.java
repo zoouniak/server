@@ -11,13 +11,13 @@ import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
 import com.example.cns.feed.post.domain.repository.PostLikeRepository;
+import com.example.cns.feed.post.domain.repository.PostListRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
-import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
@@ -52,6 +52,7 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final PostFileRepository postFileRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostListRepository postListRepository;
 
     /*
     게시글 저장
@@ -63,10 +64,8 @@ public class PostService {
      */
     @Transactional
     public Long savePost(Long id, PostRequest postRequest) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Post post = postRequest.toEntity(member);
-        Long responseId = postRepository.save(post).getId();
+        Member member = isMemberExists(id);
+        Long responseId = postRepository.save(postRequest.toEntity(member)).getId();
 
         //postRequest 에서 언급된 인원 가져와 멘션 테이블 저장
         mentionService.savePostMention(responseId, postRequest.mention());
@@ -102,8 +101,7 @@ public class PostService {
      */
     @Transactional
     public void deletePost(Long id, Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Post post = isPostExists(postId);
 
         if (post.getMember().getId() == id) {
             //게시글의 댓글들 삭제 로직
@@ -127,33 +125,8 @@ public class PostService {
     2. 해당 10개의 게시글중 본인이 좋아요를 했는가?
     3. 반환
      */
-    public List<PostResponse> getPosts(Long cursorValue, Long id) {
-
-        if (cursorValue == null || cursorValue == 0) cursorValue = postRepository.getMaxPostId() + 1;
-
-        List<PostResponse> postResponses = new ArrayList<>();
-
-        List<Object[]> posts = postRepository.findPostsAndUserLikesWithCursor(id, cursorValue, 10L);
-
-        posts.forEach(
-                objects -> {
-                    Post post = (Post) objects[0];
-                    postResponses.add(
-                            PostResponse.builder()
-                                    .id(post.getId())
-                                    .postMember(new PostMember(post.getMember().getId(), post.getMember().getNickname(), post.getMember().getUrl()))
-                                    .content(post.getContent())
-                                    .likeCnt(post.getLikeCnt())
-                                    .fileCnt(post.getFileCnt())
-                                    .commentCnt(post.getComments().size())
-                                    .createdAt(post.getCreatedAt())
-                                    .isCommentEnabled(post.isCommentEnabled())
-                                    .liked((Boolean) objects[1])
-                                    .build()
-                    );
-                }
-        );
-        return postResponses;
+    public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
+        return postListRepository.findPostsAndUserLikeWithCursor(memberId, cursorValue, 10L);
     }
 
     /*
@@ -163,8 +136,7 @@ public class PostService {
     3. 끝
      */
     public List<FileResponse> getPostMedia(Long postId) {
-        postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        isPostExists(postId);
         List<FileResponse> postFileResponses = new ArrayList<>();
         List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
         allPostFile.forEach(
@@ -189,8 +161,7 @@ public class PostService {
      */
     @Transactional
     public void updatePost(Long id, Long postId, @Valid PostPatchRequest postPatchRequest) {
-        Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Post post = isPostExists(postId);
 
         if (Objects.equals(post.getMember().getId(), id)) {
             String previousContent = post.getContent(); //이전 게시글에서 해시태그, 멘션 추출 해서 비교
@@ -280,12 +251,10 @@ public class PostService {
 
     @Transactional
     public void addLike(Long id, PostLikeRequest postLikeRequest) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Post post = postRepository.findById(postLikeRequest.postId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Member member = isMemberExists(id);
+        Post post = isPostExists(postLikeRequest.postId());
 
-        Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
+        Optional<PostLike> postLike = isPostLikeExists(member, post);
         if (postLike.isEmpty()) { //좋아요 중복 방지
             PostLike like = PostLike.builder()
                     .member(member)
@@ -298,12 +267,10 @@ public class PostService {
 
     @Transactional
     public void deleteLike(Long id, PostLikeRequest postLikeRequest) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Post post = postRepository.findById(postLikeRequest.postId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Member member = isMemberExists(id);
+        Post post = isPostExists(postLikeRequest.postId());
 
-        Optional<PostLike> postLike = postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
+        Optional<PostLike> postLike = isPostLikeExists(member, post);
         if (postLike.isPresent()) {
             postLikeRepository.deletePostLikeByMemberIdAndPostId(member.getId(), post.getId());
             post.minusLikeCnt();
@@ -311,10 +278,8 @@ public class PostService {
     }
 
     public PostDataListResponse getSpecificPost(Long id, Long postId) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Member member = isMemberExists(id);
+        Post post = isPostExists(postId);
         if (Objects.equals(post.getMember().getId(), member.getId())) {
 
             List<String> mentions = extractMention(post.getContent());
@@ -365,6 +330,20 @@ public class PostService {
             }
         }
         return mentions;
+    }
+
+    private Member isMemberExists(Long id) {
+        return memberRepository.findById(id).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+    private Post isPostExists(Long postId) {
+        return postRepository.findById(postId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+    }
+
+    private Optional<PostLike> isPostLikeExists(Member member, Post post) {
+        return postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
     }
 
 }
