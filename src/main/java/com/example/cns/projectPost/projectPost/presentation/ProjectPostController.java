@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +66,7 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/{projectId}/post")
-    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ProjectPostRequest projectPostRequest){
+    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @Valid @RequestBody ProjectPostRequest projectPostRequest){
         projectPostService.createProjectPost(memberId,projectId,projectPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -87,7 +88,7 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/{projectId}/post/{postId}")
-    public ResponseEntity patchProjectPost(@Auth Long memberId,@PathVariable Long projectId,@PathVariable Long postId, @RequestBody ProjectPostRequest projectPostRequest){
+    public ResponseEntity patchProjectPost(@Auth Long memberId,@PathVariable Long projectId,@PathVariable Long postId, @Valid @RequestBody ProjectPostRequest projectPostRequest){
         projectPostService.patchProjectPost(memberId,projectId,postId,projectPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -130,7 +131,7 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/{projectId}/post/{postId}/opinion")
-    public ResponseEntity addProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @RequestBody ProjectPostOpinionRequest projectPostOpinionRequest){
+    public ResponseEntity addProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @Valid @RequestBody ProjectPostOpinionRequest projectPostOpinionRequest){
         projectPostService.addProjectPostOpinion(memberId, projectId, postId, projectPostOpinionRequest);
         return ResponseEntity.ok().build();
     }

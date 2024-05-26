@@ -1,7 +1,6 @@
 package com.example.cns.project.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
@@ -18,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,7 +45,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project")
-    public ResponseEntity createProject( @RequestBody ProjectCreateRequest projectCreateRequest){
+    public ResponseEntity createProject(@RequestBody @Valid ProjectCreateRequest projectCreateRequest){
         projectService.createProject(projectCreateRequest);
         return ResponseEntity.ok().build();
     }
@@ -65,7 +65,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}")
-    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
+    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody @Valid ProjectPatchRequest projectPatchRequest){
         projectService.patchProject(projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
@@ -179,7 +179,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}/invite")
-    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
+    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody @Valid ProjectInviteRequest projectInviteRequest){
         projectService.patchProjectParticipant(projectId, projectInviteRequest);
         return ResponseEntity.ok().build();
     }
