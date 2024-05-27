@@ -1,6 +1,6 @@
-package com.example.cns.projectPost.projectPost.domain.repository;
+package com.example.cns.projectPost.domain.repository;
 
-import com.example.cns.projectPost.projectPost.domain.ProjectPost;
+import com.example.cns.projectPost.domain.ProjectPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

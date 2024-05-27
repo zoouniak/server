@@ -4,7 +4,7 @@ import com.example.cns.company.domain.Company;
 import com.example.cns.member.domain.Member;
 import com.example.cns.plan.domain.Plan;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
-import com.example.cns.projectPost.projectPost.domain.ProjectPost;
+import com.example.cns.projectPost.domain.ProjectPost;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

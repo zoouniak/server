@@ -1,4 +1,4 @@
-package com.example.cns.projectPost.projectPost.dto.request;
+package com.example.cns.projectPost.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

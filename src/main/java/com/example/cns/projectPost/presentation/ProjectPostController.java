@@ -1,10 +1,10 @@
-package com.example.cns.projectPost.projectPost.presentation;
+package com.example.cns.projectPost.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.projectPost.projectPost.dto.request.ProjectPostOpinionRequest;
-import com.example.cns.projectPost.projectPost.dto.request.ProjectPostRequest;
-import com.example.cns.projectPost.projectPost.dto.response.ProjectPostResponse;
-import com.example.cns.projectPost.projectPost.service.ProjectPostService;
+import com.example.cns.projectPost.dto.request.ProjectPostOpinionRequest;
+import com.example.cns.projectPost.dto.request.ProjectPostRequest;
+import com.example.cns.projectPost.dto.response.ProjectPostResponse;
+import com.example.cns.projectPost.service.ProjectPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

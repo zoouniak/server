@@ -1,4 +1,4 @@
-package com.example.cns.projectPost.projectPost.dto.response;
+package com.example.cns.projectPost.dto.response;
 
 import com.example.cns.feed.post.dto.response.PostMember;
 import io.swagger.v3.oas.annotations.media.Schema;
