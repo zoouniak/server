@@ -45,7 +45,10 @@ public class PlanService {
     public void editPlan(Long planId, PlanCreateRequest planEditRequest) {
         Plan plan = getPlan(planId);
         plan.updatePlan(planEditRequest);
-        saveParticipant(planEditRequest.inviteList(), planId);
+        if (!planEditRequest.inviteList().isEmpty()) {
+            planParticipationRepository.deleteByPlan(planId);
+            saveParticipant(planEditRequest.inviteList(), planId);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +111,7 @@ public class PlanService {
         }
     }
 
+    @Transactional
     public void exitPlan(Long planId, Long memberId) {
         planParticipationRepository.deleteByPlanAndMember(planId, memberId);
     }
