@@ -90,8 +90,6 @@ public class ProjectPostController {
     @PatchMapping("/{projectId}/post/{postId}")
     public ResponseEntity patchProjectPost(@Auth Long memberId,@PathVariable Long projectId,@PathVariable Long postId, @Valid @RequestBody ProjectPostRequest projectPostRequest){
         projectPostService.patchProjectPost(memberId,projectId,postId,projectPostRequest);
-    public ResponseEntity patchProjectPost(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @RequestBody ProjectPostRequest projectPostRequest) {
-        projectPostService.patchProjectPost(memberId, projectId, postId, projectPostRequest);
         return ResponseEntity.ok().build();
     }
 
