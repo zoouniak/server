@@ -30,4 +30,7 @@ public interface ProjectParticipationRepository extends JpaRepository<ProjectPar
     @Modifying
     @Query("DELETE FROM ProjectParticipation pp WHERE pp.project = :projectId")
     void deleteAllByProjectId(@Param("projectId") Long projectId);
+
+    boolean existsById(ProjectParticipationID id);
+
 }
