@@ -19,6 +19,7 @@ import com.example.cns.member.dto.request.MemberCompanyPatchRequest;
 import com.example.cns.member.dto.request.MemberFileRequest;
 import com.example.cns.member.dto.request.MemberProfilePatchRequest;
 import com.example.cns.member.dto.response.MemberProfileResponse;
+import com.example.cns.plan.domain.repository.PlanParticipationRepository;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
@@ -48,6 +49,7 @@ public class MemberService {
     private final PostRepository postRepository;
     private final ProjectRepository projectRepository;
     private final ProjectParticipationRepository projectParticipationRepository;
+    private final PlanParticipationRepository planParticipationRepository;
 
     public MemberProfileResponse getMemberProfile(Long memberId) {
 
@@ -275,7 +277,9 @@ public class MemberService {
 
             if (projectList.size() >= 1) {//담당자이면 -> 수정 불가
                 throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
-            } else { //담당자가 아니면, 참여중인 프로젝트에서 나가기
+            } else { //담당자가 아니면, 참여중인 프로젝트에서 나가기 + 참여중인 일정에서 나가기
+                //단 게시글, 일정 내용은 남겨야지 프로젝트에 문제가 없을것 같음
+                planParticipationRepository.deleteByMemberId(member.getId());
                 projectParticipationRepository.deleteAllByMemberId(member.getId());
             }
             member.enrollCompany(company);

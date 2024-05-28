@@ -77,9 +77,7 @@ public class ProjectService {
     @Transactional
     public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
 
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
+        Project project = isProjectExists(projectId);
         project.updateProject(projectPatchRequest);
     }
 
@@ -88,8 +86,7 @@ public class ProjectService {
      */
     @Transactional
     public void deleteProject(Long projectId){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        isProjectExists(projectId);
         projectParticipationRepository.deleteAllByProjectId(projectId); //프로젝트 참여자 삭제
         projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 일정, 일정 참여자 삭제
     }
@@ -99,8 +96,7 @@ public class ProjectService {
      */
     @Transactional
     public void exitProject(Long memberId, Long projectId){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
 
         if(Objects.equals(project.getManager().getId(), memberId))
             throw new BusinessException(ExceptionCode.MANAGER_CANNOT_LEAVE);
@@ -111,8 +107,7 @@ public class ProjectService {
     특정 프로젝트 조회
      */
     public ProjectResponse getSpecificProject(Long projectId){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
         return ProjectResponse.builder()
                 .projectId(project.getId())
                 .projectName(project.getProjectName())
@@ -152,8 +147,7 @@ public class ProjectService {
      */
     public ProjectParticipantInfo getProjectParticipant(Long projectId){
 
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
         List<ProjectParticipation> participationList = projectParticipationRepository.findProjectParticipationsByProjectId(projectId);
         List<MemberSearchResponse> memberList = new ArrayList<>();
 
@@ -186,11 +180,9 @@ public class ProjectService {
     @Transactional
     public void patchProjectParticipant(Long projectId,ProjectInviteRequest projectInviteRequest){
 
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
 
         //현재 참여자 리스트
-
         List<Long> previousList = projectParticipationRepository.findProjectParticipationsIdByProjectId(projectId);
 
         //수정된 참여자 리스트
@@ -241,5 +233,10 @@ public class ProjectService {
 
         projectParticipationRepository.deleteAllInBatch(removeList);
 
+    }
+
+    private Project isProjectExists(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
     }
 }

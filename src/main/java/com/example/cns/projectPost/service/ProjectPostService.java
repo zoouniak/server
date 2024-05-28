@@ -53,9 +53,8 @@ public class ProjectPostService {
     //게시글 수정
     @Transactional
     public void patchProjectPost(Long memberId, Long projectId, Long postId, ProjectPostRequest projectPostRequest) {
-        ProjectPost projectPost = projectPostRepository.findByProjectIdAndPostId(projectId, postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
 
+        ProjectPost projectPost = isProjectPostExists(projectId, postId);
         //해당 작성자인지?
         if (projectPost.getMember().getId().equals(memberId))
             projectPost.updateContent(projectPostRequest.content());
@@ -69,6 +68,7 @@ public class ProjectPostService {
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
         if (projectPost.getMember().getId().equals(memberId))
             projectPostRepository.deleteById(postId);
+        else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
 
     //의견 추가
@@ -81,10 +81,8 @@ public class ProjectPostService {
         //하나의 게시글에 여러개 의견 금지
         if (data.isEmpty()) {
 
-            Member member = memberRepository.findById(memberId).orElseThrow(
-                    () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-            ProjectPost projectPost = projectPostRepository.findByProjectIdAndPostId(projectId, postId).orElseThrow(
-                    () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+            Member member = isMemberExists(memberId);
+            ProjectPost projectPost = isProjectPostExists(projectId, postId);
 
             ProjectPostOpinion opinion = ProjectPostOpinion.builder()
                     .post(projectPost)
@@ -101,8 +99,7 @@ public class ProjectPostService {
     @Transactional
     public void deleteProjectPostOpinion(Long memberId, Long projectId, Long postId) {
 
-        projectPostRepository.findByProjectIdAndPostId(projectId, postId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        isProjectPostExists(projectId, postId);
 
         Optional<ProjectPostOpinion> opinion = projectPostOpinionRepository.findByMemberIdAndPostId(memberId, postId);
 
@@ -123,8 +120,23 @@ public class ProjectPostService {
                 return OpinionType.CHECK;
             }
             default -> {
-                return null; //에러처리?
+                throw new BusinessException(ExceptionCode.MISMATCH_OPINION_TYPE);
             }
         }
+    }
+
+    private Project isProjectExists(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+    }
+
+    private Member isMemberExists(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+    private ProjectPost isProjectPostExists(Long projectId, Long postId) {
+        return projectPostRepository.findByProjectIdAndPostId(projectId, postId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
 }
