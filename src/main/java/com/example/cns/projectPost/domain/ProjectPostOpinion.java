@@ -1,7 +1,7 @@
-package com.example.cns.projectPost.projectPost.domain;
+package com.example.cns.projectPost.domain;
 
 import com.example.cns.member.domain.Member;
-import com.example.cns.projectPost.projectPost.type.OpinionType;
+import com.example.cns.projectPost.type.OpinionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -30,7 +30,7 @@ public class ProjectPostOpinion {
     private OpinionType opinionType;
 
     @Builder
-    public ProjectPostOpinion(ProjectPost post, Member member, OpinionType opinionType){
+    public ProjectPostOpinion(ProjectPost post, Member member, OpinionType opinionType) {
         this.post = post;
         this.member = member;
         this.opinionType = opinionType;

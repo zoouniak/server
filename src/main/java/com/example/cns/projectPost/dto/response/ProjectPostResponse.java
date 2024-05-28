@@ -1,4 +1,4 @@
-package com.example.cns.projectPost.projectPost.dto.response;
+package com.example.cns.projectPost.dto.response;
 
 import com.example.cns.feed.post.dto.response.PostMember;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,7 +36,7 @@ public class ProjectPostResponse {
 
     @Builder
     public ProjectPostResponse(Long id, Long projectId, Long memberId, String nickname, String url, String content, LocalDateTime createdAt,
-                               int prosCnt, int consCnt, int checkCnt, String opinion){
+                               int prosCnt, int consCnt, int checkCnt, String opinion) {
         this.id = id;
         this.projectId = projectId;
         this.postMember = PostMember.builder().id(memberId).nickname(nickname).profile(url).build();

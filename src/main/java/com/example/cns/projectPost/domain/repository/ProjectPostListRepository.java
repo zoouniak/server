@@ -1,6 +1,6 @@
-package com.example.cns.projectPost.projectPost.domain.repository;
+package com.example.cns.projectPost.domain.repository;
 
-import com.example.cns.projectPost.projectPost.dto.response.ProjectPostResponse;
+import com.example.cns.projectPost.dto.response.ProjectPostResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -9,14 +9,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.example.cns.projectPost.projectPost.domain.QProjectPost.projectPost;
-import static com.example.cns.projectPost.projectPost.domain.QProjectPostOpinion.projectPostOpinion;
+import static com.example.cns.projectPost.domain.QProjectPost.projectPost;
+import static com.example.cns.projectPost.domain.QProjectPostOpinion.projectPostOpinion;
 
 @Repository
-public class ProjectPostListRepositoryImpl {
+public class ProjectPostListRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
-    public ProjectPostListRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+    public ProjectPostListRepository(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
@@ -48,7 +48,7 @@ public class ProjectPostListRepositoryImpl {
                                 .when(projectPostOpinion.id.isNotNull())
                                 .then(projectPostOpinion.opinionType.stringValue())
                                 .otherwise((String) null)
-                        ))
+                ))
                 .from(projectPost)
                 .leftJoin(projectPost.opinions, projectPostOpinion)
                 .on(projectPostOpinion.member.id.eq(memberId))

@@ -1,10 +1,10 @@
-package com.example.cns.projectPost.projectPost.presentation;
+package com.example.cns.projectPost.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.projectPost.projectPost.dto.request.ProjectPostOpinionRequest;
-import com.example.cns.projectPost.projectPost.dto.request.ProjectPostRequest;
-import com.example.cns.projectPost.projectPost.dto.response.ProjectPostResponse;
-import com.example.cns.projectPost.projectPost.service.ProjectPostService;
+import com.example.cns.projectPost.dto.request.ProjectPostOpinionRequest;
+import com.example.cns.projectPost.dto.request.ProjectPostRequest;
+import com.example.cns.projectPost.dto.response.ProjectPostResponse;
+import com.example.cns.projectPost.service.ProjectPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -44,7 +44,7 @@ public class ProjectPostController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectPostResponse.class))))
     })
     @GetMapping("/{projectId}/post")
-    public ResponseEntity getProjectPosts(@Auth Long memberId, @PathVariable Long projectId,@RequestParam(name = "cursorValue", required = false) Long cursorValue){
+    public ResponseEntity getProjectPosts(@Auth Long memberId, @PathVariable Long projectId, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
         List<ProjectPostResponse> projectPosts = projectPostService.getProjectPosts(memberId, projectId, cursorValue);
         return ResponseEntity.ok(projectPosts);
     }
@@ -65,8 +65,8 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/{projectId}/post")
-    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ProjectPostRequest projectPostRequest){
-        projectPostService.createProjectPost(memberId,projectId,projectPostRequest);
+    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ProjectPostRequest projectPostRequest) {
+        projectPostService.createProjectPost(memberId, projectId, projectPostRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -87,8 +87,8 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/{projectId}/post/{postId}")
-    public ResponseEntity patchProjectPost(@Auth Long memberId,@PathVariable Long projectId,@PathVariable Long postId, @RequestBody ProjectPostRequest projectPostRequest){
-        projectPostService.patchProjectPost(memberId,projectId,postId,projectPostRequest);
+    public ResponseEntity patchProjectPost(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @RequestBody ProjectPostRequest projectPostRequest) {
+        projectPostService.patchProjectPost(memberId, projectId, postId, projectPostRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -108,8 +108,8 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/{projectId}/post/{postId}")
-    public ResponseEntity deleteProjectPost(@Auth Long memberId, @PathVariable Long projectId,@PathVariable Long postId){
-        projectPostService.deleteProjectPost(memberId,projectId,postId);
+    public ResponseEntity deleteProjectPost(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId) {
+        projectPostService.deleteProjectPost(memberId, projectId, postId);
         return ResponseEntity.ok().build();
     }
 
@@ -130,7 +130,7 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/{projectId}/post/{postId}/opinion")
-    public ResponseEntity addProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @RequestBody ProjectPostOpinionRequest projectPostOpinionRequest){
+    public ResponseEntity addProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @RequestBody ProjectPostOpinionRequest projectPostOpinionRequest) {
         projectPostService.addProjectPostOpinion(memberId, projectId, postId, projectPostOpinionRequest);
         return ResponseEntity.ok().build();
     }
@@ -151,7 +151,7 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/{projectId}/post/{postId}/opinion")
-    public ResponseEntity deleteProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId){
+    public ResponseEntity deleteProjectPostOpinion(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId) {
         projectPostService.deleteProjectPostOpinion(memberId, projectId, postId);
         return ResponseEntity.ok().build();
     }

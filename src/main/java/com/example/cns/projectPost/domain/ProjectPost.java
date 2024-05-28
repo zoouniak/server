@@ -1,8 +1,8 @@
-package com.example.cns.projectPost.projectPost.domain;
+package com.example.cns.projectPost.domain;
 
 import com.example.cns.member.domain.Member;
 import com.example.cns.project.domain.Project;
-import com.example.cns.projectPost.projectPost.type.OpinionType;
+import com.example.cns.projectPost.type.OpinionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -52,7 +52,7 @@ public class ProjectPost {
     private List<ProjectPostOpinion> opinions = new ArrayList<>();
 
     @Builder
-    public ProjectPost(Project project, Member member, String content){
+    public ProjectPost(Project project, Member member, String content) {
         this.project = project;
         this.member = member;
         this.content = content;
@@ -66,7 +66,7 @@ public class ProjectPost {
         createdAt = LocalDateTime.now();
     }
 
-    public void updateContent(String content){
+    public void updateContent(String content) {
         this.content = content;
     }
 
