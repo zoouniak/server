@@ -12,7 +12,7 @@ public record ProjectPostRequest(
         @NotBlank(message = "내용을 입력해주세요.")
         String content
 ) {
-    public ProjectPost toEntity(Member member, Project project){
+    public ProjectPost toEntity(Member member, Project project) {
         return ProjectPost.builder()
                 .project(project)
                 .member(member)

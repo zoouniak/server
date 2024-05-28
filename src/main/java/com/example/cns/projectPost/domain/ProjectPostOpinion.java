@@ -30,7 +30,7 @@ public class ProjectPostOpinion {
     private OpinionType opinionType;
 
     @Builder
-    public ProjectPostOpinion(ProjectPost post, Member member, OpinionType opinionType){
+    public ProjectPostOpinion(ProjectPost post, Member member, OpinionType opinionType) {
         this.post = post;
         this.member = member;
         this.opinionType = opinionType;

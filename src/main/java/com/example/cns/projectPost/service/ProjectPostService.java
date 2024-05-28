@@ -8,7 +8,7 @@ import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectRepository;
 import com.example.cns.projectPost.domain.ProjectPost;
 import com.example.cns.projectPost.domain.ProjectPostOpinion;
-import com.example.cns.projectPost.domain.repository.ProjectPostListRepositoryImpl;
+import com.example.cns.projectPost.domain.repository.ProjectPostListRepository;
 import com.example.cns.projectPost.domain.repository.ProjectPostOpinionRepository;
 import com.example.cns.projectPost.domain.repository.ProjectPostRepository;
 import com.example.cns.projectPost.dto.request.ProjectPostOpinionRequest;
@@ -31,50 +31,55 @@ public class ProjectPostService {
     private final ProjectRepository projectRepository;
     private final ProjectPostRepository projectPostRepository;
     private final ProjectPostOpinionRepository projectPostOpinionRepository;
-    private final ProjectPostListRepositoryImpl projectPostListRepository;
+    private final ProjectPostListRepository projectPostListRepository;
 
     //게시글 조회
-    public List<ProjectPostResponse> getProjectPosts(Long memberId, Long projectId, Long cursorValue){
+    public List<ProjectPostResponse> getProjectPosts(Long memberId, Long projectId, Long cursorValue) {
         return projectPostListRepository.paginationProjectPost(memberId, projectId, 5, cursorValue);
+
     }
 
     //게시글 작성
     @Transactional
-    public void createProjectPost(Long memberId, Long projectId, ProjectPostRequest projectPostRequest){
-        Member member = isMemberExists(memberId);
-        Project project = isProjectExists(projectId);
+    public void createProjectPost(Long memberId, Long projectId, ProjectPostRequest projectPostRequest) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Project project = projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
 
-        projectPostRepository.save(projectPostRequest.toEntity(member,project));
+        projectPostRepository.save(projectPostRequest.toEntity(member, project));
     }
 
     //게시글 수정
     @Transactional
-    public void patchProjectPost(Long memberId, Long projectId, Long postId, ProjectPostRequest projectPostRequest){
+    public void patchProjectPost(Long memberId, Long projectId, Long postId, ProjectPostRequest projectPostRequest) {
 
         ProjectPost projectPost = isProjectPostExists(projectId, postId);
         //해당 작성자인지?
-        if(projectPost.getMember().getId().equals(memberId))
+        if (projectPost.getMember().getId().equals(memberId))
             projectPost.updateContent(projectPostRequest.content());
         else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
 
     //게시글 삭제
     @Transactional
-    public void deleteProjectPost(Long memberId, Long projectId, Long postId){
-        ProjectPost projectPost = isProjectPostExists(projectId, postId);
-        if(projectPost.getMember().getId().equals(memberId))
+    public void deleteProjectPost(Long memberId, Long projectId, Long postId) {
+        ProjectPost projectPost = projectPostRepository.findByProjectIdAndPostId(projectId, postId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        if (projectPost.getMember().getId().equals(memberId))
             projectPostRepository.deleteById(postId);
         else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
 
     //의견 추가
     @Transactional
-    public void addProjectPostOpinion(Long memberId, Long projectId, Long postId, ProjectPostOpinionRequest projectPostOpinionRequest){
+    public void addProjectPostOpinion(Long memberId, Long projectId, Long postId, ProjectPostOpinionRequest projectPostOpinionRequest) {
+        //게시글, 사용자, 타입
 
         Optional<ProjectPostOpinion> data = projectPostOpinionRepository.findByMemberIdAndPostId(memberId, postId);
 
         //하나의 게시글에 여러개 의견 금지
-        if(data.isEmpty()){
+        if (data.isEmpty()) {
 
             Member member = isMemberExists(memberId);
             ProjectPost projectPost = isProjectPostExists(projectId, postId);
@@ -92,18 +97,18 @@ public class ProjectPostService {
 
     //의견 삭제
     @Transactional
-    public void deleteProjectPostOpinion(Long memberId, Long projectId, Long postId){
+    public void deleteProjectPostOpinion(Long memberId, Long projectId, Long postId) {
 
         isProjectPostExists(projectId, postId);
 
         Optional<ProjectPostOpinion> opinion = projectPostOpinionRepository.findByMemberIdAndPostId(memberId, postId);
 
-        if(opinion.isPresent()){
-            projectPostOpinionRepository.deleteProjectPostOpinionByMemberIdAndPostId(memberId,postId);
+        if (opinion.isPresent()) {
+            projectPostOpinionRepository.deleteProjectPostOpinionByMemberIdAndPostId(memberId, postId);
         }
     }
 
-    private OpinionType toOpinionTypeEnum(String type){
+    private OpinionType toOpinionTypeEnum(String type) {
         switch (type) {
             case "CONS" -> {
                 return OpinionType.CONS;
