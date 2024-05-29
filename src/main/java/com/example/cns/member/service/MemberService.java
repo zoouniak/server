@@ -45,7 +45,6 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberResumeRepository memberResumeRepository;
-    private final PostRepository postRepository;
     private final ProjectRepository projectRepository;
     private final ProjectParticipationRepository projectParticipationRepository;
     private final PlanParticipationRepository planParticipationRepository;

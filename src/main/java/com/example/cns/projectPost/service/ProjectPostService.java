@@ -41,11 +41,8 @@ public class ProjectPostService {
     //게시글 작성
     @Transactional
     public void createProjectPost(Long memberId, Long projectId, ProjectPostRequest projectPostRequest) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
+        Member member = isMemberExists(memberId);
+        Project project = isProjectExists(projectId);
         projectPostRepository.save(projectPostRequest.toEntity(member, project));
     }
 

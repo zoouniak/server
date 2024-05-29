@@ -40,8 +40,7 @@ public class ProjectService {
     @Transactional
     public void createProject(ProjectCreateRequest projectCreateRequest){
 
-        Member manager = memberRepository.findById(projectCreateRequest.managerId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Member manager = isMemberExists(projectCreateRequest.managerId());
 
         Long projectId = projectRepository.save(projectCreateRequest.toProjectEntity(manager)).getId();
 
@@ -199,8 +198,7 @@ public class ProjectService {
                 .filter(memberId -> !updateList.contains(memberId))
                 .toList();
 
-        Member manager = memberRepository.findById(projectInviteRequest.managerId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Member manager = isMemberExists(projectInviteRequest.managerId());
 
         //담당자 교체
         project.setManager(manager);
@@ -239,4 +237,10 @@ public class ProjectService {
         return projectRepository.findById(projectId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
     }
+
+    private Member isMemberExists(Long memberId){
+        return memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
 }
