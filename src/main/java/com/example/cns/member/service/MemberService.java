@@ -5,12 +5,8 @@ import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.company.domain.Company;
 import com.example.cns.company.service.CompanySearchService;
-import com.example.cns.feed.post.domain.Post;
-import com.example.cns.feed.post.domain.repository.PostLikeRepository;
 import com.example.cns.feed.post.domain.repository.PostListRepository;
-import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.response.FileResponse;
-import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.MemberResume;
@@ -24,6 +20,7 @@ import com.example.cns.plan.domain.repository.PlanParticipationRepository;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
+import com.example.cns.task.domain.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +46,7 @@ public class MemberService {
     private final ProjectParticipationRepository projectParticipationRepository;
     private final PlanParticipationRepository planParticipationRepository;
     private final PostListRepository postListRepository;
+    private final TaskRepository taskRepository;
 
     public MemberProfileResponse getMemberProfile(Long memberId) {
 
@@ -198,6 +196,10 @@ public class MemberService {
                 throw new BusinessException(ExceptionCode.COMPANY_UPDATE_FORBIDDEN);
             } else { //담당자가 아니면, 참여중인 프로젝트에서 나가기 + 참여중인 일정에서 나가기
                 //단 게시글, 일정 내용은 남겨야지 프로젝트에 문제가 없을것 같음
+                List<Project> projects = projectParticipationRepository.findProjectsByMemberId(member.getId());
+                projects.forEach( //해당 프로젝트의 todo를 담당자에게 넘기기
+                        project -> taskRepository.updateTasksByMemberId(project.getManager(),member.getId(),project.getId())
+                );
                 planParticipationRepository.deleteByMemberId(member.getId());
                 projectParticipationRepository.deleteAllByMemberId(member.getId());
             }
