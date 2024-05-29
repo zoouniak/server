@@ -4,7 +4,6 @@ import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.project.domain.Project;
-import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
 import com.example.cns.task.domain.Task;
 import com.example.cns.task.domain.repository.TaskRepository;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.example.cns.common.exception.ExceptionCode.*;
@@ -28,7 +28,6 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final MemberRepository memberRepository;
     private final ProjectRepository projectRepository;
-    private final ProjectParticipationRepository projectParticipationRepository;
 
     private Member getMember(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
@@ -50,14 +49,13 @@ public class TaskService {
     }
 
     @Transactional
-    public void editTask(Long memberId, Long todoId, TaskEditRequest request) {
-        Member member = getMember(memberId);
+    public void editTask(Long todoId, TaskEditRequest request) {
         Task task = getTask(todoId);
         task.updateContent(request.content());
     }
 
     @Transactional
-    public void deleteTask(Long memberId, Long todoId) {
+    public void deleteTask(Long todoId) {
         taskRepository.deleteById(todoId);
     }
 
@@ -68,13 +66,28 @@ public class TaskService {
     }
 
     @Transactional
-    public void updateTaskState(Long memberId, Long todoId, TaskUpdateStateRequest request) {
+    public void updateTaskState(Long todoId, TaskUpdateStateRequest request) {
         Task task = getTask(todoId);
         task.updateState(request.state());
     }
 
-    public void getAllTaskByProject(Long projectId) {
-        List<Long> memberList = projectParticipationRepository.findProjectParticipationsIdByProjectId(projectId);
+    public List<TaskListResponse> getAllTaskByProject(Long projectId) {
+        Project project = getProject(projectId);
+        List<Task> taskList = taskRepository.findAllByProject(project);
+        // 사용자별로 group by
+        Map<Member, List<Task>> tasksByMember = taskList.stream()
+                .collect(Collectors.groupingBy(Task::getMember));
+
+
+        return tasksByMember.entrySet().stream()
+                .map(entry -> {
+                    Member owner = entry.getKey();
+                    List<TaskResponse> todoList = entry.getValue().stream()
+                            .map(task -> new TaskResponse(task.getContent(), task.getState()))
+                            .collect(Collectors.toList());
+                    return new TaskListResponse(owner.getNickname(), todoList);
+                })
+                .collect(Collectors.toList());
     }
 
     public TaskListResponse getMyTaskByProject(Long memberId, Long projectId) {

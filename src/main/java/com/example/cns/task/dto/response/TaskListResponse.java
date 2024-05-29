@@ -6,7 +6,4 @@ public record TaskListResponse(
         String owner,
         List<TaskResponse> todoList
 ) {
-    public TaskListResponse(String owner) {
-        this(owner, null);
-    }
 }
