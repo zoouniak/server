@@ -83,7 +83,7 @@ public class TaskService {
                 .map(entry -> {
                     Member owner = entry.getKey();
                     List<TaskResponse> todoList = entry.getValue().stream()
-                            .map(task -> new TaskResponse(task.getContent(), task.getState()))
+                            .map(task -> new TaskResponse(task.getId(), task.getContent(), task.getState()))
                             .collect(Collectors.toList());
                     return new TaskListResponse(owner.getNickname(), todoList);
                 })
@@ -95,7 +95,7 @@ public class TaskService {
         Project project = getProject(projectId);
 
         List<TaskResponse> taskList = taskRepository.findAllByMemberAndProject(member, project).stream()
-                .map((task) -> new TaskResponse(task.getContent(), task.getState())).collect(Collectors.toList());
+                .map((task) -> new TaskResponse(task.getId(), task.getContent(), task.getState())).collect(Collectors.toList());
         return new TaskListResponse(member.getNickname(), taskList);
     }
 }
