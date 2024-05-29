@@ -172,31 +172,11 @@ public class MemberService {
 
     public List<PostResponse> getMemberLikedPost(Long memberId, Long cursorValue) {
         isMemberExists(memberId);
-        return postListRepository.findPostLikesByMemberId(memberId, cursorValue, 10L);
+        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "myLike", null, null, null);
     }
 
     public List<PostResponse> getMemberPostWithFilter(Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue, Long likeCnt) {
-
-        switch (filterType) {
-            case "newest" -> {
-                return postListRepository.findNewestPosts(memberId,cursorValue,10L);
-            }
-            case "oldest" -> {
-                return postListRepository.findOldestPosts(memberId,cursorValue,10L);
-            }
-            case "period" -> {
-                LocalDateTime startDate = start.atStartOfDay();
-                LocalDateTime endDate = end.atStartOfDay();
-                return postListRepository.findPostsByPeriod(memberId,cursorValue,10L,startDate,endDate);
-            }
-            case "like" -> {
-                if (likeCnt == -1) likeCnt = postRepository.getMaxLikeCntByMemberId(memberId);
-                return postListRepository.findPostsByLikeCnt(memberId, Math.toIntExact(likeCnt),cursorValue,10L);
-            }
-            default -> {
-                return null;
-            }
-        }
+        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, filterType, start, end, likeCnt);
     }
 
     @Transactional

@@ -5,6 +5,7 @@ import com.example.cns.common.exception.ExceptionCode;
 import com.example.cns.feed.comment.domain.Comment;
 import com.example.cns.feed.comment.domain.CommentLike;
 import com.example.cns.feed.comment.domain.repository.CommentLikeRepository;
+import com.example.cns.feed.comment.domain.repository.CommentListRepository;
 import com.example.cns.feed.comment.domain.repository.CommentRepository;
 import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
 import com.example.cns.feed.comment.dto.request.CommentLikeRequest;
@@ -37,6 +38,7 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final CommentListRepository commentListRepository;
 
     /*
     댓글 달기
@@ -47,14 +49,12 @@ public class CommentService {
     @Transactional
     public void createComment(Long id, CommentPostRequest commentPostRequest) {
         //댓글 저장
-        Post post = postRepository.findById(commentPostRequest.postId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Post post = isPostExists(commentPostRequest.postId());
 
         //댓글 허용여부 확인
         if (post.isCommentEnabled()) {
 
-            Member member = memberRepository.findById(id).orElseThrow(
-                    () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+            Member member = isMemberExists(id);
 
             Comment comment = commentPostRequest.toEntity(member, post, null);
 
@@ -67,7 +67,6 @@ public class CommentService {
         }
     }
 
-
     /*
     대댓글 생성
     1. 연관관계 맺을 용 데이터 조회
@@ -77,14 +76,11 @@ public class CommentService {
     @Transactional
     public void createCommentReply(Long id, CommentReplyPostRequest commentReplyPostRequest) {
         //대댓글 저장
-        Post post = postRepository.findById(commentReplyPostRequest.postId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+        Post post = isPostExists(commentReplyPostRequest.postId());
 
         if (post.isCommentEnabled()) {
-            Member member = memberRepository.findById(id).orElseThrow(
-                    () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-            Comment comment = commentRepository.findById(commentReplyPostRequest.commentId()).orElseThrow(
-                    () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+            Member member = isMemberExists(id);
+            Comment comment = isCommentExists(commentReplyPostRequest.commentId());
 
             Comment reply = commentReplyPostRequest.toEntity(member, post, comment);
 
@@ -105,8 +101,7 @@ public class CommentService {
      */
     @Transactional
     public void deleteComment(Long id, CommentDeleteRequest commentDeleteRequest) {
-        Comment comment = commentRepository.findById(commentDeleteRequest.commentId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+        Comment comment = isCommentExists(commentDeleteRequest.commentId());
         if ((Objects.equals(comment.getWriter().getId(), id) && Objects.equals(comment.getPost().getId(), commentDeleteRequest.postId())) || (id == -1L)) {
 
             //해당 댓글이 자식이 있으면 해당 자식들의 멘션 삭제
@@ -125,53 +120,18 @@ public class CommentService {
             commentRepository.deleteById(commentDeleteRequest.commentId());
         } else throw new BusinessException(ExceptionCode.NOT_COMMENT_WRITER);
     }
-
     /*
     댓글 조회
-    1. 해당 게시글 댓글 생성순으로 오름차순 조회
-    2. 데이터 가공후 전달
      */
     public List<CommentResponse> getComment(Long id, Long postId) {
-        List<Object[]> comments = commentRepository.findAllCommentByPostIdWithUserLiked(postId, id);
-        List<CommentResponse> responses = new ArrayList<>();
-        comments.forEach(
-                objects -> {
-                    Comment comment = (Comment) objects[0];
-                    responses.add(CommentResponse.builder()
-                            .commentId(comment.getId())
-                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(), comment.getWriter().getUrl()))
-                            .content(comment.getContent())
-                            .likeCnt(comment.getLikeCnt())
-                            .createdAt(comment.getCreatedAt())
-                            .commentReplyCnt(comment.getChildComments().size())
-                            .liked((Boolean) objects[1])
-                            .build());
-                }
-        );
-        return responses;
+        return commentListRepository.getCommentLists(id, postId, null);
     }
 
     /*
     대댓글 조회
      */
     public List<CommentResponse> getCommentReply(Long id, Long postId, Long commentId) {
-        List<Object[]> comments = commentRepository.findAllCommentReplyByPostIdWithUserLiked(postId, id, commentId);
-        List<CommentResponse> responses = new ArrayList<>();
-        comments.forEach(
-                objects -> {
-                    Comment comment = (Comment) objects[0];
-                    responses.add(CommentResponse.builder()
-                            .commentId(comment.getId())
-                            .postMember(new PostMember(comment.getWriter().getId(), comment.getWriter().getNickname(), comment.getWriter().getUrl()))
-                            .content(comment.getContent())
-                            .likeCnt(comment.getLikeCnt())
-                            .createdAt(comment.getCreatedAt())
-                            .commentReplyCnt(0)
-                            .liked((Boolean) objects[1])
-                            .build());
-                }
-        );
-        return responses;
+        return commentListRepository.getCommentLists(id, postId, commentId);
     }
 
     /*
@@ -179,10 +139,8 @@ public class CommentService {
      */
     @Transactional
     public void addLike(Long id, CommentLikeRequest commentLikeRequest) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Comment comment = commentRepository.findById(commentLikeRequest.commentId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+        Member member = isMemberExists(id);
+        Comment comment = isCommentExists(commentLikeRequest.commentId());
 
         Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.getId(), comment.getId());
         if (commentLike.isEmpty()) {
@@ -200,16 +158,28 @@ public class CommentService {
      */
     @Transactional
     public void deleteLike(Long id, CommentLikeRequest commentLikeRequest) {
-        Member member = memberRepository.findById(id).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
-        Comment comment = commentRepository.findById(commentLikeRequest.commentId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+        Member member = isMemberExists(id);
+        Comment comment = isCommentExists(commentLikeRequest.commentId());
 
         Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.getId(), comment.getId());
         if (commentLike.isPresent()) {
             commentLikeRepository.deleteByMemberIdAndCommentId(member.getId(), comment.getId());
             comment.minusLikeCnt();
         }
+    }
+
+    private Member isMemberExists(Long id) {
+        return memberRepository.findById(id).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+    private Post isPostExists(Long postId){
+        return postRepository.findById(postId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
+    }
+    private Comment isCommentExists(Long commentId){
+        return commentRepository.findById(commentId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
     }
 
 }

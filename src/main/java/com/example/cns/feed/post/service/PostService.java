@@ -120,13 +120,9 @@ public class PostService {
 
     /*
     모든 게시글 조회
-    1. cursorValue가 없을 경우 최신 10개
-    1-1. cursorValue가 있을 경우 해당 값에서 10개
-    2. 해당 10개의 게시글중 본인이 좋아요를 했는가?
-    3. 반환
      */
     public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
-        return postListRepository.findPostsAndUserLikeWithCursor(memberId, cursorValue, 10L);
+        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
     }
 
     /*
