@@ -2,6 +2,7 @@ package com.example.cns.plan.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.plan.dto.request.PlanCreateRequest;
+import com.example.cns.plan.dto.request.PlanDateEditRequest;
 import com.example.cns.plan.dto.request.PlanInviteRequest;
 import com.example.cns.plan.dto.response.PlanCreateResponse;
 import com.example.cns.plan.dto.response.PlanDetailResponse;
@@ -96,7 +97,7 @@ public class PlanController {
     })
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PatchMapping("/invite/{planId}")
-    public ResponseEntity addParticipant(@Auth Long memberId, @PathVariable(name = "planId") Long planId, @RequestBody PlanInviteRequest inviteRequest) {
+    public ResponseEntity addParticipant(@PathVariable(name = "planId") Long planId, @RequestBody PlanInviteRequest inviteRequest) {
         planService.inviteParticipant(planId, inviteRequest);
         return ResponseEntity.ok().build();
     }
@@ -110,6 +111,18 @@ public class PlanController {
     @DeleteMapping("/exit/{planId}")
     public ResponseEntity exitPlan(@Auth Long memberId, @PathVariable(name = "planId") Long planId) {
         planService.exitPlan(planId, memberId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "일정 시작,끝 날짜를 변경하는 api", description = "일정 번호와 날짜를 입력받고 일정 스케줄을 수정한다.")
+    @Parameter(name = "planId", description = "일정 번호")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "스케줄 변경 성공.")
+    })
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PatchMapping("/update-date/{planId}")
+    public ResponseEntity editPlanSchedule(@PathVariable(name = "planId") Long planId, @RequestBody PlanDateEditRequest dateEditRequest) {
+        planService.editPlanSchedule(planId, dateEditRequest);
         return ResponseEntity.ok().build();
     }
 }

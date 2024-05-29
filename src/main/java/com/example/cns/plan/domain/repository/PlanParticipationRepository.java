@@ -21,6 +21,5 @@ public interface PlanParticipationRepository extends JpaRepository<PlanParticipa
     @Query("delete from PlanParticipation pp where pp.member = :memberId")
     void deleteByMemberId(@Param("memberId") Long memberId);
 
-
     void deleteByPlan(Long planId);
 }

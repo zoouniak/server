@@ -8,6 +8,7 @@ import com.example.cns.plan.domain.PlanParticipation;
 import com.example.cns.plan.domain.repository.PlanParticipationRepository;
 import com.example.cns.plan.domain.repository.PlanRepository;
 import com.example.cns.plan.dto.request.PlanCreateRequest;
+import com.example.cns.plan.dto.request.PlanDateEditRequest;
 import com.example.cns.plan.dto.request.PlanInviteRequest;
 import com.example.cns.plan.dto.response.MemberResponse;
 import com.example.cns.plan.dto.response.PlanCreateResponse;
@@ -101,6 +102,7 @@ public class PlanService {
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
     }
 
+    @Transactional
     public void inviteParticipant(Long planId, PlanInviteRequest inviteRequest) {
         saveParticipant(inviteRequest.memberList(), planId);
     }
@@ -114,5 +116,11 @@ public class PlanService {
     @Transactional
     public void exitPlan(Long planId, Long memberId) {
         planParticipationRepository.deleteByPlanAndMember(planId, memberId);
+    }
+
+    @Transactional
+    public void editPlanSchedule(Long planId, PlanDateEditRequest dateEditRequest) {
+        Plan plan = getPlan(planId);
+        plan.updateSchedule(dateEditRequest);
     }
 }

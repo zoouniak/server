@@ -123,7 +123,7 @@ public class ChatRoomService {
                             }
                         },
                         () -> {
-                            throw new BusinessException(ChatROOM_NOT_EXIST);
+                            throw new BusinessException(CHATROOM_NOT_EXIST);
                         }
                 );
     }
@@ -171,7 +171,7 @@ public class ChatRoomService {
     @Transactional(readOnly = true)
     public void verifyMemberInChatRoom(Long memberId, Long roomId) {
         chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
-                .orElseThrow(() -> new BusinessException(NOT_PARTICIPANTS));
+                .orElseThrow(() -> new BusinessException(NOT_CHAT_PARTICIPANTS));
     }
 
     /*
@@ -196,7 +196,7 @@ public class ChatRoomService {
 
     private ChatRoom getChatRoom(Long roomId) {
         return chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new BusinessException(ChatROOM_NOT_EXIST));
+                .orElseThrow(() -> new BusinessException(CHATROOM_NOT_EXIST));
     }
     
     private String getNickname(Long memberId) {

@@ -8,6 +8,7 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.ProjectParticipation;
+import com.example.cns.project.domain.ProjectParticipationID;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
 import com.example.cns.project.dto.request.ProjectCreateRequest;
@@ -243,4 +244,9 @@ public class ProjectService {
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
     }
 
+
+    public void validateMemberInProject(Long memberId, Long projectId) {
+        if (!projectParticipationRepository.existsById(new ProjectParticipationID(memberId, projectId)))
+            throw new BusinessException(ExceptionCode.NOT_PROJECT_PARTICIPANTS);
+    }
 }
