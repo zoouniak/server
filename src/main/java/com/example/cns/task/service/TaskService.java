@@ -41,6 +41,7 @@ public class TaskService {
         return taskRepository.findById(todoId).orElseThrow(() -> new BusinessException(TASK_NOT_EXIST));
     }
 
+    @Transactional
     public Long createTask(Long memberId, Long projectId, TaskCreateRequest request) {
         Member member = getMember(memberId);
         Project project = getProject(projectId);
