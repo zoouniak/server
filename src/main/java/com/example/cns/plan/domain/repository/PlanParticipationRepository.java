@@ -13,10 +13,14 @@ public interface PlanParticipationRepository extends JpaRepository<PlanParticipa
     @Query("select pp from PlanParticipation pp where pp.plan = :planId")
     List<PlanParticipation> findAllByPlanId(@Param("planId") Long planId);
 
+    @Modifying
     @Query("delete from PlanParticipation pp where pp.plan = :planId and pp.member = :memberId")
     void deleteByPlanAndMember(@Param("planId") Long planId, @Param("memberId") Long memberId);
 
     @Modifying
     @Query("delete from PlanParticipation pp where pp.member = :memberId")
     void deleteByMemberId(@Param("memberId") Long memberId);
+
+
+    void deleteByPlan(Long planId);
 }
