@@ -286,7 +286,6 @@ public class MemberController {
                                                   @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
                                                   @RequestParam(name = "cursorValue", required = false) Long cursorValue,
                                                   @RequestParam(name = "likeCnt" ,required = false) Long likeCnt) {
-        System.out.println(likeCnt);
         List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue, likeCnt);
         return ResponseEntity.ok(responses);
     }
