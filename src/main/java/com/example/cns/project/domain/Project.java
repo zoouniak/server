@@ -5,6 +5,7 @@ import com.example.cns.member.domain.Member;
 import com.example.cns.plan.domain.Plan;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.projectPost.domain.ProjectPost;
+import com.example.cns.task.domain.Task;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,6 +52,9 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Plan> plans = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
 
     @Builder
     public Project(Company company, Member manager, String projectName, String detail, String goal, LocalDate start, LocalDate end){

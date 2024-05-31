@@ -1,12 +1,15 @@
 package com.example.cns.feed.post.domain.repository;
 
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
@@ -22,190 +25,79 @@ public class PostListRepository {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    public List<PostResponse> findPostsAndUserLikeWithCursor(Long memberId, Long cursorValue, Long pageSize){
+    public List<PostResponse> findPostsByCondition(Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end, Long likeCnt){
 
-        cursorValue = isCursorExists(cursorValue, NumberExpression::max);
+        cursorValue = isCursorExists2(cursorValue,type);
 
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        new CaseBuilder()
-                                .when(postLike.count().gt(0))
-                                .then(true)
-                                .otherwise(false)
-                                .as("liked")
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(post.id.lt(cursorValue))
-                .groupBy(post.id)
-                .orderBy(post.id.desc())
-                .limit(pageSize)
-                .fetch();
-    }
+        BooleanBuilder condition = new BooleanBuilder();
+        OrderSpecifier<?>[] orders = new OrderSpecifier[0];
 
-    public List<PostResponse> findNewestPosts(Long memberId, Long cursorValue, Long pageSize){
+        switch(type){
+            case "posts" -> {
+                condition.and(post.id.lt(cursorValue));
+                orders = new OrderSpecifier[]{post.id.desc()};
+            }
+            case "newest" -> {
+                condition.and(post.member.id.eq(memberId));
+                condition.and(post.id.lt(cursorValue));
+                orders = new OrderSpecifier[]{post.id.desc()};
+            }
+            case "oldest" -> {
+                condition.and(post.member.id.eq(memberId));
+                condition.and(post.id.gt(cursorValue));
+                orders = new OrderSpecifier[]{post.createdAt.asc()};
+            }
+            case "period" -> {
+                LocalDateTime startDate = start.atStartOfDay();
+                LocalDateTime endDate = end.atStartOfDay();
 
-        cursorValue = isCursorExists(cursorValue, NumberExpression::max);
-
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        new CaseBuilder()
-                                .when(postLike.count().gt(0))
-                                .then(true)
-                                .otherwise(false)
-                                .as("liked")
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(post.member.id.eq(memberId).and(post.id.lt(cursorValue)))
-                .groupBy(post.id)
-                .orderBy(post.id.desc())
-                .limit(pageSize)
-                .fetch();
-    }
-
-    public List<PostResponse> findOldestPosts(Long memberId, Long cursorValue, Long pageSize){
-
-        cursorValue = isCursorExists(cursorValue,NumberExpression::min);
+                condition.and(post.member.id.eq(memberId));
+                condition.and(post.id.gt(cursorValue));
+                condition.and(post.createdAt.between(startDate,endDate));
+                orders = new OrderSpecifier[]{post.createdAt.asc()};
+            }
+            case "like" -> {
+                if(likeCnt == -1 || likeCnt == null){
+                    likeCnt = 1L + Long.valueOf(jpaQueryFactory.select(post.likeCnt.max())
+                            .from(post)
+                            .where(post.member.id.eq(memberId))
+                            .fetchOne());
+                }
+                condition.and(post.member.id.eq(memberId));
+                condition.and(post.likeCnt.lt(likeCnt)
+                        .or(post.likeCnt.eq(Math.toIntExact(likeCnt))).and(post.id.lt(cursorValue)));
+                orders = new OrderSpecifier[]{post.likeCnt.desc(),post.createdAt.desc()};
+            }
+            case "myLike" -> {
+                condition.and(postLike.member.id.eq(memberId));
+                condition.and(postLike.member.id.lt(cursorValue));
+                orders = new OrderSpecifier[]{postLike.post.id.desc()};
+            }
+        }
 
         return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        new CaseBuilder()
-                                .when(postLike.count().gt(0))
-                                .then(true)
-                                .otherwise(false)
-                                .as("liked")
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(post.member.id.eq(memberId).and(post.id.gt(cursorValue)))
-                .groupBy(post.id)
-                .orderBy(post.createdAt.asc())
-                .limit(pageSize)
-                .fetch();
-    }
-
-    public List<PostResponse> findPostsByPeriod(Long memberId, Long cursorValue, Long pageSize, LocalDateTime start, LocalDateTime end){
-
-        cursorValue = isCursorExists(cursorValue,NumberExpression::min);
-
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        new CaseBuilder()
-                                .when(postLike.count().gt(0))
-                                .then(true)
-                                .otherwise(false)
-                                .as("liked")
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(post.member.id.eq(memberId)
-                        .and(post.id.gt(cursorValue))
-                        .and(post.createdAt.between(start,end)))
-                .groupBy(post.id)
-                .orderBy(post.createdAt.asc())
-                .limit(pageSize)
-                .fetch();
-    }
-
-    public List<PostResponse> findPostsByLikeCnt(Long memberId, int likeCnt, Long cursorValue, Long pageSize){
-
-        cursorValue = isCursorExists(cursorValue,NumberExpression::max);
-
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        new CaseBuilder()
-                                .when(postLike.count().gt(0))
-                                .then(true)
-                                .otherwise(false)
-                                .as("liked")
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(post.member.id.eq(memberId)
-                        .and(post.likeCnt.lt(likeCnt)
-                                .or(post.likeCnt.eq(likeCnt).and(post.id.lt(cursorValue)))))
-                .groupBy(post.id)
-                .orderBy(post.likeCnt.desc(),post.createdAt.desc())
-                .limit(pageSize)
-                .fetch();
-    }
-
-    public List<PostResponse> findPostLikesByMemberId(Long memberId, Long cursorValue, Long pageSize){
-
-        cursorValue = isCursorExists(cursorValue,NumberExpression::max);
-
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                postLike.post.id,
-                postLike.member.id.as("memberId"),
-                postLike.member.nickname,
-                postLike.member.url.as("profile"),
-                postLike.post.content,
-                postLike.post.createdAt,
-                postLike.post.likeCnt,
-                postLike.post.fileCnt,
-                postLike.post.comments.size().as("commentCnt"),
-                postLike.post.isCommentEnabled,
+                post.id,
+                post.member.id.as("memberId"),
+                post.member.nickname,
+                post.member.url.as("profile"),
+                post.content,
+                post.createdAt,
+                post.likeCnt,
+                post.fileCnt,
+                post.comments.size().as("commentCnt"),
+                post.isCommentEnabled,
                 new CaseBuilder()
                         .when(postLike.count().gt(0))
                         .then(true)
                         .otherwise(false)
                         .as("liked")
-                )).from(postLike)
-                .where(postLike.member.id.eq(memberId)
-                        .and(postLike.post.id.lt(cursorValue)))
-                .groupBy(postLike.post.id)
-                .orderBy(postLike.post.id.desc())
+                ))
+                .from(post)
+                .leftJoin(postLike)
+                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
+                .where(condition)
+                .groupBy(post.id)
+                .orderBy(orders)
                 .limit(pageSize)
                 .fetch();
     }
@@ -216,6 +108,27 @@ public class PostListRepository {
                     .from(post)
                     .fetchOne());
             if (cursorValue == null) { //게시글이 없는 경우
+                cursorValue = 0L;
+            }
+        }
+        return cursorValue;
+    }
+
+    private Long isCursorExists2(Long cursorValue, String searchType) {
+        if (cursorValue == null || cursorValue == 0L) {
+            NumberExpression<?> maxMinExpr;
+            switch (searchType) {
+                case "oldest":
+                case "period":
+                    maxMinExpr = post.id.min();
+                    break;
+                default:
+                    maxMinExpr = post.id.max();
+            }
+            cursorValue = 1L + jpaQueryFactory.select(post.id.max())
+                    .from(post)
+                    .fetchOne();
+            if (cursorValue == null) {
                 cursorValue = 0L;
             }
         }

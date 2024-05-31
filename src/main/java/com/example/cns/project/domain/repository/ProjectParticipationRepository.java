@@ -1,5 +1,6 @@
 package com.example.cns.project.domain.repository;
 
+import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.ProjectParticipation;
 import com.example.cns.project.domain.ProjectParticipationID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,5 +33,8 @@ public interface ProjectParticipationRepository extends JpaRepository<ProjectPar
     void deleteAllByProjectId(@Param("projectId") Long projectId);
 
     boolean existsById(ProjectParticipationID id);
+
+    @Query("SELECT proj FROM ProjectParticipation pp JOIN Project proj ON pp.project = proj.id WHERE pp.member = :memberId")
+    List<Project> findProjectsByMemberId(@Param("memberId") Long memberId);
 
 }

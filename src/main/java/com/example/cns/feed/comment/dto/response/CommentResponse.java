@@ -34,4 +34,8 @@ public record CommentResponse(
         this.commentReplyCnt = commentReplyCnt;
         this.liked = liked;
     }
+
+    public CommentResponse(Long commentId, Long memberId, String nickname, String profile, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt, boolean liked){
+        this(commentId,new PostMember(memberId,nickname,profile),content,likeCnt,createdAt,commentReplyCnt,liked);
+    }
 }
