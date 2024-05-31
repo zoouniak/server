@@ -9,7 +9,9 @@ import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.FileMessageFormat;
 import com.example.cns.chat.dto.request.TextMessageFormat;
+import com.example.cns.chat.dto.response.ChatFileResponse;
 import com.example.cns.chat.dto.response.ChatResponse;
+import com.example.cns.chat.type.MessageType;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,5 +82,12 @@ public class ChatService {
     public List<ChatResponse> getPaginationChat(Long roomId, Long chatId) {
         // 스크롤에 따라 no offset 페이징
         return chatListRepository.paginationChat(roomId, chatId, 10);
+    }
+
+    public List<ChatFileResponse> getImages(Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).get();
+        List<Chat> allFiles = chatRepository.getAllByChatRoomAndMessageType(chatRoom, MessageType.IMAGE);
+        return allFiles.stream().map(chat -> new ChatFileResponse(chat.getContent(), chat.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 }
