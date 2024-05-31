@@ -1,11 +1,11 @@
 package com.example.cns.project.presentation;
 
 import com.example.cns.auth.config.Auth;
-import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
+import com.example.cns.project.dto.response.ProjectParticipantInfo;
 import com.example.cns.project.dto.response.ProjectResponse;
 import com.example.cns.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,7 +45,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project")
-    public ResponseEntity createProject( @RequestBody ProjectCreateRequest projectCreateRequest){
+    public ResponseEntity createProject(@RequestBody @Valid ProjectCreateRequest projectCreateRequest){
         projectService.createProject(projectCreateRequest);
         return ResponseEntity.ok().build();
     }
@@ -55,7 +56,6 @@ public class ProjectController {
     @Operation(summary = "프로젝트 수정 api", description = "사용자로부터 수정된 프로젝트 정보를 이용해 프로젝트를 수정한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
                     @Parameter(name = "projectRequest", description = "프로젝트 수정 요청 DTO")
             }
@@ -65,24 +65,33 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}")
-    public ResponseEntity patchProject(@Auth Long memberId, @PathVariable Long projectId,@RequestBody ProjectPatchRequest projectPatchRequest){
-        projectService.patchProject(memberId,projectId, projectPatchRequest);
+    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody @Valid ProjectPatchRequest projectPatchRequest){
+        projectService.patchProject(projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
 
     /*
     프로젝트 삭제
-    프로젝트 삭제시 일정,게시글 전부다 삭제해야함
      */
+    @Operation(summary = "프로젝트 삭제 api", description = "프로젝트에 대한 모든 정보를 삭제한다.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "projectId", description = "프로젝트 인덱스값"),
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "삭제에 성공하면 200을 반환한다.")
+    })
     @DeleteMapping("/project/{projectId}")
     public ResponseEntity deleteProject(@PathVariable Long projectId){
+        projectService.deleteProject(projectId);
         return ResponseEntity.ok().build();
     }
 
     /*
     프로젝트 나가기
      */
-    @Operation(summary = "프로젝트에서 퇴장하는 api", description = "사용자가 프로젝트 퇴장 요청을 보내면, 해당 프로젝트에서 나가게 된다.")
+    @Operation(summary = "프로젝트에서 퇴장하는 api", description = "사용자가 프로젝트 퇴장 요청을 보내면, 해당 프로젝트에서 나가게 된다. 단 관리자는 나갈 수 없다.")
     @Parameters(
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
@@ -147,7 +156,7 @@ public class ProjectController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "프로젝트 참여자에 대한 정보를 반환한다.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = MemberSearchResponse.class))))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectParticipantInfo.class))))
     })
     @GetMapping("/project/{projectId}/participant")
     @PreAuthorize("isAuthenticated()")
@@ -161,7 +170,6 @@ public class ProjectController {
     @Operation(summary = "프로젝트 참여자 수정 api", description = "사용자가 참여자를 수정하면 프로젝트 참여자를 수정한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
                     @Parameter(name = "projectInviteRequest", description = "프로젝트 초대 요청 DTO")
             }
@@ -171,8 +179,8 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}/invite")
-    public ResponseEntity patchProjectParticipant(@Auth Long memberId,@PathVariable Long projectId, @RequestBody ProjectInviteRequest projectInviteRequest){
-        projectService.patchProjectParticipant(memberId,projectId, projectInviteRequest);
+    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody @Valid ProjectInviteRequest projectInviteRequest){
+        projectService.patchProjectParticipant(projectId, projectInviteRequest);
         return ResponseEntity.ok().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.cns.plan.domain;
 
 import com.example.cns.plan.dto.request.PlanCreateRequest;
+import com.example.cns.plan.dto.request.PlanDateEditRequest;
 import com.example.cns.project.domain.Project;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -47,5 +48,10 @@ public class Plan {
         this.content = planEditRequest.content();
         this.startedAt = planEditRequest.startedAt();
         this.endedAt = planEditRequest.endedAt();
+    }
+
+    public void updateSchedule(PlanDateEditRequest dateEditRequest) {
+        this.startedAt = dateEditRequest.startedAt();
+        this.endedAt = dateEditRequest.endedAt();
     }
 }

@@ -8,12 +8,14 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.member.dto.response.MemberSearchResponse;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.ProjectParticipation;
+import com.example.cns.project.domain.ProjectParticipationID;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
 import com.example.cns.project.domain.repository.ProjectRepository;
 import com.example.cns.project.dto.request.ProjectCreateRequest;
 import com.example.cns.project.dto.request.ProjectInviteRequest;
 import com.example.cns.project.dto.request.ProjectPatchRequest;
 import com.example.cns.project.dto.response.ProjectInfoResponse;
+import com.example.cns.project.dto.response.ProjectParticipantInfo;
 import com.example.cns.project.dto.response.ProjectResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,8 +41,7 @@ public class ProjectService {
     @Transactional
     public void createProject(ProjectCreateRequest projectCreateRequest){
 
-        Member manager = memberRepository.findById(projectCreateRequest.managerId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Member manager = isMemberExists(projectCreateRequest.managerId());
 
         Long projectId = projectRepository.save(projectCreateRequest.toProjectEntity(manager)).getId();
 
@@ -74,27 +75,28 @@ public class ProjectService {
     프로젝트 수정
      */
     @Transactional
-    public void patchProject(Long memberId,Long projectId, ProjectPatchRequest projectPatchRequest){
+    public void patchProject(Long projectId, ProjectPatchRequest projectPatchRequest){
 
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(memberId)) throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
-
+        Project project = isProjectExists(projectId);
         project.updateProject(projectPatchRequest);
     }
 
     /*
     프로젝트 삭제
      */
+    @Transactional
+    public void deleteProject(Long projectId){
+        isProjectExists(projectId);
+        projectParticipationRepository.deleteAllByProjectId(projectId); //프로젝트 참여자 삭제
+        projectRepository.deleteById(projectId); //프로젝트 삭제, 게시글 삭제, 일정, 일정 참여자 삭제
+    }
 
     /*
     프로젝트 나가기
      */
     @Transactional
     public void exitProject(Long memberId, Long projectId){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
 
         if(Objects.equals(project.getManager().getId(), memberId))
             throw new BusinessException(ExceptionCode.MANAGER_CANNOT_LEAVE);
@@ -105,8 +107,7 @@ public class ProjectService {
     특정 프로젝트 조회
      */
     public ProjectResponse getSpecificProject(Long projectId){
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+        Project project = isProjectExists(projectId);
         return ProjectResponse.builder()
                 .projectId(project.getId())
                 .projectName(project.getProjectName())
@@ -144,8 +145,9 @@ public class ProjectService {
     /*
     프로젝트 참여자 조회
      */
-    public List<MemberSearchResponse> getProjectParticipant(Long projectId){
+    public ProjectParticipantInfo getProjectParticipant(Long projectId){
 
+        Project project = isProjectExists(projectId);
         List<ProjectParticipation> participationList = projectParticipationRepository.findProjectParticipationsByProjectId(projectId);
         List<MemberSearchResponse> memberList = new ArrayList<>();
 
@@ -164,23 +166,23 @@ public class ProjectService {
                 }
         );
 
-        return memberList;
+        ProjectParticipantInfo response = ProjectParticipantInfo.builder()
+                .managerId(project.getManager().getId())
+                .memberList(memberList)
+                .build();
+
+        return response;
     }
 
     /*
     프로젝트 참여자 수정 / 추가 초대
      */
     @Transactional
-    public void patchProjectParticipant(Long managerId,Long projectId,ProjectInviteRequest projectInviteRequest){
+    public void patchProjectParticipant(Long projectId,ProjectInviteRequest projectInviteRequest){
 
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
-
-        if(!project.getManager().getId().equals(managerId))
-            throw new BusinessException(ExceptionCode.MANAGER_ONLY_ACTION);
+        Project project = isProjectExists(projectId);
 
         //현재 참여자 리스트
-
         List<Long> previousList = projectParticipationRepository.findProjectParticipationsIdByProjectId(projectId);
 
         //수정된 참여자 리스트
@@ -197,8 +199,7 @@ public class ProjectService {
                 .filter(memberId -> !updateList.contains(memberId))
                 .toList();
 
-        Member manager = memberRepository.findById(projectInviteRequest.managerId()).orElseThrow(
-                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+        Member manager = isMemberExists(projectInviteRequest.managerId());
 
         //담당자 교체
         project.setManager(manager);
@@ -231,5 +232,21 @@ public class ProjectService {
 
         projectParticipationRepository.deleteAllInBatch(removeList);
 
+    }
+
+    private Project isProjectExists(Long projectId) {
+        return projectRepository.findById(projectId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
+    }
+
+    private Member isMemberExists(Long memberId){
+        return memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+
+    public void validateMemberInProject(Long memberId, Long projectId) {
+        if (!projectParticipationRepository.existsById(new ProjectParticipationID(memberId, projectId)))
+            throw new BusinessException(ExceptionCode.NOT_PROJECT_PARTICIPANTS);
     }
 }

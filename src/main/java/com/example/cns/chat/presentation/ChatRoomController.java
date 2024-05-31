@@ -134,10 +134,8 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomService.inviteMemberInChatRoom(memberId, inviteList.inviteList(), roomId));
     }
 
-    @GetMapping("/{roomId}/image")
+    @GetMapping("/{roomId}/images")
     public ResponseEntity getImagesInChatRoom(@PathVariable Long roomId) {
-        // todo 채팅방 내 파일조회 구현
-        //chatRoomService.getImages(roomId);
-        return null;
+        return ResponseEntity.ok(chatService.getImages(roomId));
     }
 }

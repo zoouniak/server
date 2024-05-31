@@ -15,7 +15,7 @@ public record PlanCreateRequest(
         @NotBlank
         String planName,
 
-        @NotBlank
+        @NotNull
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
         LocalDateTime startedAt,
 

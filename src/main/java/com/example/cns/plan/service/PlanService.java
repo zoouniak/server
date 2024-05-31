@@ -8,6 +8,7 @@ import com.example.cns.plan.domain.PlanParticipation;
 import com.example.cns.plan.domain.repository.PlanParticipationRepository;
 import com.example.cns.plan.domain.repository.PlanRepository;
 import com.example.cns.plan.dto.request.PlanCreateRequest;
+import com.example.cns.plan.dto.request.PlanDateEditRequest;
 import com.example.cns.plan.dto.request.PlanInviteRequest;
 import com.example.cns.plan.dto.response.MemberResponse;
 import com.example.cns.plan.dto.response.PlanCreateResponse;
@@ -37,9 +38,7 @@ public class PlanService {
     public PlanCreateResponse createPlan(Long projectId, PlanCreateRequest request) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new BusinessException(ExceptionCode.PROJECT_NOT_EXIST));
         Plan save = planRepository.save(request.toPlanEntity(project));
-        for (Long memberId : request.inviteList()) {
-            planParticipationRepository.save(new PlanParticipation(memberId, save.getId()));
-        }
+        saveParticipant(request.inviteList(), save.getId());
         return new PlanCreateResponse(save.getId());
     }
 
@@ -47,6 +46,10 @@ public class PlanService {
     public void editPlan(Long planId, PlanCreateRequest planEditRequest) {
         Plan plan = getPlan(planId);
         plan.updatePlan(planEditRequest);
+        if (!planEditRequest.inviteList().isEmpty()) {
+            planParticipationRepository.deleteByPlan(planId);
+            saveParticipant(planEditRequest.inviteList(), planId);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -99,13 +102,25 @@ public class PlanService {
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PLAN_NOT_EXIST));
     }
 
+    @Transactional
     public void inviteParticipant(Long planId, PlanInviteRequest inviteRequest) {
-        for (Long memberId : inviteRequest.memberList()) {
+        saveParticipant(inviteRequest.memberList(), planId);
+    }
+
+    private void saveParticipant(List<Long> inviteRequest, Long planId) {
+        for (Long memberId : inviteRequest) {
             planParticipationRepository.save(new PlanParticipation(memberId, planId));
         }
     }
 
+    @Transactional
     public void exitPlan(Long planId, Long memberId) {
         planParticipationRepository.deleteByPlanAndMember(planId, memberId);
+    }
+
+    @Transactional
+    public void editPlanSchedule(Long planId, PlanDateEditRequest dateEditRequest) {
+        Plan plan = getPlan(planId);
+        plan.updateSchedule(dateEditRequest);
     }
 }

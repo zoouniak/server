@@ -29,6 +29,7 @@ public enum ExceptionCode {
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
     COMPANY_UPDATE_FAILED(2002, BAD_REQUEST, "회사 및 직무 수정에 실패하였습니다."),
     COMPANY_UPDATE_FORBIDDEN(2003, FORBIDDEN, "담당하고 있는 프로젝트가 있습니다."),
+    RESUME_NOT_EXIST(2004,NOT_FOUND,"이력서가 존재하지 않습니다."),
 
     //게시글, 댓글, 파일 3000번대
     //3001 ~ 3100 게시글
@@ -47,8 +48,8 @@ public enum ExceptionCode {
     IMAGE_UPDATE_FAILED(3204, BAD_REQUEST, "이미지 수정에 실패하였습니다."),
 
     // 채팅 4000번대
-    ChatROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
-    NOT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
+    CHATROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
+    NOT_CHAT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
     ROOM_CAPACITY_EXCEEDED(4003, BAD_REQUEST, "채팅방 수용 인원(10명)을 초과하였습니다."),
 
     // 파일 5000번대
@@ -59,6 +60,11 @@ public enum ExceptionCode {
     PROJECT_NOT_EXIST(6001, NOT_FOUND, "프로젝트가 존재하지 않습니다."),
     MANAGER_CANNOT_LEAVE(6002, BAD_REQUEST, "담당자는 프로젝트를 나갈수 없습니다."),
     MANAGER_ONLY_ACTION(6003, FORBIDDEN, "담당자만 사용가능합니다."),
+    MISMATCH_OPINION_TYPE(6004, BAD_REQUEST, "잘못된 의견 종류입니다."),
+    NOT_PROJECT_PARTICIPANTS(4002, BAD_REQUEST, "해당 프로젝트의 참가자가 아닙니다."),
+    // 할일 6500번대
+    TASK_NOT_EXIST(6501, BAD_REQUEST, "해당 할 일이 존재하지 않습니다."),
+    NOT_TASK_OWNER(6501, FORBIDDEN, "할 일의 주인이 아닙니다."),
 
     // 일정 7000번대
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),

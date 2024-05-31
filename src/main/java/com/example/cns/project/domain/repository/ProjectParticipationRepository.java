@@ -1,5 +1,6 @@
 package com.example.cns.project.domain.repository;
 
+import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.ProjectParticipation;
 import com.example.cns.project.domain.ProjectParticipationID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,9 +13,6 @@ import java.util.List;
 
 @Repository
 public interface ProjectParticipationRepository extends JpaRepository<ProjectParticipation, ProjectParticipationID> {
-
-    @Query("SELECT pp FROM ProjectParticipation pp WHERE pp.member = :memberId")
-    List<ProjectParticipation> findProjectIdsByMemberId(@Param("memberId") Long memberId);
 
     @Modifying
     @Query("DELETE FROM ProjectParticipation pp WHERE pp.member = :memberId")
@@ -29,4 +27,14 @@ public interface ProjectParticipationRepository extends JpaRepository<ProjectPar
 
     @Query("SELECT pp.member FROM ProjectParticipation pp WHERE pp.project = :projectId")
     List<Long> findProjectParticipationsIdByProjectId(@Param("projectId") Long projectId);
+
+    @Modifying
+    @Query("DELETE FROM ProjectParticipation pp WHERE pp.project = :projectId")
+    void deleteAllByProjectId(@Param("projectId") Long projectId);
+
+    boolean existsById(ProjectParticipationID id);
+
+    @Query("SELECT proj FROM ProjectParticipation pp JOIN Project proj ON pp.project = proj.id WHERE pp.member = :memberId")
+    List<Project> findProjectsByMemberId(@Param("memberId") Long memberId);
+
 }

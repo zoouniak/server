@@ -4,6 +4,7 @@ import com.example.cns.member.domain.Member;
 import com.example.cns.member.type.RoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -31,7 +32,7 @@ public record SignUpRequest(
         @NotBlank @Schema(description = "재직중인 회사 이름")
         String companyName,
 
-        @NotBlank @Schema(description = "생일")
+        @NotNull @Schema(description = "생일")
         LocalDate birth
 ) {
     public Member toEntity(PasswordEncoder passwordEncoder) {
