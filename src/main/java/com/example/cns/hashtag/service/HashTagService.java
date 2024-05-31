@@ -23,7 +23,6 @@ import java.util.Optional;
 public class HashTagService {
 
     private final HashTagRepository hashTagRepository;
-    private final PostRepository postRepository;
     private final HashTagPostRepository hashTagPostRepository;
     private final HashTagViewRepository hashTagViewRepository;
 
