@@ -29,7 +29,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("{spring.env.server}")
+    @Value("${spring.env.server}")
     private String serverIp;
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
