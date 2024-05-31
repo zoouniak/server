@@ -27,7 +27,7 @@ public class PostListRepository {
 
     public List<PostResponse> findPostsByCondition(Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end, Long likeCnt){
 
-        cursorValue = isCursorExists2(cursorValue,type);
+        cursorValue = isCursorExists(cursorValue,type);
 
         BooleanBuilder condition = new BooleanBuilder();
         OrderSpecifier<?>[] orders = new OrderSpecifier[0];
@@ -102,19 +102,7 @@ public class PostListRepository {
                 .fetch();
     }
 
-    private Long isCursorExists(Long cursorValue, Function<NumberExpression<Long>, NumberExpression<Long>> aggregationFunction) {
-        if (cursorValue == null || cursorValue == 0L) { //cursorValue가 없을 경우
-            cursorValue = 1L + (jpaQueryFactory.select(aggregationFunction.apply(post.id))
-                    .from(post)
-                    .fetchOne());
-            if (cursorValue == null) { //게시글이 없는 경우
-                cursorValue = 0L;
-            }
-        }
-        return cursorValue;
-    }
-
-    private Long isCursorExists2(Long cursorValue, String searchType) {
+    private Long isCursorExists(Long cursorValue, String searchType) {
         if (cursorValue == null || cursorValue == 0L) {
             NumberExpression<?> maxMinExpr;
             switch (searchType) {
@@ -125,7 +113,7 @@ public class PostListRepository {
                 default:
                     maxMinExpr = post.id.max();
             }
-            cursorValue = 1L + jpaQueryFactory.select(post.id.max())
+            cursorValue = 1 + (Long) jpaQueryFactory.select(maxMinExpr)
                     .from(post)
                     .fetchOne();
             if (cursorValue == null) {
