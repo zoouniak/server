@@ -47,6 +47,7 @@ jobs:
     - name: docker Hub push
       run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cns:latest
 
+    # run application
     - name : run application via ssh
       uses: appleboy/ssh-action@master
       with:
