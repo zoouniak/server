@@ -132,7 +132,6 @@ public class PostService {
     3. 끝
      */
     public List<FileResponse> getPostMedia(Long postId) {
-        isPostExists(postId);
         List<FileResponse> postFileResponses = new ArrayList<>();
         List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
         allPostFile.forEach(
@@ -296,7 +295,7 @@ public class PostService {
         for (String line : lines) {
             Matcher matcher = pattern.matcher(line);
             while (matcher.find()) {
-                mentions.add(matcher.group(1));
+                mentions.add(matcher.group(1)); //@제외
             }
         }
         return mentions;
@@ -305,11 +304,11 @@ public class PostService {
     private List<String> extractHashTag(String content) {
         List<String> hashtags = new ArrayList<>();
         String[] lines = content.split("\\r?\\n");
-        Pattern pattern = Pattern.compile("#\\S+");
+        Pattern pattern = Pattern.compile("#(\\S+)");
         for (String line : lines) {
             Matcher matcher = pattern.matcher(line);
             while (matcher.find()) {
-                hashtags.add(matcher.group());
+                hashtags.add(matcher.group(1)); //# 제외
             }
         }
         return hashtags;
@@ -322,7 +321,7 @@ public class PostService {
         for (String line : lines) {
             Matcher matcher = pattern.matcher(line);
             while (matcher.find()) {
-                mentions.add(matcher.group());
+                mentions.add(matcher.group()); //@사람 형태
             }
         }
         return mentions;
