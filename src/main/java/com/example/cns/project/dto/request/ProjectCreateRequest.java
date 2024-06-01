@@ -36,7 +36,7 @@ public record ProjectCreateRequest(
         @Schema(description = "참여자 인덱스 값 리스트")
         List<Long> memberList
 ) {
-    public Project toProjectEntity(Member manager){
+    public Project toProjectEntity(Member manager) {
         return Project.builder()
                 .company(manager.getCompany())
                 .manager(manager)

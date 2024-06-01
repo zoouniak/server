@@ -154,7 +154,8 @@ public class MemberService {
             } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
             }
-        } throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
+        }
+        throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
 
     }
 
@@ -205,7 +206,7 @@ public class MemberService {
                 //단 게시글, 일정 내용은 남겨야지 프로젝트에 문제가 없을것 같음
                 List<Project> projects = projectParticipationRepository.findProjectsByMemberId(member.getId());
                 projects.forEach( //해당 프로젝트의 todo를 담당자에게 넘기기
-                        project -> taskRepository.updateTasksByMemberId(project.getManager(),member.getId(),project.getId())
+                        project -> taskRepository.updateTasksByMemberId(project.getManager(), member.getId(), project.getId())
                 );
                 planParticipationRepository.deleteByMemberId(member.getId());
                 projectParticipationRepository.deleteAllByMemberId(member.getId());

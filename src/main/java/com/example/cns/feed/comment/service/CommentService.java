@@ -120,6 +120,7 @@ public class CommentService {
             commentRepository.deleteById(commentDeleteRequest.commentId());
         } else throw new BusinessException(ExceptionCode.NOT_COMMENT_WRITER);
     }
+
     /*
     댓글 조회
      */
@@ -131,7 +132,7 @@ public class CommentService {
 
         return comments.stream()
                 .map(commentResponse -> {
-                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(),Collections.emptyList());
+                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
                     return commentResponse.withData(mentions);
                 })
                 .collect(Collectors.toList());
@@ -149,7 +150,7 @@ public class CommentService {
 
         return comments.stream()
                 .map(commentResponse -> {
-                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(),Collections.emptyList());
+                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
                     return commentResponse.withData(mentions);
                 })
                 .collect(Collectors.toList());
@@ -195,11 +196,12 @@ public class CommentService {
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
     }
 
-    private Post isPostExists(Long postId){
+    private Post isPostExists(Long postId) {
         return postRepository.findById(postId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
-    private Comment isCommentExists(Long commentId){
+
+    private Comment isCommentExists(Long commentId) {
         return commentRepository.findById(commentId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
     }

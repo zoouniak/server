@@ -1,7 +1,6 @@
 package com.example.cns.feed.comment.dto.response;
 
 import com.example.cns.feed.post.dto.response.PostMember;
-import com.example.cns.feed.post.dto.response.PostResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -39,11 +38,11 @@ public record CommentResponse(
         this.mentions = mentions;
     }
 
-    public CommentResponse(Long commentId, Long memberId, String nickname, String profile, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt, boolean liked){
-        this(commentId,new PostMember(memberId,nickname,profile),content,likeCnt,createdAt,commentReplyCnt,liked, new ArrayList<>());
+    public CommentResponse(Long commentId, Long memberId, String nickname, String profile, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt, boolean liked) {
+        this(commentId, new PostMember(memberId, nickname, profile), content, likeCnt, createdAt, commentReplyCnt, liked, new ArrayList<>());
     }
 
     public CommentResponse withData(List<Long> mentions) {
-        return new CommentResponse(commentId, postMember, content, likeCnt, createdAt,commentReplyCnt,liked,mentions);
+        return new CommentResponse(commentId, postMember, content, likeCnt, createdAt, commentReplyCnt, liked, mentions);
     }
 }

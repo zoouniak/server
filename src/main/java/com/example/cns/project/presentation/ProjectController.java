@@ -45,7 +45,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project")
-    public ResponseEntity createProject(@RequestBody @Valid ProjectCreateRequest projectCreateRequest){
+    public ResponseEntity createProject(@RequestBody @Valid ProjectCreateRequest projectCreateRequest) {
         projectService.createProject(projectCreateRequest);
         return ResponseEntity.ok().build();
     }
@@ -65,7 +65,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}")
-    public ResponseEntity patchProject(@PathVariable Long projectId,@RequestBody @Valid ProjectPatchRequest projectPatchRequest){
+    public ResponseEntity patchProject(@PathVariable Long projectId, @RequestBody @Valid ProjectPatchRequest projectPatchRequest) {
         projectService.patchProject(projectId, projectPatchRequest);
         return ResponseEntity.ok().build();
     }
@@ -83,7 +83,7 @@ public class ProjectController {
             @ApiResponse(responseCode = "200", description = "삭제에 성공하면 200을 반환한다.")
     })
     @DeleteMapping("/project/{projectId}")
-    public ResponseEntity deleteProject(@PathVariable Long projectId){
+    public ResponseEntity deleteProject(@PathVariable Long projectId) {
         projectService.deleteProject(projectId);
         return ResponseEntity.ok().build();
     }
@@ -103,8 +103,8 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/project/{projectId}/exit")
-    public ResponseEntity exitProject(@Auth Long memberId, @PathVariable Long projectId){
-        projectService.exitProject(memberId,projectId);
+    public ResponseEntity exitProject(@Auth Long memberId, @PathVariable Long projectId) {
+        projectService.exitProject(memberId, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -122,7 +122,7 @@ public class ProjectController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProjectInfoResponse.class))))
     })
     @GetMapping("/project/list")
-    public ResponseEntity getAllProject(@Auth Long memberId){
+    public ResponseEntity getAllProject(@Auth Long memberId) {
         return ResponseEntity.ok(projectService.getProjectListByMemberId(memberId));
     }
 
@@ -141,7 +141,7 @@ public class ProjectController {
     })
     @GetMapping("/project/{projectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getSpecificProject(@PathVariable Long projectId){
+    public ResponseEntity getSpecificProject(@PathVariable Long projectId) {
         return ResponseEntity.ok(projectService.getSpecificProject(projectId));
     }
 
@@ -160,7 +160,7 @@ public class ProjectController {
     })
     @GetMapping("/project/{projectId}/participant")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getProjectParticipant(@PathVariable Long projectId){
+    public ResponseEntity getProjectParticipant(@PathVariable Long projectId) {
         return ResponseEntity.ok(projectService.getProjectParticipant(projectId));
     }
 
@@ -179,7 +179,7 @@ public class ProjectController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/project/{projectId}/invite")
-    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody @Valid ProjectInviteRequest projectInviteRequest){
+    public ResponseEntity patchProjectParticipant(@PathVariable Long projectId, @RequestBody @Valid ProjectInviteRequest projectInviteRequest) {
         projectService.patchProjectParticipant(projectId, projectInviteRequest);
         return ResponseEntity.ok().build();
     }

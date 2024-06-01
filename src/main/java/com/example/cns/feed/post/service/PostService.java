@@ -123,37 +123,37 @@ public class PostService {
     /*
     모든 게시글 조회
      */
-        public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
-            List<PostResponse> posts = postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
-            List<Long> postIds = posts.stream().map(PostResponse::id).toList();
+    public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
+        List<PostResponse> posts = postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
+        List<Long> postIds = posts.stream().map(PostResponse::id).toList();
 
-            //멘션 리스트 찾기
-            List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
-            Map<Long, List<Long>> mentionsMap = new HashMap<>();
-            for (Object[] mention : mentionsList) {
-                Long postId = (Long) mention[0];
-                Long mentionId = (Long) mention[1];
-                mentionsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(mentionId);
-            }
-
-            //해시태그 리스트 찾기
-            List<Object[]> hashtagsList = hashTagRepository.findHashTagNamesByPostIds(postIds);
-            Map<Long, List<String>> hashtagsMap = new HashMap<>();
-            for (Object[] hashtag : hashtagsList) {
-                Long postId = (Long) hashtag[0];
-                String tagName = (String) hashtag[1];
-                hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
-            }
-
-            return posts.stream()
-                    .map(postResponse -> {
-                        List<Long> mentions = mentionsMap.getOrDefault(postResponse.id(), Collections.emptyList());
-                        List<String> hashtags = hashtagsMap.getOrDefault(postResponse.id(), Collections.emptyList());
-                        return postResponse.withData(mentions, hashtags);
-                    })
-                    .collect(Collectors.toList());
-
+        //멘션 리스트 찾기
+        List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
+        Map<Long, List<Long>> mentionsMap = new HashMap<>();
+        for (Object[] mention : mentionsList) {
+            Long postId = (Long) mention[0];
+            Long mentionId = (Long) mention[1];
+            mentionsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(mentionId);
         }
+
+        //해시태그 리스트 찾기
+        List<Object[]> hashtagsList = hashTagRepository.findHashTagNamesByPostIds(postIds);
+        Map<Long, List<String>> hashtagsMap = new HashMap<>();
+        for (Object[] hashtag : hashtagsList) {
+            Long postId = (Long) hashtag[0];
+            String tagName = (String) hashtag[1];
+            hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
+        }
+
+        return posts.stream()
+                .map(postResponse -> {
+                    List<Long> mentions = mentionsMap.getOrDefault(postResponse.id(), Collections.emptyList());
+                    List<String> hashtags = hashtagsMap.getOrDefault(postResponse.id(), Collections.emptyList());
+                    return postResponse.withData(mentions, hashtags);
+                })
+                .collect(Collectors.toList());
+
+    }
 
     /*
     게시글 미디어 조회

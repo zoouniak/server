@@ -21,24 +21,24 @@ public class CommentListRepository {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    public List<CommentResponse> getCommentLists(Long memberId,Long postId, Long parentId){
+    public List<CommentResponse> getCommentLists(Long memberId, Long postId, Long parentId) {
 
-        BooleanBuilder condition = createCondition(postId,parentId);
+        BooleanBuilder condition = createCondition(postId, parentId);
 
         return jpaQueryFactory.select(Projections.constructor(CommentResponse.class,
-                comment.id.as("commentId"),
-                comment.writer.id.as("memberId"),
-                comment.writer.nickname,
-                comment.writer.url.as("profile"),
-                comment.content,
-                comment.likeCnt,
-                comment.createdAt,
-                comment.childComments.size().as("commentReplyCnt"),
-                new CaseBuilder()
-                        .when(commentLike.count().gt(0))
-                        .then(true)
-                        .otherwise(false)
-                        .as("liked")
+                        comment.id.as("commentId"),
+                        comment.writer.id.as("memberId"),
+                        comment.writer.nickname,
+                        comment.writer.url.as("profile"),
+                        comment.content,
+                        comment.likeCnt,
+                        comment.createdAt,
+                        comment.childComments.size().as("commentReplyCnt"),
+                        new CaseBuilder()
+                                .when(commentLike.count().gt(0))
+                                .then(true)
+                                .otherwise(false)
+                                .as("liked")
                 ))
                 .from(comment)
                 .leftJoin(commentLike)
@@ -51,12 +51,12 @@ public class CommentListRepository {
 
     private BooleanBuilder createCondition(Long postId, Long parentId) {
         BooleanBuilder condition = new BooleanBuilder();
-        if(postId != null){
+        if (postId != null) {
             condition.and(comment.post.id.eq(postId));
         }
-        if(parentId != null){
+        if (parentId != null) {
             condition.and(comment.parentComment.id.eq(parentId));
-        }else {
+        } else {
             condition.and(comment.parentComment.id.isNull());
         }
         return condition;

@@ -31,6 +31,19 @@ public class S3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
+    private static FileType getFileType(String ext) {
+        return switch (ext) {
+            case "png", "PNG" -> FileType.PNG;
+            case "jpg", "jpeg", "JPG", "JPEG" -> FileType.JPG;
+            case "pdf", "PDF" -> FileType.PDF;
+            case "xlsx", "XLSX" -> FileType.XLSX;
+            case "ppt", "PPT" -> FileType.PPT;
+            case "pptx", "PPTX" -> FileType.PPTX;
+            case "doc", "docx", "DOCS", "DOCX" -> FileType.DOCS;
+            default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
+        };
+    }
+
     /*
     게시글 파일 업로드
     1. post 폴더에 저장하는 방식
@@ -44,19 +57,6 @@ public class S3Service {
         return postFileRequest.stream()
                 .map(file -> uploadFile(file, path)) // 각 MultipartFile을 uploadFile 함수에 전달하여 FileResponse로 변환
                 .collect(Collectors.toList());
-    }
-
-    private static FileType getFileType(String ext) {
-        return switch (ext) {
-            case "png", "PNG" -> FileType.PNG;
-            case "jpg", "jpeg", "JPG", "JPEG" -> FileType.JPG;
-            case "pdf", "PDF" -> FileType.PDF;
-            case "xlsx", "XLSX" -> FileType.XLSX;
-            case "ppt", "PPT" -> FileType.PPT;
-            case "pptx", "PPTX" -> FileType.PPTX;
-            case "doc", "docx", "DOCS", "DOCX" -> FileType.DOCS;
-            default -> throw new BusinessException(ExceptionCode.NOT_SUPPORT_EXT);
-        };
     }
 
     public FileResponse uploadFile(MultipartFile multipartFile, String path) {

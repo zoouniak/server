@@ -31,7 +31,7 @@ public record PostResponse(
         List<String> hashtags
 ) {
     @Builder
-    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked,List<Long> mentions, List<String> hashtags) {
+    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked, List<Long> mentions, List<String> hashtags) {
         this.id = id;
         this.postMember = postMember;
         this.content = content;
@@ -46,7 +46,7 @@ public record PostResponse(
     }
 
     public PostResponse(Long id, Long memberId, String nickname, String profile, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
-        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked,new ArrayList<>(),new ArrayList<>());
+        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, new ArrayList<>(), new ArrayList<>());
     }
 
     public PostResponse withData(List<Long> mentions, List<String> hashtags) {

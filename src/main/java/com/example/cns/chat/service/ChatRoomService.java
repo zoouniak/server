@@ -37,17 +37,17 @@ public class ChatRoomService {
     private final MemberRepository memberRepository;
     private final ChatRoomListRepository chatRoomListRepository;
 
+    private static void checkCapacity(int size) {
+        if (size > 10)
+            throw new BusinessException(ROOM_CAPACITY_EXCEEDED);
+    }
+
     /*
      * 회원이 참여하고 있는 채팅방 조회 (페이지 단위), 마지막 채팅 최신순으로
      */
     @Transactional(readOnly = true)
     public List<ChatRoomResponse> findChatRoomsByPage(Long memberId, int page) {
         return chatRoomListRepository.getMyChatRoomList(memberId, 10, page);
-    }
-
-    private static void checkCapacity(int size) {
-        if (size > 10)
-            throw new BusinessException(ROOM_CAPACITY_EXCEEDED);
     }
 
     /*
@@ -198,7 +198,7 @@ public class ChatRoomService {
         return chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(CHATROOM_NOT_EXIST));
     }
-    
+
     private String getNickname(Long memberId) {
         return memberRepository.findById(memberId)
                 .map(Member::getNickname)
