@@ -7,6 +7,7 @@ import com.example.cns.company.domain.Company;
 import com.example.cns.company.service.CompanySearchService;
 import com.example.cns.feed.post.domain.repository.PostListRepository;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.MemberResume;
@@ -71,7 +72,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void saveProfile(Long id, MemberFileRequest memberFileRequest) {
+    public PostMember saveProfile(Long id, MemberFileRequest memberFileRequest) {
         Member member = isMemberExists(id);
 
         //해당 유저가 프로필이 존재한다면.. 삭제
@@ -86,6 +87,12 @@ public class MemberService {
         //프로필 등록
         FileResponse uploaded = s3Service.uploadFile(memberFileRequest.file(), "profile");
         member.updateProfile(uploaded);
+
+        return PostMember.builder()
+                .id(member.getId())
+                .nickname(member.getNickname())
+                .profile(member.getUrl())
+                .build();
 
     }
 
