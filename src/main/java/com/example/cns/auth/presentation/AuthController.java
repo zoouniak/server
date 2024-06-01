@@ -123,7 +123,7 @@ public class AuthController {
                     )
             })
     @PreAuthorize("isAnonymous()")
-    @GetMapping("/password-inquiry/verification")
+    @PostMapping("/password-inquiry/verification")
     public ResponseEntity<?> verifyMember(@RequestBody MemberVerificationRequest request) {
         // 이름, 이메일 검사
         memberAuthService.verifyMember(request);

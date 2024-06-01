@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,7 +62,6 @@ public class CompanyController {
                             )))
     })
     @Parameter(name = "companyName", description = "회사 이름")
-    @PreAuthorize("isAnonymous()")
     @GetMapping("/{companyName}/email")
     public ResponseEntity<?> getCompanyEmail(@PathVariable(name = "companyName") String companyName) {
         return ResponseEntity.ok(companySearchService.getCompanyEmail(companyName));
