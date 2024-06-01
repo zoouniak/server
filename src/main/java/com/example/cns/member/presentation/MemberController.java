@@ -2,6 +2,7 @@ package com.example.cns.member.presentation;
 
 import com.example.cns.auth.config.Auth;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.member.dto.request.MemberCompanyPatchRequest;
 import com.example.cns.member.dto.request.MemberFileRequest;
@@ -155,8 +156,8 @@ public class MemberController {
     @PostMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity uploadMemberProfileImage(@Auth Long memberId, MemberFileRequest memberFileRequest) {
-        memberService.saveProfile(memberId, memberFileRequest);
-        return ResponseEntity.ok().build();
+        PostMember postMember = memberService.saveProfile(memberId, memberFileRequest);
+        return ResponseEntity.ok(postMember);
     }
 
     /*

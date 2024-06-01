@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Schema(description = "게시글 조회 응답 DTO")
 public record PostResponse(
@@ -24,10 +26,12 @@ public record PostResponse(
         @Schema(description = "게시글 댓글 허용 여부")
         boolean isCommentEnabled,
         @Schema(description = "사용자 좋아요 여부")
-        boolean liked
+        boolean liked,
+        List<Long> mentions,
+        List<String> hashtags
 ) {
     @Builder
-    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
+    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked,List<Long> mentions, List<String> hashtags) {
         this.id = id;
         this.postMember = postMember;
         this.content = content;
@@ -37,10 +41,16 @@ public record PostResponse(
         this.commentCnt = commentCnt;
         this.isCommentEnabled = isCommentEnabled;
         this.liked = liked;
+        this.mentions = mentions;
+        this.hashtags = hashtags;
     }
 
     public PostResponse(Long id, Long memberId, String nickname, String profile, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
-        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked);
+        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked,new ArrayList<>(),new ArrayList<>());
+    }
+
+    public PostResponse withData(List<Long> mentions, List<String> hashtags) {
+        return new PostResponse(id, postMember, content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, mentions, hashtags);
     }
 
 

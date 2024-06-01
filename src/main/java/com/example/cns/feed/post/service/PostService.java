@@ -19,10 +19,13 @@ import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
+import com.example.cns.mention.type.MentionType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,10 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,6 +53,8 @@ public class PostService {
     private final PostFileRepository postFileRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostListRepository postListRepository;
+    private final MentionRepository mentionRepository;
+    private final HashTagRepository hashTagRepository;
 
     /*
     게시글 저장
@@ -121,9 +123,37 @@ public class PostService {
     /*
     모든 게시글 조회
      */
-    public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
-        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
-    }
+        public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
+            List<PostResponse> posts = postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
+            List<Long> postIds = posts.stream().map(PostResponse::id).toList();
+
+            //멘션 리스트 찾기
+            List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
+            Map<Long, List<Long>> mentionsMap = new HashMap<>();
+            for (Object[] mention : mentionsList) {
+                Long postId = (Long) mention[0];
+                Long mentionId = (Long) mention[1];
+                mentionsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(mentionId);
+            }
+
+            //해시태그 리스트 찾기
+            List<Object[]> hashtagsList = hashTagRepository.findHashTagNamesByPostIds(postIds);
+            Map<Long, List<String>> hashtagsMap = new HashMap<>();
+            for (Object[] hashtag : hashtagsList) {
+                Long postId = (Long) hashtag[0];
+                String tagName = (String) hashtag[1];
+                hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
+            }
+
+            return posts.stream()
+                    .map(postResponse -> {
+                        List<Long> mentions = mentionsMap.getOrDefault(postResponse.id(), Collections.emptyList());
+                        List<String> hashtags = hashtagsMap.getOrDefault(postResponse.id(), Collections.emptyList());
+                        return postResponse.withData(mentions, hashtags);
+                    })
+                    .collect(Collectors.toList());
+
+        }
 
     /*
     게시글 미디어 조회
