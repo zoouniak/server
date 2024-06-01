@@ -41,7 +41,7 @@ public class HashTagController {
         return ResponseEntity.ok(searchedHashTag);
     }
 
-    @Operation(summary = "해시태그를 통한 게시물 조회", description = "해시태그를 입력 받고 해당 해시태그를 태그한 게시물을 반환한다.")
+    /*@Operation(summary = "해시태그를 통한 게시물 조회", description = "해시태그를 입력 받고 해당 해시태그를 태그한 게시물을 반환한다.")
     @Parameters({
             @Parameter(name = "hashtag", description = "검색할 해시태그", required = true),
             @Parameter(name = "postId", description = "스크롤 페이징을 위한 게시글 번호")
@@ -59,5 +59,22 @@ public class HashTagController {
         if (responses.isEmpty())
             return ResponseEntity.noContent().build();
         return ResponseEntity.ok(responses);
+    }*/
+
+    @Operation(summary = "해시태그를 통한 게시물 조회", description = "해시태그를 입력 받고 해당 해시태그를 태그한 게시물을 반환한다.")
+    @Parameters({
+            @Parameter(name = "hashtag", description = "검색할 해시태그", required = true),
+            @Parameter(name = "postId", description = "스크롤 페이징을 위한 게시글 번호")
+    })
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "게시물 리스트", content = @Content(schema = @Schema(implementation = PostResponse.class))),
+                    @ApiResponse(responseCode = "204", description = "게시물이 존재하지 않는 경우"
+                    )
+            })
+    @GetMapping("/hashtag/post")
+    public ResponseEntity recommend(@Auth Long memberId, @RequestParam(name = "hashtag") String hashtag, @RequestParam(name = "postId", defaultValue = "1") int page) {
+        List<PostResponse> response = searchService.getRecommendPostByHashTag(hashtag, memberId, page);
+        return ResponseEntity.ok(response);
     }
 }
