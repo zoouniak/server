@@ -5,6 +5,7 @@ import com.example.cns.common.security.exception.handler.JwtAuthenticationEntryP
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -28,6 +29,8 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${spring.env.server}")
+    private String serverIp;
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
@@ -75,7 +78,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() { // Localhost 환경 cors
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174","http://"+serverIp+":5173","http://"+serverIp+":5174"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));
         configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));

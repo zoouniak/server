@@ -46,3 +46,12 @@ jobs:
     # Docker Hub push (4)
     - name: docker Hub push
       run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cns:latest
+
+    # run application
+    - name : run application via ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.CNS_DEV_IP }}
+        username: ${{ secrets.CNS_DEV_USERNAME }}
+        key: ${{ secrets.CNS_DEV_SSH_KEY }}
+        script: ${{ secrets.CNS_DEV_DEPLOY_COMMAND }}
