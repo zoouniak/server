@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -104,7 +103,6 @@ public class PostController {
     @Operation(summary = "게시글 미디어 등록 api", description = "사용자로 부터 사진을 입력받고, 저장된 사진의 UUID, URL, 확장자를 반환한다.")
     @Parameters(
             value = {
-                    //@Parameter (name = "id",description = "JWT/사용자 id"),
                     @Parameter(name = "postFileRequest", description = "게시글 미디어 등록 요청 DTO")
             }
     )
@@ -159,7 +157,6 @@ public class PostController {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = FileResponse.class))))
             }
     )
-    @PreAuthorize("isAnonymous()")
     @GetMapping("/post/{postId}/media")
     public ResponseEntity<List<FileResponse>> getPostMedia(@PathVariable Long postId) {
         List<FileResponse> postMedia = postService.getPostMedia(postId);
