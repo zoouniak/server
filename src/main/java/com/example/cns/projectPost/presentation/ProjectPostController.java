@@ -66,8 +66,8 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/{projectId}/post")
-    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @Valid @RequestBody ProjectPostRequest projectPostRequest){
-        projectPostService.createProjectPost(memberId,projectId,projectPostRequest);
+    public ResponseEntity createProjectPost(@Auth Long memberId, @PathVariable Long projectId, @Valid @RequestBody ProjectPostRequest projectPostRequest) {
+        projectPostService.createProjectPost(memberId, projectId, projectPostRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -88,8 +88,8 @@ public class ProjectPostController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PatchMapping("/{projectId}/post/{postId}")
-    public ResponseEntity patchProjectPost(@Auth Long memberId,@PathVariable Long projectId,@PathVariable Long postId, @Valid @RequestBody ProjectPostRequest projectPostRequest){
-        projectPostService.patchProjectPost(memberId,projectId,postId,projectPostRequest);
+    public ResponseEntity patchProjectPost(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long postId, @Valid @RequestBody ProjectPostRequest projectPostRequest) {
+        projectPostService.patchProjectPost(memberId, projectId, postId, projectPostRequest);
         return ResponseEntity.ok().build();
     }
 

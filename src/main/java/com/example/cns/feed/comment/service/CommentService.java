@@ -14,18 +14,18 @@ import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.repository.PostRepository;
-import com.example.cns.feed.post.dto.response.PostMember;
+import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
+import com.example.cns.mention.type.MentionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +39,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentListRepository commentListRepository;
+    private final MentionRepository mentionRepository;
 
     /*
     댓글 달기
@@ -120,18 +121,40 @@ public class CommentService {
             commentRepository.deleteById(commentDeleteRequest.commentId());
         } else throw new BusinessException(ExceptionCode.NOT_COMMENT_WRITER);
     }
+
     /*
     댓글 조회
      */
     public List<CommentResponse> getComment(Long id, Long postId) {
-        return commentListRepository.getCommentLists(id, postId, null);
+        List<CommentResponse> comments = commentListRepository.getCommentLists(id, postId, null);
+        List<Long> commentIds = comments.stream().map(CommentResponse::commentId).toList();
+
+        Map<Long, List<MentionInfo>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
+
+        return comments.stream()
+                .map(commentResponse -> {
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
+                    return commentResponse.withData(mentions);
+                })
+                .collect(Collectors.toList());
+
     }
 
     /*
     대댓글 조회
      */
     public List<CommentResponse> getCommentReply(Long id, Long postId, Long commentId) {
-        return commentListRepository.getCommentLists(id, postId, commentId);
+        List<CommentResponse> comments = commentListRepository.getCommentLists(id, postId, commentId);
+        List<Long> commentIds = comments.stream().map(CommentResponse::commentId).toList();
+
+        Map<Long, List<MentionInfo>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
+
+        return comments.stream()
+                .map(commentResponse -> {
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
+                    return commentResponse.withData(mentions);
+                })
+                .collect(Collectors.toList());
     }
 
     /*
@@ -143,6 +166,7 @@ public class CommentService {
         Comment comment = isCommentExists(commentLikeRequest.commentId());
 
         Optional<CommentLike> commentLike = commentLikeRepository.findByMemberIdAndCommentId(member.getId(), comment.getId());
+
         if (commentLike.isEmpty()) {
             CommentLike like = CommentLike.builder()
                     .comment(comment)
@@ -173,13 +197,29 @@ public class CommentService {
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
     }
 
-    private Post isPostExists(Long postId){
+    private Post isPostExists(Long postId) {
         return postRepository.findById(postId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
-    private Comment isCommentExists(Long commentId){
+
+    private Comment isCommentExists(Long commentId) {
         return commentRepository.findById(commentId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
+    }
+
+    private Map<Long, List<MentionInfo>> findMentionsBySubjectIds(List<Long> subjectIds, MentionType mentionType) {
+        List<Object[]> mentionList = mentionRepository.findMentionsBySubjectId(subjectIds, mentionType);
+        Map<Long, List<MentionInfo>> mentionsMap = new HashMap<>();
+        for (Object[] mention : mentionList) {
+            Long subjectId = (Long) mention[0];
+            Long mentionId = (Long) mention[1];
+            String mentionNickname = (String) mention[2];
+            mentionsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(MentionInfo.builder()
+                            .memberId(mentionId)
+                            .nickname(mentionNickname)
+                    .build());
+        }
+        return mentionsMap;
     }
 
 }

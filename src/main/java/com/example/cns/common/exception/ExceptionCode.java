@@ -29,7 +29,7 @@ public enum ExceptionCode {
     COMPANY_NOT_EXIST(2002, BAD_REQUEST, "회사가 존재하지 않습니다."),
     COMPANY_UPDATE_FAILED(2002, BAD_REQUEST, "회사 및 직무 수정에 실패하였습니다."),
     COMPANY_UPDATE_FORBIDDEN(2003, FORBIDDEN, "담당하고 있는 프로젝트가 있습니다."),
-    RESUME_NOT_EXIST(2004,NOT_FOUND,"이력서가 존재하지 않습니다."),
+    RESUME_NOT_EXIST(2004, NOT_FOUND, "이력서가 존재하지 않습니다."),
 
     //게시글, 댓글, 파일 3000번대
     //3001 ~ 3100 게시글
@@ -68,8 +68,10 @@ public enum ExceptionCode {
 
     // 일정 7000번대
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
-    ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다");
+    ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다"),
 
+    // 외부 API 요청 8000번대
+    FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다");
 
     private final int errorCode;
     private final HttpStatus httpStatus;

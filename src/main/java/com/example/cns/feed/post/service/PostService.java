@@ -17,23 +17,33 @@ import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
+import com.example.cns.mention.type.MentionType;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,6 +63,12 @@ public class PostService {
     private final PostFileRepository postFileRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostListRepository postListRepository;
+    private final MentionRepository mentionRepository;
+    private final HashTagRepository hashTagRepository;
+    private final ObjectMapper objectMapper;
+
+    @Value("${external-api.recommend-post}")
+    private String api;
 
     /*
     게시글 저장
@@ -103,7 +119,7 @@ public class PostService {
     public void deletePost(Long id, Long postId) {
         Post post = isPostExists(postId);
 
-        if (post.getMember().getId() == id) {
+        if (post.getMember().getId().equals(id)) {
             //게시글의 댓글들 삭제 로직
             post.getComments().forEach(
                     comment -> {
@@ -121,8 +137,31 @@ public class PostService {
     /*
     모든 게시글 조회
      */
-    public List<PostResponse> getPosts(Long cursorValue, Long memberId) {
-        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "posts", null, null, null);
+    public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
+
+        if(page == 0 || page == null) page = 1L;
+
+        //추천
+        try(CloseableHttpClient httpClient = HttpClients.createDefault()){
+            HttpGet httpGet = new HttpGet(makeUrl(memberId,page));
+            try(CloseableHttpResponse response = httpClient.execute(httpGet)){
+                int status = response.getStatusLine().getStatusCode();
+                if(status == 200){
+                    String responseJson = EntityUtils.toString(response.getEntity());
+                    List<PostResponse> posts =  objectMapper.readValue(responseJson, new TypeReference<>() {});
+                    if(posts.size() == 0) posts = postListRepository.findPostsByCondition(memberId,memberId,cursorValue,10L,"posts",null,null,null);
+
+                    return postResponseWithData(posts);
+
+                } else {
+                    throw new BusinessException(ExceptionCode.FAIL_GET_API);
+                }
+            } catch(IOException e){
+                throw new BusinessException(ExceptionCode.FAIL_GET_API);
+            }
+        } catch(IOException e){
+            throw new BusinessException(ExceptionCode.FAIL_GET_API);
+        }
     }
 
     /*
@@ -341,4 +380,48 @@ public class PostService {
         return postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
     }
 
+    private String makeUrl(Long memberId, Long page) {
+        return api + "/" + memberId + "/" + page + "/10";
+    }
+
+    private List<PostResponse> postResponseWithData(List<PostResponse> posts){
+        List<Long> postIds = posts.stream().map(PostResponse::getId).toList();
+
+        Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
+        Map<Long, List<String>> hashtagsMap = getHashtagsMap(postIds);
+
+        return posts.stream()
+                .map(postResponse -> {
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    List<String> hashtags = hashtagsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    return postResponse.withData(mentions, hashtags);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, List<MentionInfo>> getMentionsMap(List<Long> postIds) {
+        List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
+        Map<Long, List<MentionInfo>> mentionsMap = new HashMap<>();
+        for (Object[] mention : mentionsList) {
+            Long postId = (Long) mention[0];
+            Long mentionId = (Long) mention[1];
+            String mentionNickname = (String) mention[2];
+            mentionsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(MentionInfo.builder()
+                    .nickname(mentionNickname)
+                    .memberId(mentionId)
+                    .build());
+        }
+        return mentionsMap;
+    }
+
+    private Map<Long, List<String>> getHashtagsMap(List<Long> postIds) {
+        List<Object[]> hashtagsList = hashTagRepository.findHashTagNamesByPostIds(postIds);
+        Map<Long, List<String>> hashtagsMap = new HashMap<>();
+        for (Object[] hashtag : hashtagsList) {
+            Long postId = (Long) hashtag[0];
+            String tagName = (String) hashtag[1];
+            hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
+        }
+        return hashtagsMap;
+    }
 }

@@ -57,7 +57,7 @@ public class Project {
     private List<Task> tasks = new ArrayList<>();
 
     @Builder
-    public Project(Company company, Member manager, String projectName, String detail, String goal, LocalDate start, LocalDate end){
+    public Project(Company company, Member manager, String projectName, String detail, String goal, LocalDate start, LocalDate end) {
         this.company = company;
         this.manager = manager;
         this.projectName = projectName;
@@ -67,12 +67,12 @@ public class Project {
         this.end = end;
     }
 
-    public void setManager(Member member){
+    public void setManager(Member member) {
         this.company = member.getCompany();
         this.manager = member;
     }
 
-    public void updateProject(ProjectPatchRequest projectPatchRequest){
+    public void updateProject(ProjectPatchRequest projectPatchRequest) {
         this.projectName = projectPatchRequest.projectName();
         this.detail = projectPatchRequest.detail();
         this.goal = projectPatchRequest.goal();

@@ -3,9 +3,13 @@ package com.example.cns.feed.post.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Schema(description = "사용자 정보를 담은 DTO")
 @Getter
+@Setter
+@NoArgsConstructor
 public class PostMember {
     @Schema(description = "사용자 index")
     private Long id;

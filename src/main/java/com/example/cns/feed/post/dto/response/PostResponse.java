@@ -1,47 +1,101 @@
 package com.example.cns.feed.post.dto.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Schema(description = "게시글 조회 응답 DTO")
-public record PostResponse(
-        @Schema(description = "게시글 인덱스")
-        Long id,
-        @Schema(description = "작성자 정보")
-        PostMember postMember,
-        @Schema(description = "게시글 내용")
-        String content,
-        @Schema(description = "작성 시각")
-        LocalDateTime createdAt,
-        @Schema(description = "좋아요 개수")
-        int likeCnt,
-        @Schema(description = "게시글 파일 개수")
-        int fileCnt,
-        @Schema(description = "게시글 댓글 개수")
-        int commentCnt,
-        @Schema(description = "게시글 댓글 허용 여부")
-        boolean isCommentEnabled,
-        @Schema(description = "사용자 좋아요 여부")
-        boolean liked
-) {
-    @Builder
-    public PostResponse(Long id, PostMember postMember, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
-        this.id = id;
-        this.postMember = postMember;
-        this.content = content;
-        this.createdAt = createdAt;
-        this.likeCnt = likeCnt;
-        this.fileCnt = fileCnt;
-        this.commentCnt = commentCnt;
-        this.isCommentEnabled = isCommentEnabled;
-        this.liked = liked;
-    }
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PostResponse {
+    private Long id;
+    private PostMember postMember;
+    private String content;
+    private LocalDateTime createdAt;
+    private int likeCnt;
+    private int fileCnt;
+    private int commentCnt;
+    private boolean isCommentEnabled;
+    private boolean liked;
+    private List<MentionInfo> mentions;
+    private List<String> hashtags;
 
     public PostResponse(Long id, Long memberId, String nickname, String profile, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
-        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked);
+        this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, new ArrayList<>(), new ArrayList<>());
     }
 
+    @JsonProperty("id")
+    public Long getId() {
+        return id;
+    }
 
+    @JsonProperty("content")
+    public String getContent() {
+        return content;
+    }
+
+    @JsonProperty("createdAt")
+    public LocalDateTime getParsedCreatedAt() {
+        return createdAt;
+    }
+
+    @JsonProperty("likeCnt")
+    public int getLikeCnt() {
+        return likeCnt;
+    }
+
+    @JsonProperty("fileCnt")
+    public int getFileCnt() {
+        return fileCnt;
+    }
+
+    @JsonProperty("commentCnt")
+    public int getCommentCnt() {
+        return commentCnt;
+    }
+
+    @JsonProperty("isCommentEnabled")
+    public boolean isCommentEnabled() {
+        return isCommentEnabled;
+    }
+
+    @JsonProperty("liked")
+    public boolean isLiked() {
+        return liked;
+    }
+
+    @JsonProperty("postMember.id")
+    public void setPostMemberId(Long id) {
+        if (postMember == null) {
+            postMember = new PostMember();
+        }
+        postMember.setId(id);
+    }
+
+    @JsonProperty("postMember.nickname")
+    public void setPostMemberNickname(String nickname) {
+        if (postMember == null) {
+            postMember = new PostMember();
+        }
+        postMember.setNickname(nickname);
+    }
+
+    @JsonProperty("postMember.profile")
+    public void setPostMemberProfile(String profile) {
+        if (postMember == null) {
+            postMember = new PostMember();
+        }
+        postMember.setProfile(profile);
+    }
+
+    public PostResponse withData(List<MentionInfo> mentions, List<String> hashtags) {
+        return new PostResponse(id, postMember, content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, mentions,hashtags);
+    }
 }

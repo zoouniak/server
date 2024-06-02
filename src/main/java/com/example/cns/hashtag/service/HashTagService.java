@@ -1,6 +1,5 @@
 package com.example.cns.hashtag.service;
 
-import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.HashTagPost;
 import com.example.cns.hashtag.domain.HashTagPostId;

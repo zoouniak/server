@@ -48,32 +48,32 @@ public class ProjectPostService {
 
     //게시글 수정
     @Transactional
-    public void patchProjectPost(Long memberId, Long projectId, Long postId, ProjectPostRequest projectPostRequest){
+    public void patchProjectPost(Long memberId, Long projectId, Long postId, ProjectPostRequest projectPostRequest) {
 
         ProjectPost projectPost = isProjectPostExists(projectId, postId);
         //해당 작성자인지?
-        if(projectPost.getMember().getId().equals(memberId))
+        if (projectPost.getMember().getId().equals(memberId))
             projectPost.updateContent(projectPostRequest.content());
         else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
 
     //게시글 삭제
     @Transactional
-    public void deleteProjectPost(Long memberId, Long projectId, Long postId){
+    public void deleteProjectPost(Long memberId, Long projectId, Long postId) {
         ProjectPost projectPost = isProjectPostExists(projectId, postId);
-        if(projectPost.getMember().getId().equals(memberId))
+        if (projectPost.getMember().getId().equals(memberId))
             projectPostRepository.deleteById(postId);
         else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
     }
 
     //의견 추가
     @Transactional
-    public void addProjectPostOpinion(Long memberId, Long projectId, Long postId, ProjectPostOpinionRequest projectPostOpinionRequest){
+    public void addProjectPostOpinion(Long memberId, Long projectId, Long postId, ProjectPostOpinionRequest projectPostOpinionRequest) {
 
         Optional<ProjectPostOpinion> data = projectPostOpinionRepository.findByMemberIdAndPostId(memberId, postId);
 
         //하나의 게시글에 여러개 의견 금지
-        if(data.isEmpty()){
+        if (data.isEmpty()) {
 
             Member member = isMemberExists(memberId);
             ProjectPost projectPost = isProjectPostExists(projectId, postId);
@@ -91,18 +91,18 @@ public class ProjectPostService {
 
     //의견 삭제
     @Transactional
-    public void deleteProjectPostOpinion(Long memberId, Long projectId, Long postId){
+    public void deleteProjectPostOpinion(Long memberId, Long projectId, Long postId) {
 
         isProjectPostExists(projectId, postId);
 
         Optional<ProjectPostOpinion> opinion = projectPostOpinionRepository.findByMemberIdAndPostId(memberId, postId);
 
-        if(opinion.isPresent()){
-            projectPostOpinionRepository.deleteProjectPostOpinionByMemberIdAndPostId(memberId,postId);
+        if (opinion.isPresent()) {
+            projectPostOpinionRepository.deleteProjectPostOpinionByMemberIdAndPostId(memberId, postId);
         }
     }
 
-    private OpinionType toOpinionTypeEnum(String type){
+    private OpinionType toOpinionTypeEnum(String type) {
         switch (type) {
             case "CONS" -> {
                 return OpinionType.CONS;

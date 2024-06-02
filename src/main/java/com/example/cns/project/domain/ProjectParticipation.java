@@ -23,6 +23,12 @@ public class ProjectParticipation implements Persistable<ProjectParticipationID>
     @Column(name = "project_id")
     private Long project;
 
+    @Builder
+    public ProjectParticipation(Long member, Long project) {
+        this.member = member;
+        this.project = project;
+    }
+
     @Override
     public ProjectParticipationID getId() {
         return new ProjectParticipationID(this.member, this.project);
@@ -31,12 +37,6 @@ public class ProjectParticipation implements Persistable<ProjectParticipationID>
     @Override
     public boolean isNew() {
         return this.member != null && this.project != null;
-    }
-
-    @Builder
-    public ProjectParticipation(Long member, Long project){
-        this.member = member;
-        this.project = project;
     }
 
 }

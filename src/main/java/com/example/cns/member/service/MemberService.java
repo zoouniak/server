@@ -7,7 +7,10 @@ import com.example.cns.company.domain.Company;
 import com.example.cns.company.service.CompanySearchService;
 import com.example.cns.feed.post.domain.repository.PostListRepository;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.feed.post.dto.response.MentionInfo;
+import com.example.cns.feed.post.dto.response.PostMember;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.MemberResume;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -16,6 +19,8 @@ import com.example.cns.member.dto.request.MemberCompanyPatchRequest;
 import com.example.cns.member.dto.request.MemberFileRequest;
 import com.example.cns.member.dto.request.MemberProfilePatchRequest;
 import com.example.cns.member.dto.response.MemberProfileResponse;
+import com.example.cns.mention.domain.repository.MentionRepository;
+import com.example.cns.mention.type.MentionType;
 import com.example.cns.plan.domain.repository.PlanParticipationRepository;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectParticipationRepository;
@@ -28,9 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +51,8 @@ public class MemberService {
     private final PlanParticipationRepository planParticipationRepository;
     private final PostListRepository postListRepository;
     private final TaskRepository taskRepository;
+    private final MentionRepository mentionRepository;
+    private final HashTagRepository hashTagRepository;
 
     public MemberProfileResponse getMemberProfile(Long memberId) {
 
@@ -71,7 +77,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void saveProfile(Long id, MemberFileRequest memberFileRequest) {
+    public PostMember saveProfile(Long id, MemberFileRequest memberFileRequest) {
         Member member = isMemberExists(id);
 
         //해당 유저가 프로필이 존재한다면.. 삭제
@@ -86,6 +92,12 @@ public class MemberService {
         //프로필 등록
         FileResponse uploaded = s3Service.uploadFile(memberFileRequest.file(), "profile");
         member.updateProfile(uploaded);
+
+        return PostMember.builder()
+                .id(member.getId())
+                .nickname(member.getNickname())
+                .profile(member.getUrl())
+                .build();
 
     }
 
@@ -147,7 +159,8 @@ public class MemberService {
             } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
             }
-        } throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
+        }
+        throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
 
     }
 
@@ -169,13 +182,15 @@ public class MemberService {
                 .build();
     }
 
-    public List<PostResponse> getMemberLikedPost(Long memberId, Long cursorValue) {
+    public List<PostResponse> getMemberLikedPost(Long currentMemberId, Long memberId, Long cursorValue) {
         isMemberExists(memberId);
-        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, "myLike", null, null, null);
+        List<PostResponse> posts = postListRepository.findPostsByCondition(currentMemberId, memberId, cursorValue, 10L, "myLike", null, null, null);
+        return postResponseWithData(posts);
     }
 
-    public List<PostResponse> getMemberPostWithFilter(Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue, Long likeCnt) {
-        return postListRepository.findPostsByCondition(memberId, cursorValue, 10L, filterType, start, end, likeCnt);
+    public List<PostResponse> getMemberPostWithFilter(Long currentMemberId, Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue, Long likeCnt) {
+        List<PostResponse> posts = postListRepository.findPostsByCondition(currentMemberId, memberId, cursorValue, 10L, filterType, start, end, likeCnt);
+        return postResponseWithData(posts);
     }
 
     @Transactional
@@ -198,7 +213,7 @@ public class MemberService {
                 //단 게시글, 일정 내용은 남겨야지 프로젝트에 문제가 없을것 같음
                 List<Project> projects = projectParticipationRepository.findProjectsByMemberId(member.getId());
                 projects.forEach( //해당 프로젝트의 todo를 담당자에게 넘기기
-                        project -> taskRepository.updateTasksByMemberId(project.getManager(),member.getId(),project.getId())
+                        project -> taskRepository.updateTasksByMemberId(project.getManager(), member.getId(), project.getId())
                 );
                 planParticipationRepository.deleteByMemberId(member.getId());
                 projectParticipationRepository.deleteAllByMemberId(member.getId());
@@ -233,5 +248,46 @@ public class MemberService {
     private Member isMemberExists(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+    private List<PostResponse> postResponseWithData(List<PostResponse> posts){
+        List<Long> postIds = posts.stream().map(PostResponse::getId).toList();
+
+        Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
+        Map<Long, List<String>> hashtagsMap = getHashtagsMap(postIds);
+
+        return posts.stream()
+                .map(postResponse -> {
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    List<String> hashtags = hashtagsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    return postResponse.withData(mentions, hashtags);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, List<MentionInfo>> getMentionsMap(List<Long> postIds) {
+        List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
+        Map<Long, List<MentionInfo>> mentionsMap = new HashMap<>();
+        for (Object[] mention : mentionsList) {
+            Long postId = (Long) mention[0];
+            Long mentionId = (Long) mention[1];
+            String mentionNickname = (String) mention[2];
+            mentionsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(MentionInfo.builder()
+                    .nickname(mentionNickname)
+                    .memberId(mentionId)
+                    .build());
+        }
+        return mentionsMap;
+    }
+
+    private Map<Long, List<String>> getHashtagsMap(List<Long> postIds) {
+        List<Object[]> hashtagsList = hashTagRepository.findHashTagNamesByPostIds(postIds);
+        Map<Long, List<String>> hashtagsMap = new HashMap<>();
+        for (Object[] hashtag : hashtagsList) {
+            Long postId = (Long) hashtag[0];
+            String tagName = (String) hashtag[1];
+            hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
+        }
+        return hashtagsMap;
     }
 }
