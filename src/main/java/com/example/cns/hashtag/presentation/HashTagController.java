@@ -75,6 +75,9 @@ public class HashTagController {
     @GetMapping("/hashtag/post")
     public ResponseEntity recommend(@Auth Long memberId, @RequestParam(name = "hashtag") String hashtag, @RequestParam(name = "postId", defaultValue = "1") int page) {
         List<PostResponse> response = searchService.getRecommendPostByHashTag(hashtag, memberId, page);
+
+        if (response.isEmpty()) return ResponseEntity.noContent().build();
+
         return ResponseEntity.ok(response);
     }
 }

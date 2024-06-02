@@ -2,6 +2,7 @@ package com.example.cns.hashtag.service;
 
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.domain.repository.HashTagSearchRepository;
 import com.example.cns.member.domain.repository.MemberRepository;
@@ -18,7 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.cns.common.exception.ExceptionCode.FAIL_GET_API;
 
@@ -46,9 +49,11 @@ public class HashTagSearchService {
      해시태그에 따른 게시물 추천
      */
     public List<PostResponse> getRecommendPostByHashTag(String hashtag, Long memberId, int page) {
+        Optional<HashTag> entity = hashTagRepository.findByName(hashtag);
+        if (entity.isEmpty()) return Collections.emptyList();
         try {
             // 추천 시스템 서버에 api 요청
-            HttpResponse response = getRecommends(makeUrl(hashtag, memberId, page));
+            HttpResponse response = getRecommends(makeUrl(entity.get().getId(), memberId, page));
             int status = response.getStatusLine().getStatusCode();
             if (status == 200) {
                 String responseJson = EntityUtils.toString(response.getEntity());
@@ -63,13 +68,16 @@ public class HashTagSearchService {
         }
     }
 
-    private String makeUrl(String hashtag, Long memberId, int page) {
-        return api + "/" + hashtag + "/" + memberId + "/" + page + "/10";
+    private String makeUrl(Long hashtagId, Long memberId, int page) {
+        return api + "/" + hashtagId + "/" + memberId + "/" + page + "/10";
     }
 
-    private HttpResponse getRecommends(String url) throws IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet(url);
-        return httpClient.execute(httpGet);
+    private HttpResponse getRecommends(String url) {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet httpGet = new HttpGet(url);
+            return httpClient.execute(httpGet);
+        } catch (IOException e) {
+            throw new BusinessException(FAIL_GET_API);
+        }
     }
 }
