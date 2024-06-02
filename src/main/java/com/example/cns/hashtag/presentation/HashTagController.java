@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class HashTagController {
                     @ApiResponse(responseCode = "200", description = "키워드를 바탕으로 만들어진 해시태그를 반환한다.")
             }
     )
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/hashtag/{keyword}")
     public ResponseEntity<List<HashTagSearchResponse>> searchHashTag(@PathVariable String keyword) {
         List<HashTagSearchResponse> searchedHashTag = hashTagService.searchHashTag(keyword);
@@ -72,6 +74,7 @@ public class HashTagController {
                     @ApiResponse(responseCode = "204", description = "게시물이 존재하지 않는 경우"
                     )
             })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/hashtag/post")
     public ResponseEntity recommend(@Auth Long memberId, @RequestParam(name = "hashtag") String hashtag, @RequestParam(name = "postId", defaultValue = "1") int page) {
         List<PostResponse> response = searchService.getRecommendPostByHashTag(hashtag, memberId, page);
