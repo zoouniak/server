@@ -1,5 +1,6 @@
 package com.example.cns.feed.comment.dto.response;
 
+import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostMember;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -24,10 +25,10 @@ public record CommentResponse(
         int commentReplyCnt,
         @Schema(description = "좋아요 여부")
         boolean liked,
-        List<Long> mentions
+        List<MentionInfo> mentions
 ) {
     @Builder
-    public CommentResponse(Long commentId, PostMember postMember, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt, boolean liked, List<Long> mentions) {
+    public CommentResponse(Long commentId, PostMember postMember, String content, int likeCnt, LocalDateTime createdAt, int commentReplyCnt, boolean liked, List<MentionInfo> mentions) {
         this.commentId = commentId;
         this.postMember = postMember;
         this.content = content;
@@ -42,7 +43,7 @@ public record CommentResponse(
         this(commentId, new PostMember(memberId, nickname, profile), content, likeCnt, createdAt, commentReplyCnt, liked, new ArrayList<>());
     }
 
-    public CommentResponse withData(List<Long> mentions) {
+    public CommentResponse withData(List<MentionInfo> mentions) {
         return new CommentResponse(commentId, postMember, content, likeCnt, createdAt, commentReplyCnt, liked, mentions);
     }
 }

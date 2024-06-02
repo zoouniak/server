@@ -24,13 +24,11 @@ public class PostResponse {
     private int commentCnt;
     private boolean isCommentEnabled;
     private boolean liked;
+    private List<MentionInfo> mentions;
+    private List<String> hashtags;
 
     public PostResponse(Long id, Long memberId, String nickname, String profile, String content, LocalDateTime createdAt, int likeCnt, int fileCnt, int commentCnt, boolean isCommentEnabled, boolean liked) {
         this(id, new PostMember(memberId, nickname, profile), content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, new ArrayList<>(), new ArrayList<>());
-    }
-
-    public PostResponse withData(List<Long> mentions, List<String> hashtags) {
-        return new PostResponse(id, postMember, content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, mentions, hashtags);
     }
 
     @JsonProperty("id")
@@ -95,5 +93,9 @@ public class PostResponse {
             postMember = new PostMember();
         }
         postMember.setProfile(profile);
+    }
+
+    public PostResponse withData(List<MentionInfo> mentions, List<String> hashtags) {
+        return new PostResponse(id, postMember, content, createdAt, likeCnt, fileCnt, commentCnt, isCommentEnabled, liked, mentions,hashtags);
     }
 }

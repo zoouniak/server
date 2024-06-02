@@ -14,6 +14,7 @@ import com.example.cns.feed.comment.dto.request.CommentReplyPostRequest;
 import com.example.cns.feed.comment.dto.response.CommentResponse;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.repository.PostRepository;
+import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.domain.repository.MentionRepository;
@@ -128,11 +129,11 @@ public class CommentService {
         List<CommentResponse> comments = commentListRepository.getCommentLists(id, postId, null);
         List<Long> commentIds = comments.stream().map(CommentResponse::commentId).toList();
 
-        Map<Long, List<Long>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
+        Map<Long, List<MentionInfo>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
 
         return comments.stream()
                 .map(commentResponse -> {
-                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
                     return commentResponse.withData(mentions);
                 })
                 .collect(Collectors.toList());
@@ -146,11 +147,11 @@ public class CommentService {
         List<CommentResponse> comments = commentListRepository.getCommentLists(id, postId, commentId);
         List<Long> commentIds = comments.stream().map(CommentResponse::commentId).toList();
 
-        Map<Long, List<Long>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
+        Map<Long, List<MentionInfo>> mentionsMap = findMentionsBySubjectIds(commentIds, MentionType.COMMENT);
 
         return comments.stream()
                 .map(commentResponse -> {
-                    List<Long> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(commentResponse.commentId(), Collections.emptyList());
                     return commentResponse.withData(mentions);
                 })
                 .collect(Collectors.toList());
@@ -206,13 +207,17 @@ public class CommentService {
                 () -> new BusinessException(ExceptionCode.COMMENT_NOT_EXIST));
     }
 
-    private Map<Long, List<Long>> findMentionsBySubjectIds(List<Long> subjectIds, MentionType mentionType) {
+    private Map<Long, List<MentionInfo>> findMentionsBySubjectIds(List<Long> subjectIds, MentionType mentionType) {
         List<Object[]> mentionList = mentionRepository.findMentionsBySubjectId(subjectIds, mentionType);
-        Map<Long, List<Long>> mentionsMap = new HashMap<>();
+        Map<Long, List<MentionInfo>> mentionsMap = new HashMap<>();
         for (Object[] mention : mentionList) {
             Long subjectId = (Long) mention[0];
             Long mentionId = (Long) mention[1];
-            mentionsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(mentionId);
+            String mentionNickname = (String) mention[2];
+            mentionsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(MentionInfo.builder()
+                            .memberId(mentionId)
+                            .nickname(mentionNickname)
+                    .build());
         }
         return mentionsMap;
     }

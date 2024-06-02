@@ -5,12 +5,14 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import static com.example.cns.feed.post.domain.QPost.post;
@@ -24,15 +26,15 @@ public class PostListRepository {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    public List<PostResponse> findPostsByCondition(Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end, Long likeCnt) {
+    public List<PostResponse> findPostsByCondition(Long currentMemberId, Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end, Long likeCnt) {
 
         cursorValue = isCursorExists(cursorValue, type);
-
         BooleanBuilder condition = new BooleanBuilder();
         OrderSpecifier<?>[] orders = new OrderSpecifier[0];
 
         switch (type) {
-            case "posts" -> {
+            case "posts" -> { //전체 게시글 조회시, 본인이 보는 경우
+                memberId = currentMemberId;
                 condition.and(post.id.lt(cursorValue));
                 orders = new OrderSpecifier[]{post.id.desc()};
             }
@@ -48,7 +50,7 @@ public class PostListRepository {
             }
             case "period" -> {
                 LocalDateTime startDate = start.atStartOfDay();
-                LocalDateTime endDate = end.atStartOfDay();
+                LocalDateTime endDate = end.atTime(LocalTime.MAX);
 
                 condition.and(post.member.id.eq(memberId));
                 condition.and(post.id.gt(cursorValue));
@@ -69,7 +71,7 @@ public class PostListRepository {
             }
             case "myLike" -> {
                 condition.and(postLike.member.id.eq(memberId));
-                condition.and(postLike.member.id.lt(cursorValue));
+                condition.and(postLike.post.id.lt(cursorValue));
                 orders = new OrderSpecifier[]{postLike.post.id.desc()};
             }
         }
@@ -85,11 +87,13 @@ public class PostListRepository {
                         post.fileCnt,
                         post.comments.size().as("commentCnt"),
                         post.isCommentEnabled,
+                        currentMemberId.equals(memberId) ?
                         new CaseBuilder()
                                 .when(postLike.count().gt(0))
                                 .then(true)
                                 .otherwise(false)
-                                .as("liked")
+                                .as("liked") :
+                                Expressions.constant(false)
                 ))
                 .from(post)
                 .leftJoin(postLike)
@@ -108,13 +112,16 @@ public class PostListRepository {
                 case "oldest":
                 case "period":
                     maxMinExpr = post.id.min();
+                    cursorValue = 1 - (Long) jpaQueryFactory.select(maxMinExpr)
+                            .from(post)
+                            .fetchOne();
                     break;
                 default:
                     maxMinExpr = post.id.max();
+                    cursorValue = 1 + (Long) jpaQueryFactory.select(maxMinExpr)
+                            .from(post)
+                            .fetchOne();
             }
-            cursorValue = 1 + (Long) jpaQueryFactory.select(maxMinExpr)
-                    .from(post)
-                    .fetchOne();
             if (cursorValue == null) {
                 cursorValue = 0L;
             }

@@ -22,6 +22,6 @@ public interface MentionRepository extends JpaRepository<Mention, Long> {
     @Query("DELETE FROM Mention m where m.mentionType = :type and m.subjectId = :postId and m.member.id = :memberId")
     void deleteMentionBySubjectIdAndMentionTypeAndMember(@Param("postId") Long postId, @Param("type") MentionType mentionType, @Param("memberId") Long memberId);
 
-    @Query("SELECT m.subjectId, m.member.id FROM Mention m WHERE m.subjectId IN :subjectIds AND m.mentionType = :mentionType")
+    @Query("SELECT m.subjectId, m.member.id, m.member.nickname FROM Mention m WHERE m.subjectId IN :subjectIds AND m.mentionType = :mentionType")
     List<Object[]> findMentionsBySubjectId(@Param("subjectIds") List<Long> subjectIds, @Param("mentionType") MentionType mentionType);
 }

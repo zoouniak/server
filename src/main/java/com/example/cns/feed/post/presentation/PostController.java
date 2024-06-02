@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -124,12 +125,11 @@ public class PostController {
     최초시에는 0이나 null값으로 할시 제일 최근것을 가져옴
     이후부터는 cursorValue에 따른 페이징
      */
-    @Operation(summary = "홈 화면 게시글 조회 api", description = "사용자의 커서값을 이용해 무한 스크롤 조회를 한다." +
-            "v1 - 변경 가능성 높음 : 초기값은 0 or null값 -> 최신 10개 조회, 이후부터 커서값(게시글 인덱스값)을 입력하면 해당 게시글 이후 내용을 가져옵니다.")
+    @Operation(summary = "홈 화면 게시글 조회 api", description = "페이지값을 이용해 사용자에게 알맞는 게시글을 추천한다.")
     @Parameters(
             value = {
                     @Parameter(name = "id", description = "JWT/사용자 id"),
-                    @Parameter(name = "cursorValue", description = "마지막으로 본 게시글 인덱스")
+                    @Parameter(name = "page", description = "게시글 페이지")
             }
     )
     @ApiResponses(
@@ -140,9 +140,8 @@ public class PostController {
     )
     @GetMapping("/post/home")
     public ResponseEntity<List<PostResponse>> getPosts(
-            @Auth Long id, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
-
-        List<PostResponse> posts = postService.getPosts(cursorValue, id);
+            @Auth Long id, @RequestParam(name = "cursorValue",required = false) Long cursorValue, @RequestParam(name = "page", required = false) Long page) {
+        List<PostResponse> posts = postService.getPosts(cursorValue, page, id);
         return ResponseEntity.ok(posts);
     }
 

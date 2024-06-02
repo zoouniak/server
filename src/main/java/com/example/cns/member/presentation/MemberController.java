@@ -246,6 +246,7 @@ public class MemberController {
     @Operation(summary = "회원이 좋아요 누른 글 조회 api", description = "해당 회원이 좋아요 누른 글을 조회한다.")
     @Parameters(
             value = {
+                    @Parameter(name = "currentMemberId",description = "요청하는 현재 사용자 id/JWT"),
                     @Parameter(name = "memberId", description = "사용자 id"),
                     @Parameter(name = "cursorValue", description = "무한 스크롤 커서")
             }
@@ -255,9 +256,8 @@ public class MemberController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostResponse.class))))
     })
     @GetMapping("/{memberId}/post/liked")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberLikedPost(@PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
-        List<PostResponse> likedPost = memberService.getMemberLikedPost(memberId, cursorValue);
+    public ResponseEntity getMemberLikedPost(@Auth Long currentMemberId, @PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
+        List<PostResponse> likedPost = memberService.getMemberLikedPost(currentMemberId,memberId, cursorValue);
         return ResponseEntity.ok(likedPost);
     }
 
@@ -267,6 +267,7 @@ public class MemberController {
     @Operation(summary = "회원과 관련된 게시글 조회 api", description = "사용자가 제공하는 필터값에 따른 게시글을 반환한다.")
     @Parameters(
             value = {
+                    @Parameter(name = "currentMemberId", description = "요청하는 현재 사용자 id/JWT"),
                     @Parameter(name = "memberId", description = "사용자 id"),
                     @Parameter(name = "filter", description = "필터의 종류", example = "['newest','oldest','period','like']"),
                     @Parameter(name = "start", description = "[period] 시작 날짜"),
@@ -281,13 +282,14 @@ public class MemberController {
     })
     @GetMapping("/{memberId}/post")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getMemberPostWithFilter(@PathVariable Long memberId,
+    public ResponseEntity getMemberPostWithFilter(@Auth Long currentMemberId,
+                                                  @PathVariable Long memberId,
                                                   @RequestParam(name = "filter", required = false) String filterType,
                                                   @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
                                                   @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
                                                   @RequestParam(name = "cursorValue", required = false) Long cursorValue,
                                                   @RequestParam(name = "likeCnt", required = false) Long likeCnt) {
-        List<PostResponse> responses = memberService.getMemberPostWithFilter(memberId, filterType, start, end, cursorValue, likeCnt);
+        List<PostResponse> responses = memberService.getMemberPostWithFilter(currentMemberId,memberId, filterType, start, end, cursorValue, likeCnt);
         return ResponseEntity.ok(responses);
     }
 
