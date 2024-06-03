@@ -55,7 +55,7 @@ public class PostListRepository {
                 .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
                 .where(decideCursor(type, cursorValue),
                         betweenDate(start, end),
-                        eqMemberId(memberId)
+                        eqMemberId(memberId,type)
                 )
                 .groupBy(post.id)
                 .orderBy(decideOrder(type))
@@ -73,16 +73,17 @@ public class PostListRepository {
     }
 
     // 특정 사용자 게시물 조회를 위한 동적 쿼리 생성
-    private BooleanExpression eqMemberId(Long memberId) {
+    private BooleanExpression eqMemberId(Long memberId,String type) {
         if (memberId == null)
             return null;
+        if (type.equals("myLike")) return postLike.member.id.eq(memberId);
         return post.member.id.eq(memberId);
     }
 
     private BooleanExpression betweenDate(LocalDate start, LocalDate end) {
         if (start == null || end == null)
             return null;
-        return post.createdAt.between(start.atStartOfDay(), end.atStartOfDay());
+        return post.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX));
     }
 
     // filter에 따라 cursorValue lt,gt 결정
@@ -90,110 +91,7 @@ public class PostListRepository {
         if (cursorValue == null)
             return null;
         if (type.equals("oldest") || type.equals("period")) return post.id.gt(cursorValue);
+        if (type.equals("myLike")) return postLike.post.id.lt(cursorValue);
         return post.id.lt(cursorValue);
-    }
-
-    //=============================================================================================================
-    public List<PostResponse> findPostsByCondition(Long currentMemberId, Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end, Long likeCnt) {
-
-        cursorValue = isCursorExists(cursorValue, type);
-        BooleanBuilder condition = new BooleanBuilder();
-        OrderSpecifier<?>[] orders = new OrderSpecifier[0];
-
-        switch (type) {
-            case "posts" -> { //전체 게시글 조회시, 본인이 보는 경우
-                memberId = currentMemberId;
-                condition.and(post.id.lt(cursorValue));
-                orders = new OrderSpecifier[]{post.id.desc()};
-            }
-            case "newest" -> {
-                condition.and(post.member.id.eq(memberId));
-                condition.and(post.id.lt(cursorValue));
-                orders = new OrderSpecifier[]{post.id.desc()};
-            }
-            case "oldest" -> {
-                condition.and(post.member.id.eq(memberId));
-                condition.and(post.id.gt(cursorValue));
-                orders = new OrderSpecifier[]{post.createdAt.asc()};
-            }
-            case "period" -> {
-                LocalDateTime startDate = start.atStartOfDay();
-                LocalDateTime endDate = end.atTime(LocalTime.MAX);
-
-                condition.and(post.member.id.eq(memberId));
-                condition.and(post.id.gt(cursorValue));
-                condition.and(post.createdAt.between(startDate, endDate));
-                orders = new OrderSpecifier[]{post.createdAt.asc()};
-            }
-            case "like" -> {
-                if (likeCnt == -1 || likeCnt == null) {
-                    likeCnt = 1L + Long.valueOf(jpaQueryFactory.select(post.likeCnt.max())
-                            .from(post)
-                            .where(post.member.id.eq(memberId))
-                            .fetchOne());
-                }
-                condition.and(post.member.id.eq(memberId));
-                condition.and(post.likeCnt.lt(likeCnt)
-                        .or(post.likeCnt.eq(Math.toIntExact(likeCnt))).and(post.id.lt(cursorValue)));
-                orders = new OrderSpecifier[]{post.likeCnt.desc(), post.createdAt.desc()};
-            }
-            case "myLike" -> {
-                condition.and(postLike.member.id.eq(memberId));
-                condition.and(postLike.post.id.lt(cursorValue));
-                orders = new OrderSpecifier[]{postLike.post.id.desc()};
-            }
-        }
-
-        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.member.id.as("memberId"),
-                        post.member.nickname,
-                        post.member.url.as("profile"),
-                        post.content,
-                        post.createdAt,
-                        post.likeCnt,
-                        post.fileCnt,
-                        post.comments.size().as("commentCnt"),
-                        post.isCommentEnabled,
-                        currentMemberId.equals(memberId) ?
-                                new CaseBuilder()
-                                        .when(postLike.count().gt(0))
-                                        .then(true)
-                                        .otherwise(false)
-                                        .as("liked") :
-                                Expressions.constant(false)
-                ))
-                .from(post)
-                .leftJoin(postLike)
-                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
-                .where(condition)
-                .groupBy(post.id)
-                .orderBy(orders)
-                .limit(pageSize)
-                .fetch();
-    }
-
-    private Long isCursorExists(Long cursorValue, String searchType) {
-        if (cursorValue == null || cursorValue == 0L) {
-            NumberExpression<?> maxMinExpr;
-            switch (searchType) {
-                case "oldest":
-                case "period":
-                    maxMinExpr = post.id.min();
-                    cursorValue = 1 - (Long) jpaQueryFactory.select(maxMinExpr)
-                            .from(post)
-                            .fetchOne();
-                    break;
-                default:
-                    maxMinExpr = post.id.max();
-                    cursorValue = 1 + (Long) jpaQueryFactory.select(maxMinExpr)
-                            .from(post)
-                            .fetchOne();
-            }
-            if (cursorValue == null) {
-                cursorValue = 0L;
-            }
-        }
-        return cursorValue;
     }
 }

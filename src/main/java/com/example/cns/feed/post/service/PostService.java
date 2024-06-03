@@ -149,12 +149,12 @@ public class PostService {
                 if(status == 200){
                     String responseJson = EntityUtils.toString(response.getEntity());
                     List<PostResponse> posts =  objectMapper.readValue(responseJson, new TypeReference<>() {});
-                    if(posts.size() == 0) posts = postListRepository.findPostsByCondition(memberId,memberId,cursorValue,10L,"posts",null,null,null);
 
+                    if(posts.isEmpty()) posts = getDefaultPosts(cursorValue,memberId);
                     return postResponseWithData(posts);
 
-                } else {
-                    throw new BusinessException(ExceptionCode.FAIL_GET_API);
+                } else { //추천으로 못받아 올경우 에러가 아닌 최신순 게시글 반환
+                    return getDefaultPostsWithResponse(cursorValue, memberId);
                 }
             } catch(IOException e){
                 throw new BusinessException(ExceptionCode.FAIL_GET_API);
@@ -423,5 +423,14 @@ public class PostService {
             hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
         }
         return hashtagsMap;
+    }
+
+    private List<PostResponse> getDefaultPosts(Long cursorValue, Long memberId) {
+        return postListRepository.findPosts(memberId, memberId, cursorValue, 10L, "posts", null, null);
+    }
+
+    private List<PostResponse> getDefaultPostsWithResponse(Long cursorValue, Long memberId) {
+        List<PostResponse> postResponses = postListRepository.findPosts(memberId, memberId, cursorValue, 10L, "posts", null, null);
+        return postResponseWithData(postResponses);
     }
 }
