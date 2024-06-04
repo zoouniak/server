@@ -139,27 +139,33 @@ public class PostService {
      */
     public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
 
-        if(page == 0 || page == null) page = 1L;
+        if (page == 0 || page == null) page = 1L;
 
         //추천
-        try(CloseableHttpClient httpClient = HttpClients.createDefault()){
-            HttpGet httpGet = new HttpGet(makeUrl(memberId,page));
-            try(CloseableHttpResponse response = httpClient.execute(httpGet)){
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet httpGet = new HttpGet(makeUrl(memberId, page));
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 int status = response.getStatusLine().getStatusCode();
-                if(status == 200){
+                if (status == 200) {
                     String responseJson = EntityUtils.toString(response.getEntity());
-                    List<PostResponse> posts =  objectMapper.readValue(responseJson, new TypeReference<>() {});
+                    List<PostResponse> posts = objectMapper.readValue(responseJson, new TypeReference<>() {
+                    });
 
-                    if(posts.isEmpty()) posts = getDefaultPosts(cursorValue,memberId);
+                    if (posts.size() == 0) {
+                        posts = getDefaultPosts(cursorValue, memberId);
+                    } else if (posts.size() <= 9) { //추천받은 게시글이 10개를 만족못한다면, 필요한 만큼 데이터 찾아 추가하기
+                        System.out.println(posts.size());
+                        posts.addAll(postListRepository.findPosts(memberId, memberId, cursorValue, (10L - posts.size()), "posts", null, null));
+                    }
                     return postResponseWithData(posts);
 
                 } else { //추천으로 못받아 올경우 에러가 아닌 최신순 게시글 반환
                     return getDefaultPostsWithResponse(cursorValue, memberId);
                 }
-            } catch(IOException e){
+            } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.FAIL_GET_API);
             }
-        } catch(IOException e){
+        } catch (IOException e) {
             throw new BusinessException(ExceptionCode.FAIL_GET_API);
         }
     }
