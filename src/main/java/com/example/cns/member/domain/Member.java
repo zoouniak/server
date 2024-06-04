@@ -57,11 +57,11 @@ public class Member extends FileEntity {
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
-    @Column(name = "is_profile_existed")
+    @Column(name = "is_profile_existed",columnDefinition = "TINYINT(0)")
     @ColumnDefault("false")
     private Boolean isProfileExisted;
 
-    @Column(name = "is_resume_existed")
+    @Column(name = "is_resume_existed", columnDefinition = "TINYINT(0)")
     @ColumnDefault("false")
     private Boolean isResumeExisted;
 
@@ -82,6 +82,16 @@ public class Member extends FileEntity {
         this.birth = birth;
         this.role = role;
         this.position = position;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.isProfileExisted == null) {
+            this.isProfileExisted = false;
+        }
+        if (this.isResumeExisted == null) {
+            this.isResumeExisted = false;
+        }
     }
 
     public void enrollCompany(Company company) {

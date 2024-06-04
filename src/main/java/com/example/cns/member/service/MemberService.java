@@ -159,8 +159,7 @@ public class MemberService {
             } catch (IOException e) {
                 throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
             }
-        }
-        throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
+        }else throw new BusinessException(ExceptionCode.RESUME_NOT_EXIST);
 
     }
 
