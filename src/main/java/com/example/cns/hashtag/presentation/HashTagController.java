@@ -66,7 +66,7 @@ public class HashTagController {
     @Operation(summary = "해시태그를 통한 게시물 조회", description = "해시태그를 입력 받고 해당 해시태그를 태그한 게시물을 반환한다.")
     @Parameters({
             @Parameter(name = "hashtag", description = "검색할 해시태그", required = true),
-            @Parameter(name = "postId", description = "스크롤 페이징을 위한 게시글 번호")
+            @Parameter(name = "page", description = "페이징번호, 디폴트값:1")
     })
     @ApiResponses(
             value = {

@@ -246,7 +246,7 @@ public class MemberController {
     @Operation(summary = "회원이 좋아요 누른 글 조회 api", description = "해당 회원이 좋아요 누른 글을 조회한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "currentMemberId",description = "요청하는 현재 사용자 id/JWT"),
+                    @Parameter(name = "currentMemberId", description = "요청하는 현재 사용자 id/JWT"),
                     @Parameter(name = "memberId", description = "사용자 id"),
                     @Parameter(name = "cursorValue", description = "무한 스크롤 커서")
             }
@@ -257,7 +257,7 @@ public class MemberController {
     })
     @GetMapping("/{memberId}/post/liked")
     public ResponseEntity getMemberLikedPost(@Auth Long currentMemberId, @PathVariable Long memberId, @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
-        List<PostResponse> likedPost = memberService.getMemberLikedPost(currentMemberId,memberId, cursorValue);
+        List<PostResponse> likedPost = memberService.getMemberLikedPost(currentMemberId, memberId, cursorValue);
         return ResponseEntity.ok(likedPost);
     }
 
@@ -273,7 +273,6 @@ public class MemberController {
                     @Parameter(name = "start", description = "[period] 시작 날짜"),
                     @Parameter(name = "end", description = "[period] 끝나는 날짜"),
                     @Parameter(name = "cursorValue", description = "무한 스크롤 커서"),
-                    @Parameter(name = "likeCnt", description = "[like] 좋아요 개수")
             }
     )
     @ApiResponses(value = {
@@ -287,9 +286,8 @@ public class MemberController {
                                                   @RequestParam(name = "filter", required = false) String filterType,
                                                   @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
                                                   @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
-                                                  @RequestParam(name = "cursorValue", required = false) Long cursorValue,
-                                                  @RequestParam(name = "likeCnt", required = false) Long likeCnt) {
-        List<PostResponse> responses = memberService.getMemberPostWithFilter(currentMemberId,memberId, filterType, start, end, cursorValue, likeCnt);
+                                                  @RequestParam(name = "cursorValue", required = false) Long cursorValue) {
+        List<PostResponse> responses = memberService.getMemberPostWithFilter(currentMemberId, memberId, filterType, start, end, cursorValue);
         return ResponseEntity.ok(responses);
     }
 

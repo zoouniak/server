@@ -184,12 +184,12 @@ public class MemberService {
 
     public List<PostResponse> getMemberLikedPost(Long currentMemberId, Long memberId, Long cursorValue) {
         isMemberExists(memberId);
-        List<PostResponse> posts = postListRepository.findPostsByCondition(currentMemberId, memberId, cursorValue, 10L, "myLike", null, null, null);
+        List<PostResponse> posts = postListRepository.findPosts(currentMemberId,memberId,cursorValue,10L,"myLike",null,null);
         return postResponseWithData(posts);
     }
 
-    public List<PostResponse> getMemberPostWithFilter(Long currentMemberId, Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue, Long likeCnt) {
-        List<PostResponse> posts = postListRepository.findPostsByCondition(currentMemberId, memberId, cursorValue, 10L, filterType, start, end, likeCnt);
+    public List<PostResponse> getMemberPostWithFilter(Long currentMemberId, Long memberId, String filterType, LocalDate start, LocalDate end, Long cursorValue/*, Long likeCnt*/) {
+        List<PostResponse> posts = postListRepository.findPosts(currentMemberId, memberId, cursorValue, 10L, filterType, start, end);
         return postResponseWithData(posts);
     }
 
