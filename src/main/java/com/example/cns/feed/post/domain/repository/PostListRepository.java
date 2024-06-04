@@ -1,20 +1,15 @@
 package com.example.cns.feed.post.domain.repository;
 
 import com.example.cns.feed.post.dto.response.PostResponse;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -27,6 +22,35 @@ public class PostListRepository {
 
     public PostListRepository(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
+    }
+
+    public List<PostResponse> findPostsWithConditions(Long currentMemberId, Long memberId, Long cursorValue, Long pageSize, String type, LocalDate start, LocalDate end) {
+        // todo filter enum으로 변환
+        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
+                        post.id,
+                        post.member.id.as("memberId"),
+                        post.member.nickname,
+                        post.member.url.as("profile"),
+                        post.content,
+                        post.createdAt,
+                        post.likeCnt,
+                        post.fileCnt,
+                        post.comments.size().as("commentCnt"),
+                        post.isCommentEnabled,
+                        ExpressionUtils.as(JPAExpressions.select(postLike)
+                                .from(postLike)
+                                .where(postLike.post.eq(post),
+                                        postLike.member.id.eq(currentMemberId)
+                                ).exists(), "liked")
+                ))
+                .from(post)
+                .leftJoin(postLike)
+                .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
+                .where(post.id.lt(300))
+                .groupBy(post.id)
+                .orderBy(decideOrder(type))
+                .limit(pageSize)
+                .fetch();
     }
 
     //=============================================================================================================
@@ -77,6 +101,7 @@ public class PostListRepository {
         if (memberId == null)
             return null;
         if (type.equals("myLike")) return postLike.member.id.eq(memberId);
+        if (type.equals("posts")) return null;
         return post.member.id.eq(memberId);
     }
 
