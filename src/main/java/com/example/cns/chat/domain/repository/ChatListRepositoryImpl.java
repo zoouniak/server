@@ -31,7 +31,7 @@ public class ChatListRepositoryImpl {
                         chat.messageType
                 ))
                 .from(chat)
-                .innerJoin(chat.from, member)
+                .leftJoin(chat.from, member)
                 .where(
                         ltChatId(chatId),
                         eqRoomId(roomId)
