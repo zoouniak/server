@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,7 +63,7 @@ public class ChatRoomController {
             })
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody ChatRoomCreateRequest request) {
+    public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody @Valid ChatRoomCreateRequest request) {
         return ResponseEntity.ok(chatRoomService.createChatRoom(memberId, request));
     }
 
