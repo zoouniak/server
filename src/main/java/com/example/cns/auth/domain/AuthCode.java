@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.RedisHash;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash(value = "verificationNumber", timeToLive = 10000)
+@RedisHash(value = "verificationNumber", timeToLive = 300)
 public class AuthCode {
     @Id
     private String email;

@@ -5,11 +5,15 @@ import com.example.cns.auth.dto.request.EmailAuthRequest;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.common.exception.ExceptionCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
 @Service
@@ -49,10 +53,20 @@ public class MailAuthService {
             messageHelper.setFrom(sender);
             messageHelper.setTo(email);
             messageHelper.setSubject(subject);
-            messageHelper.setText(authCode, true);
+            messageHelper.setText(getHtmlContent(authCode), true);
         };
 
         mailSender.send(messagePreparator);
+    }
+
+    private String getHtmlContent(String authCode) {
+        try {
+            Path path = Paths.get(new ClassPathResource("templates/auth-email.html").getURI());
+            String content = new String(Files.readAllBytes(path));
+            return content.replace("{{authCode}}", authCode);
+        } catch (Exception e) {
+            throw new BusinessException(ExceptionCode.FAIL_SEND_EMAIL);
+        }
     }
 
     private String generateAuthCode() {
