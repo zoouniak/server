@@ -23,6 +23,7 @@ public enum ExceptionCode {
     INCORRECT_AUTHENTICATION_NUMBER(1011, UNAUTHORIZED, "인증번호가 일치하지 않습니다."),
     INVALID_EMAIL(1012, BAD_REQUEST, "인증에 실패하였습니다."),
     INCORRECT_INFO(1013, BAD_REQUEST, "회원정보와 일치하지 않습니다."),
+    FAIL_SEND_EMAIL(1014, INTERNAL_SERVER_ERROR, "이메일 전송에 실패하였습니다."),
 
     // 회원 2000번대
     MEMBER_NOT_FOUND(2001, BAD_REQUEST, "사용자가 존재하지 않습니다."),
