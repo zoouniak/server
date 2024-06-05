@@ -2,11 +2,15 @@ package com.example.cns.chat.dto.request;
 
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.type.RoomType;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record ChatRoomCreateRequest(
+        @NotNull
         String roomName,
+
+        @NotNull
         List<MemberInfo> inviteList
 ) {
     public ChatRoom toChatRoomEntity() {
