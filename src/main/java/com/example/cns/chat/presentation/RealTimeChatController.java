@@ -10,9 +10,11 @@ import com.example.cns.chat.service.MessageSubscriber;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
@@ -31,8 +33,7 @@ public class RealTimeChatController {
 
     @MessageMapping("/chat-room/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
-    public void sendTextMessage(@DestinationVariable Long roomId, TextMessageFormat textMessage) {
-
+    public void sendTextMessage(@DestinationVariable Long roomId, @Payload @Valid TextMessageFormat textMessage) {
         // 데이터베이스에 채팅 저장
         Long save = chatService.saveTextMessage(textMessage);
         String senderProfile = memberService.getMemberProfileUrl(textMessage.memberId());
@@ -51,7 +52,7 @@ public class RealTimeChatController {
 
     @MessageMapping("/chat-room/file/{roomId}")
     @SendTo("/sub/chat-room/{roomId}")
-    public void sendFileMessage(@DestinationVariable Long roomId, FileMessageFormat imageMessage) {
+    public void sendFileMessage(@DestinationVariable Long roomId, @Payload @Valid FileMessageFormat imageMessage) {
         //  publisher.publishImageMessage(roomId, imageMessage);
 
         // 디코딩
