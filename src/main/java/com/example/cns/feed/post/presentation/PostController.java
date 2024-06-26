@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -97,9 +96,8 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-
     /*
-    권한 부여 필요
+    게시글에 미디어 등록
      */
     @Operation(summary = "게시글 미디어 등록 api", description = "사용자로 부터 사진을 입력받고, 저장된 사진의 UUID, URL, 확장자를 반환한다.")
     @Parameters(
@@ -179,7 +177,7 @@ public class PostController {
             }
     )
     @PostMapping("/post/like")
-    public ResponseEntity addLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest) {
+    public ResponseEntity addLike(@Auth Long id, @RequestBody @Valid PostLikeRequest postLikeRequest) {
         postService.addLike(id, postLikeRequest);
         return ResponseEntity.ok().build();
     }
@@ -201,7 +199,7 @@ public class PostController {
             }
     )
     @DeleteMapping("/post/like")
-    public ResponseEntity deleteLike(@Auth Long id, @RequestBody PostLikeRequest postLikeRequest) {
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody @Valid PostLikeRequest postLikeRequest) {
         postService.deleteLike(id, postLikeRequest);
         return ResponseEntity.ok().build();
     }
