@@ -86,7 +86,7 @@ public class ChatRoomService {
             inviteMsg.append(guest.nickname()).append("님, ");
         }
 
-        return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다";
+        return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다.";
     }
 
     /*
