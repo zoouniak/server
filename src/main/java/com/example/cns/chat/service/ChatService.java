@@ -2,8 +2,8 @@ package com.example.cns.chat.service;
 
 import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.domain.ChatFile;
-import com.example.cns.chat.domain.ChatFileRepository;
 import com.example.cns.chat.domain.ChatRoom;
+import com.example.cns.chat.domain.repository.ChatFileRepository;
 import com.example.cns.chat.domain.repository.ChatListRepositoryImpl;
 import com.example.cns.chat.domain.repository.ChatRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
