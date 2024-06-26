@@ -56,7 +56,7 @@ class MemberAuthServiceTest {
         SignUpRequest req = createSignUpReq("test1@cns.com");
         when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
-        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com"));
+        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com", "field"));
 
         // 실행
         sut.register(req);
@@ -79,7 +79,7 @@ class MemberAuthServiceTest {
         SignUpRequest req = createSignUpReq("test1@naver.com");
         when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
-        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com"));
+        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com", "field"));
 
         Assertions.assertThrows(AuthException.class,
                 () -> sut.register(req));
@@ -103,7 +103,7 @@ class MemberAuthServiceTest {
         when(passwordEncoder.matches(req.password(), member.getPassword())).thenReturn(true);
         when(jwtProvider.generateLoginToken(new JwtMemberInfo(member.getId(), member.getRole()))).thenReturn(new AuthTokens("access", "refresh"));
 
-        AuthTokens login = sut.login(req);
+        AuthTokens login = sut.login(req).authTokens();
 
         Assertions.assertEquals(login.accessToken(), "access");
         Assertions.assertEquals(login.refreshToken(), "refresh");
