@@ -1,5 +1,6 @@
 package com.example.cns.chat.config;
 
+import com.example.cns.chat.handler.StompErrorHandler;
 import com.example.cns.chat.interceptor.StompInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
