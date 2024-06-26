@@ -133,6 +133,9 @@ public class ChatRoomService {
      */
     @Transactional
     public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> request, Long roomId) {
+        // 사용자 검증
+        verifyMemberInChatRoom(memberId, roomId);
+
         ChatRoom chatRoom = getChatRoom(roomId);
 
         // 채팅방 수용 인원 검증
@@ -154,7 +157,11 @@ public class ChatRoomService {
      * 채팅방 참여자 조회
      */
     @Transactional(readOnly = true)
-    public List<ChatParticipantsResponse> getChatParticipants(Long roomId) {
+    public List<ChatParticipantsResponse> getChatParticipants(Long memberId, Long roomId) {
+        // 검증
+        verifyRoomId(roomId);
+        verifyMemberInChatRoom(memberId, roomId);
+
         List<Member> participants = chatParticipationRepository.findMemberByRoom(roomId);
 
         return participants.stream()
@@ -170,8 +177,8 @@ public class ChatRoomService {
      */
     @Transactional(readOnly = true)
     public void verifyMemberInChatRoom(Long memberId, Long roomId) {
-        chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
-                .orElseThrow(() -> new BusinessException(NOT_CHAT_PARTICIPANTS));
+        if (!chatParticipationRepository.existsById(new ChatParticipationID(memberId, roomId)))
+            throw new BusinessException(NOT_CHAT_PARTICIPANTS);
     }
 
     /*

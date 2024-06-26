@@ -106,10 +106,9 @@ public class ChatRoomController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{roomId}/participant")
     public ResponseEntity getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
-        chatRoomService.verifyRoomId(roomId);
-        chatRoomService.verifyMemberInChatRoom(memberId, roomId);
 
-        List<ChatParticipantsResponse> participants = chatRoomService.getChatParticipants(roomId);
+
+        List<ChatParticipantsResponse> participants = chatRoomService.getChatParticipants(memberId, roomId);
         return ResponseEntity.ok(participants);
     }
 
@@ -129,9 +128,6 @@ public class ChatRoomController {
     @PostMapping("/{roomId}/invite")
     public ResponseEntity addMemberInChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId,
                                               @RequestBody MemberAddRequest inviteList) {
-        // 검증
-        chatRoomService.verifyMemberInChatRoom(memberId, roomId);
-
         return ResponseEntity.ok(chatRoomService.inviteMemberInChatRoom(memberId, inviteList.inviteList(), roomId));
     }
 
