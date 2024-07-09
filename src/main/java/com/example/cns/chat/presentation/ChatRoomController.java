@@ -135,4 +135,9 @@ public class ChatRoomController {
     public ResponseEntity getImagesInChatRoom(@PathVariable Long roomId) {
         return ResponseEntity.ok(chatService.getImages(roomId));
     }
+
+    @GetMapping("/{roomId}/read")
+    public ResponseEntity getPastChat(@PathVariable(name = "roomId") Long roomId) {
+        return ResponseEntity.ok(chatRoomService.getPastChat(roomId));
+    }
 }

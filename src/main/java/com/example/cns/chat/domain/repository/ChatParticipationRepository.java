@@ -18,4 +18,6 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
 
     @Query("select m from Member m inner join ChatParticipation cp on m.id = cp.member and cp.room=:room")
     List<Member> findMemberByRoom(Long room);
+
+    List<ChatParticipation> findAllByRoom(Long roomId);
 }

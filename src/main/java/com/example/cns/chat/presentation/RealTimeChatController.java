@@ -83,4 +83,5 @@ public class RealTimeChatController {
     public void subscribeRoom(@DestinationVariable Long roomId) {
         messageSubscriber.subscribe(String.valueOf(roomId));
     }
+
 }

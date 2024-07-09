@@ -22,7 +22,6 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
         accessor.setLeaveMutable(true);
         log.error(ex.getMessage());
-        // BusinessException exception = (BusinessException) ex.getCause();
         return MessageBuilder.createMessage(ex.getMessage().getBytes(StandardCharsets.UTF_8),
                 accessor.getMessageHeaders());
     }

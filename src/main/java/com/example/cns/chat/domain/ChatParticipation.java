@@ -22,13 +22,12 @@ public class ChatParticipation implements Persistable<ChatParticipationID> {
     @Column(name = "member_id")
     private Long member;
 
-    private boolean isRead;
+    private Long lastChatId;
 
     @Builder
     public ChatParticipation(Long member, Long room) {
         this.member = member;
         this.room = room;
-        this.isRead = false;
     }
 
     @Override
@@ -39,5 +38,9 @@ public class ChatParticipation implements Persistable<ChatParticipationID> {
     @Override
     public boolean isNew() {
         return this.member != null && this.room != null;
+    }
+
+    public void updateLastChat(Long lastChatId) {
+        this.lastChatId = lastChatId;
     }
 }

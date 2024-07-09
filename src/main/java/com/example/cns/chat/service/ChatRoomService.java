@@ -10,10 +10,7 @@ import com.example.cns.chat.domain.repository.ChatRoomListRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberInfo;
-import com.example.cns.chat.dto.response.ChatParticipantsResponse;
-import com.example.cns.chat.dto.response.ChatRoomCreateResponse;
-import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
-import com.example.cns.chat.dto.response.ChatRoomResponse;
+import com.example.cns.chat.dto.response.*;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
@@ -210,5 +207,13 @@ public class ChatRoomService {
         return memberRepository.findById(memberId)
                 .map(Member::getNickname)
                 .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
+    }
+
+    public List<PastChatResponse> getPastChat(Long roomId) {
+        List<ChatParticipation> participants = chatParticipationRepository.findAllByRoom(roomId);
+
+        return participants.stream()
+                .map(cp -> new PastChatResponse(cp.getMember(), cp.getLastChatId()))
+                .collect(Collectors.toList());
     }
 }

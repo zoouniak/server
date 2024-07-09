@@ -52,6 +52,7 @@ public enum ExceptionCode {
     CHATROOM_NOT_EXIST(4001, BAD_REQUEST, "채팅방이 존재하지 않습니다"),
     NOT_CHAT_PARTICIPANTS(4002, BAD_REQUEST, "해당 채팅방의 회원이 아닙니다."),
     ROOM_CAPACITY_EXCEEDED(4003, BAD_REQUEST, "채팅방 수용 인원(10명)을 초과하였습니다."),
+    PARTICIPANT_NOT_EXIST(4004, BAD_REQUEST, "해당 채팅 참여 정보가 존재하지 않습니다"),
 
     // 파일 5000번대
     FILE_NOT_SAVED(5001, INTERNAL_SERVER_ERROR, "파일 저장에 실패하였습니다."),
