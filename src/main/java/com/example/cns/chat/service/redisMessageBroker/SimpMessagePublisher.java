@@ -12,20 +12,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class RedisMessagePublisher implements MessagePublisher {
+public class SimpMessagePublisher implements MessagePublisher {
     private final SimpMessageSendingOperations messageOp;
     private final ObjectMapper mapper;
 
     @Override
     public void publishMessage(Long roomId, ChatResponse chat) {
-
         try {
             messageOp.convertAndSend("/sub/chat-room/" + roomId, mapper.writeValueAsString(chat));
         } catch (JsonProcessingException e) {
-            throw new ChatException(ExceptionCode.FAIL_SEND_EMAIL);
+            throw new ChatException(ExceptionCode.FAIL_SEND_INFOMSG);
         }
-
     }
-
-
 }
