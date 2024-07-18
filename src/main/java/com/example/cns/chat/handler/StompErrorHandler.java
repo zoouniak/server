@@ -19,10 +19,10 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
      */
     @Override
     public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage, Throwable ex) {
+        log.error(String.valueOf(ex.getCause()));
+
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
-        accessor.setLeaveMutable(true);
-        log.error(ex.getMessage());
-        return MessageBuilder.createMessage(ex.getMessage().getBytes(StandardCharsets.UTF_8),
+        return MessageBuilder.createMessage(ex.getCause().getMessage().getBytes(StandardCharsets.UTF_8),
                 accessor.getMessageHeaders());
     }
 }
