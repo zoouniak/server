@@ -14,6 +14,8 @@ import com.example.cns.feed.post.domain.repository.PostListRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
+import com.example.cns.hashtag.domain.HashTagPost;
+import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
@@ -21,14 +23,14 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.member.type.RoleType;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.cns.mention.type.MentionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -61,6 +63,8 @@ class PostServiceTest {
     @Mock
     private PostFileRepository postFileRepository;
     @Mock
+    private HashTagPostRepository hashTagPostRepository;
+    @Mock
     private PostLikeRepository postLikeRepository;
     @Mock
     private PostListRepository postListRepository;
@@ -68,8 +72,6 @@ class PostServiceTest {
     private MentionRepository mentionRepository;
     @Mock
     private HashTagRepository hashTagRepository;
-    @Spy
-    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("해시태그, 언급, 파일이 없는 경우에도 글 생성이 가능해야 한다.")
@@ -84,6 +86,8 @@ class PostServiceTest {
 
         PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
         Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
 
         //when
         when(memberRepository.findById(any())).thenReturn(Optional.of(member));
@@ -93,6 +97,9 @@ class PostServiceTest {
 
         //then
         assertEquals(post.getId(),savedPostId);
+        assertEquals(0, hashTagPostRepository.findAllByPostId(savedPostId).size());
+        assertEquals(0,mentionRepository.findMentionsBySubjectId(List.of(savedPostId),MentionType.FEED).size());
+
         verify(postRepository,times(1)).save(any(Post.class));
         verify(mentionService,times(1)).savePostMention(savedPostId,mention);
         verify(hashTagService,times(1)).createHashTag(savedPostId,hashTag);
@@ -105,13 +112,15 @@ class PostServiceTest {
         //given
         Member member = createMember();
 
-        String content = "test content\n#test\n@test";
-        List<String> hashTag = List.of("test");
-        List<String> mention = List.of("@test");
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test", "test1");
+        List<String> mention = List.of("@testMember");
         List<FileResponse> postFileList = new ArrayList<>();
 
         PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
         Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
 
         //when
         when(memberRepository.findById(any())).thenReturn(Optional.of(member));
@@ -121,6 +130,20 @@ class PostServiceTest {
 
         //then
         assertEquals(post.getId(),savedPostId);
+
+        List<HashTagPost> savedHashTagPost = hashTagPostRepository.findAllByPostId(savedPostId);
+        savedHashTagPost.forEach(
+                hashTagPost -> {
+                    assertEquals(savedPostId,hashTagPost.getId().getPost().longValue());
+                }
+        );
+
+        List<Object[]> savedMentions = mentionRepository.findMentionsBySubjectId(List.of(savedPostId), MentionType.FEED);
+        savedMentions.forEach(
+                mentionObject -> {
+                      assertEquals(savedPostId,mentionObject[0]);
+                }
+        );
 
         verify(postRepository,times(1)).save(any(Post.class));
         verify(mentionService,times(1)).savePostMention(eq(savedPostId),eq(mention));
@@ -134,25 +157,48 @@ class PostServiceTest {
         //given
         Member member = createMember();
 
-        String content = "test content\n#test\n@test";
-        List<String> hashTag = List.of("test");
-        List<String> mention = List.of("@test");
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("@testMember");
         List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName","/file1.png", FileType.PNG));
 
         PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
         Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
 
         List<PostFile> postFiles = createPostFile(post,postFileList);
 
         //when
-        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
         when(postRepository.save(any(Post.class))).thenReturn(post);
-        when(postRepository.findById(any())).thenReturn(Optional.of(post));
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
 
         Long savedPostId = postService.savePost(member.getId(),postRequest);
 
         //then
         assertEquals(post.getId(),savedPostId);
+
+        List<HashTagPost> savedHashTagPost = hashTagPostRepository.findAllByPostId(savedPostId);
+        savedHashTagPost.forEach(
+                hashTagPost -> {
+                    assertEquals(savedPostId,hashTagPost.getId().getPost().longValue());
+                }
+        );
+
+        List<Object[]> savedMentions = mentionRepository.findMentionsBySubjectId(List.of(savedPostId), MentionType.FEED);
+        savedMentions.forEach(
+                mentionObject -> {
+                    assertEquals(savedPostId,mentionObject[0]);
+                }
+        );
+
+        List<PostFile> savedPostFiles = postFileRepository.findAllByPostId(savedPostId);
+        savedPostFiles.forEach(
+                postFile -> {
+                    assertEquals(savedPostId,postFile.getPost().getId());
+                }
+        );
 
         verify(postRepository,times(1)).save(any(Post.class));
         verify(mentionService,times(1)).savePostMention(eq(savedPostId),eq(mention));
@@ -173,14 +219,17 @@ class PostServiceTest {
 
         PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
         Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
 
         //when
-        when(postRepository.findById(null)).thenReturn(Optional.of(post));
-        doNothing().when(hashTagService).deleteHashTag(post.getId());
-        doNothing().when(mentionService).deletePostMention(post.getId());
-        doNothing().when(postRepository).deleteById(post.getId());
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
 
-        postService.deletePost(member.getId(),post.getId());
+        Long savedId = postService.savePost(member.getId(), postRequest);
+
+        postService.deletePost(member.getId(),savedId);
 
         //then
         verify(commentService,times(post.getComments().size())).deleteComment(anyLong(),any(CommentDeleteRequest.class));
@@ -203,19 +252,21 @@ class PostServiceTest {
 
         PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
         Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
 
         //when
-        when(postRepository.findById(null)).thenReturn(Optional.of(post));
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
 
         BusinessException exception = assertThrows(BusinessException.class, () -> {
             postService.deletePost(2L,post.getId());
         });
 
         //then
-        assert(exception.getExceptionCode() == ExceptionCode.NOT_POST_WRITER);
+        assertEquals(ExceptionCode.NOT_POST_WRITER,exception.getExceptionCode());
     }
     private static Member createMember() {
-        return new Member(1L, "test", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
+        return new Member(1L, "testMember", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
     }
 
     private static PostRequest craetePostRequest(String content, List<String> hashtag, List<String> mention, List<FileResponse> postFileList){
