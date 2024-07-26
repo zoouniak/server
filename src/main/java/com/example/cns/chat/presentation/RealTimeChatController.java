@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 import java.util.Base64;
@@ -29,7 +28,6 @@ public class RealTimeChatController {
 
 
     @MessageMapping("/chat-room/{roomId}")
-    @SendTo("/sub/chat-room/{roomId}")
     public void sendTextMessage(@DestinationVariable Long roomId, @Payload @Valid TextMessageFormat textMessage) {
         // 데이터베이스에 채팅 저장
         Long save = chatService.saveTextMessage(textMessage);
@@ -47,7 +45,6 @@ public class RealTimeChatController {
     }
 
     @MessageMapping("/chat-room/file/{roomId}")
-    @SendTo("/sub/chat-room/{roomId}")
     public void sendFileMessage(@DestinationVariable Long roomId, @Payload @Valid FileMessageFormat imageMessage) {
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
@@ -72,10 +69,5 @@ public class RealTimeChatController {
                 .messageType(imageMessage.messageType())
                 .build());
     }
-
-/*    @SubscribeMapping("/chat-room/{roomId}")
-    public void subscribeRoom(@DestinationVariable Long roomId) {
-        messageSubscriber.subscribe(String.valueOf(roomId));
-    }*/
 
 }
