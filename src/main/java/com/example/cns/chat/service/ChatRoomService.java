@@ -11,11 +11,13 @@ import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberInfo;
 import com.example.cns.chat.dto.response.*;
+import com.example.cns.chat.event.UserRoomExitEvent;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ public class ChatRoomService {
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
     private final ChatRoomListRepository chatRoomListRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private static void checkCapacity(int size) {
         if (size > 10)
@@ -123,6 +127,8 @@ public class ChatRoomService {
                             throw new BusinessException(CHATROOM_NOT_EXIST);
                         }
                 );
+
+        eventPublisher.publishEvent(new UserRoomExitEvent(roomId));
     }
 
     /*

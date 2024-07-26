@@ -20,4 +20,6 @@ public interface ChatParticipationRepository extends JpaRepository<ChatParticipa
     List<Member> findMemberByRoom(Long room);
 
     List<ChatParticipation> findAllByRoom(Long roomId);
+
+    List<ChatParticipation> findAllByRoomOrderByLastChatIdDesc(Long roomId);
 }
