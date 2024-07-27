@@ -84,12 +84,15 @@ public class PostService {
         Long responseId = postRepository.save(postRequest.toEntity(member)).getId();
 
         //postRequest 에서 언급된 인원 가져와 멘션 테이블 저장
-        mentionService.savePostMention(responseId, postRequest.mention());
+        if(postRequest.mention() != null && !(postRequest.mention().isEmpty()))
+            mentionService.savePostMention(responseId, postRequest.mention());
+
         //postRequest 에서 만든 해시태그 저장
-        hashTagService.createHashTag(responseId, postRequest.hashtag());
+        if(postRequest.hashtag() != null && !(postRequest.hashtag().isEmpty()))
+            hashTagService.createHashTag(responseId, postRequest.hashtag());
 
         //파일이 있을시에 DB에 연관된 파일 저장
-        if (postRequest.postFileList() != null) {
+        if (postRequest.postFileList() != null && !(postRequest.postFileList().isEmpty())) {
             postRequest.postFileList().forEach(
                     file -> {
                         PostFile postfile = PostFile.builder()
