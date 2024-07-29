@@ -9,8 +9,11 @@ import com.example.cns.feed.comment.dto.request.CommentDeleteRequest;
 import com.example.cns.feed.comment.service.CommentService;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.feed.post.domain.PostFile;
+import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
+import com.example.cns.feed.post.domain.repository.PostLikeRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
+import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.hashtag.domain.HashTagPost;
@@ -67,6 +70,8 @@ class PostServiceTest {
     private HashTagPostRepository hashTagPostRepository;
     @Mock
     private MentionRepository mentionRepository;
+    @Mock
+    private PostLikeRepository postLikeRepository;
 
     @Test
     @DisplayName("해시태그, 언급, 파일이 없는 경우에도 글 생성이 가능해야 한다.")
@@ -490,6 +495,104 @@ class PostServiceTest {
         assertEquals(ExceptionCode.NOT_POST_WRITER,exception.getExceptionCode());
     }
 
+    @Test
+    @DisplayName("게시글에는 좋아요가 가능해야 한다.")
+    void post_like_success(){
+        //given
+        Member member = createMember();
+
+        String content = "test content";
+        List<String> hashTag = new ArrayList<>();
+        List<String> mention = new ArrayList<>();
+        List<FileResponse> postFileList = new ArrayList<>();
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+
+        //when
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postLikeRepository.findByMemberIdAndPostId(anyLong(),anyLong())).thenReturn(Optional.empty());
+
+        postService.addLike(member.getId(),new PostLikeRequest(post.getId()));
+
+        //then
+        assertEquals(1,post.getLikeCnt());
+
+        verify(memberRepository,times(1)).findById(anyLong());
+        verify(postRepository,times(1)).findById(anyLong());
+        verify(postLikeRepository,times(1)).save(any(PostLike.class));
+    }
+
+    @Test
+    @DisplayName("게시글에는 좋아요 취소가 가능해야 한다.")
+    void post_like_cancel_success(){
+        //given
+        Member member = createMember();
+
+        String content = "test content";
+        List<String> hashTag = new ArrayList<>();
+        List<String> mention = new ArrayList<>();
+        List<FileResponse> postFileList = new ArrayList<>();
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        post.plusLikeCnt();
+
+        PostLike postLike = createPostLike(member,post);
+
+        //when
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postLikeRepository.findByMemberIdAndPostId(anyLong(),anyLong())).thenReturn(Optional.of(postLike));
+
+        postService.deleteLike(member.getId(),new PostLikeRequest(post.getId()));
+
+        //then
+        assertEquals(0,post.getLikeCnt());
+
+        verify(memberRepository,times(1)).findById(anyLong());
+        verify(postRepository,times(1)).findById(anyLong());
+        verify(postLikeRepository,times(1)).deletePostLikeByMemberIdAndPostId(anyLong(),anyLong());
+    }
+
+    @Test
+    @DisplayName("게시글에 좋아요 중복은 불가능해야 한다.")
+    void post_like_duplicate_fail(){
+        //given
+        Member member = createMember();
+
+        String content = "test content";
+        List<String> hashTag = new ArrayList<>();
+        List<String> mention = new ArrayList<>();
+        List<FileResponse> postFileList = new ArrayList<>();
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        post.plusLikeCnt();
+
+        PostLike postLike = createPostLike(member,post);
+
+        //when
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postLikeRepository.findByMemberIdAndPostId(anyLong(),anyLong())).thenReturn(Optional.of(postLike));
+
+        postService.addLike(member.getId(),new PostLikeRequest(post.getId()));
+
+        //then
+        assertEquals(1,post.getLikeCnt());
+
+        verify(memberRepository,times(1)).findById(anyLong());
+        verify(postRepository,times(1)).findById(anyLong());
+        verify(postLikeRepository,times(0)).save(any(PostLike.class));
+    }
     private static Member createMember() {
         return new Member(1L, "testMember", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
     }
@@ -575,5 +678,12 @@ class PostServiceTest {
         result.add(reply);
 
         return result;
+    }
+
+    private static PostLike createPostLike(Member member, Post post){
+        return PostLike.builder()
+                .post(post)
+                .member(member)
+                .build();
     }
 }
