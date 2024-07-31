@@ -14,6 +14,7 @@ import com.example.cns.feed.post.domain.repository.PostFileRepository;
 import com.example.cns.feed.post.domain.repository.PostLikeRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
+import com.example.cns.feed.post.dto.request.PostPatchRequest;
 import com.example.cns.feed.post.dto.request.PostRequest;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.hashtag.domain.HashTagPost;
@@ -593,6 +594,374 @@ class PostServiceTest {
         verify(postRepository,times(1)).findById(anyLong());
         verify(postLikeRepository,times(0)).save(any(PostLike.class));
     }
+
+    @Test
+    @DisplayName("게시글 내용 수정이 가능해야 한다.")
+    void update_post_success_with_content() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                "Content Updated!!\n#test #test1\n@testMember",
+                hashTag,
+                mention,
+                true,
+                postFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(0)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(0)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(0)).save(any());
+
+        verify(postFileRepository,times(0)).deleteById(anyLong());
+        verify(s3Service,times(0)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 멘션 수정이 가능해야 한다.")
+    void update_post_success_with_mention() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                "test content\n#test #test1\n@testMember1",
+                hashTag,
+                List.of("testMember1","testMember2"),
+                true,
+                postFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(1)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(0)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(0)).save(any());
+
+        verify(postFileRepository,times(0)).deleteById(anyLong());
+        verify(s3Service,times(0)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 해시태그 수정이 가능해야 한다.")
+    void update_post_success_with_hashtag() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                "test content\n#test #test2\n@testMember1",
+                List.of("test","test2"),
+                mention,
+                true,
+                postFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(0)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(1)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(0)).save(any());
+
+        verify(postFileRepository,times(0)).deleteById(anyLong());
+        verify(s3Service,times(0)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 댓글 여부 수정이 가능해야 한다.")
+    void update_post_success_with_IsCommentEnabled() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                content,
+                hashTag,
+                mention,
+                false,
+                postFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(0)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(0)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(0)).save(any());
+
+        verify(postFileRepository,times(0)).deleteById(anyLong());
+        verify(s3Service,times(0)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 이미지 수정이 가능해야 한다.")
+    void update_post_success_with_postFile() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+        List<FileResponse> updateFileList = List.of(new FileResponse("uploadFileName1","/file1.png",FileType.PNG), new FileResponse("uploadFileName3","/file3.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                content,
+                hashTag,
+                mention,
+                true,
+                updateFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+        ReflectionTestUtils.setField(post,"postFiles",updateFileList);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(0)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(0)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(1)).save(any());
+
+        verify(postFileRepository,times(1)).deleteById(anyLong());
+        verify(s3Service,times(1)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 내용, 해시태그, 멘션, 댓글허용 여부, 사진 수정이 가능해야 한다.")
+    void update_post_success_with_content_hashtag_mention_IsCommentEnabled_postFile() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+        List<FileResponse> updateFileList = List.of(new FileResponse("uploadFileName1","/file1.png",FileType.PNG), new FileResponse("uploadFileName3","/file3.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                "Update Contents!\n#test #test3\n@testMember1 @testMember2",
+                List.of("test","test3"),
+                List.of("testMember1","testMember2"),
+                false,
+                updateFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(fileList(post,postFileList));
+
+        postService.updatePost(member.getId(),post.getId(),postPatchRequest);
+        ReflectionTestUtils.setField(post,"postFiles",updateFileList);
+
+        //then
+        assertEquals(postPatchRequest.content(),post.getContent());
+        assertEquals(postPatchRequest.mention().size(),post.getMentionCnt());
+        assertEquals(postPatchRequest.isCommentEnabled(),post.isCommentEnabled());
+        assertEquals(postPatchRequest.postFileList().size(),post.getFileCnt());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(1)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(1)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(1)).save(any());
+
+        verify(postFileRepository,times(1)).deleteById(anyLong());
+        verify(s3Service,times(1)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 수정은 작성자만 가능해야 한다.")
+    void update_post_fail_with_another_writer() throws IOException {
+        //given
+        Member member = createMember();
+
+        String content = "test content\n#test #test1\n@testMember";
+        List<String> hashTag = List.of("test","test1");
+        List<String> mention = List.of("testMember");
+        List<FileResponse> postFileList = List.of(new FileResponse("uploadFileName1","/file1.png", FileType.PNG), new FileResponse("uploadFileName2","/file2.png",FileType.PNG));
+
+        PostRequest postRequest = craetePostRequest(content,hashTag,mention,postFileList);
+        Post post = postRequest.toEntity(member);
+        ReflectionTestUtils.setField(post,"id",1L);
+        ReflectionTestUtils.setField(post, "member", member);
+        ReflectionTestUtils.setField(post,"postFiles",postFileList);
+
+        PostPatchRequest postPatchRequest = new PostPatchRequest(
+                content,
+                hashTag,
+                mention,
+                true,
+                postFileList
+        );
+
+        //when
+        when(postRepository.findById(anyLong())).thenReturn(Optional.of(post));
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            postService.updatePost(2L,post.getId(),postPatchRequest);
+        });
+
+        //then
+        assertEquals(ExceptionCode.NOT_POST_WRITER,exception.getExceptionCode());
+
+        verify(postRepository,times(1)).findById(anyLong());
+
+        verify(mentionService,times(0)).updateMention(anyLong(),anyList(),anyList());
+
+        verify(hashTagService,times(0)).updateHashTag(anyLong(),anyList(),anyList());
+
+        verify(postFileRepository,times(0)).findAllByPostId(anyLong());
+        verify(postFileRepository,times(0)).save(any());
+
+        verify(postFileRepository,times(0)).deleteById(anyLong());
+        verify(s3Service,times(0)).deleteFile(anyString(),anyString());
+
+        verify(postRepository,times(0)).save(any());
+    }
+
+
     private static Member createMember() {
         return new Member(1L, "testMember", "testpassword", "email", "first", "second", LocalDate.now(), RoleType.EMPLOYEE, "");
     }
