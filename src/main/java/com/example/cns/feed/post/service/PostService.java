@@ -256,10 +256,12 @@ public class PostService {
                     .filter(mention -> !updateMentions.contains(mention))
                     .collect(Collectors.toList());
 
-            mentionService.updateMention(postId, addedMentions, removedMentions);
-            //이후에 바뀐 멘션으로 개수 바꾸기
-            post.updateMentionCnt(postPatchRequest.mention().size());
-            //멘션 수정 로직
+            if (!(addedMentions.isEmpty()) || !(removedMentions.isEmpty())) {
+                mentionService.updateMention(postId, addedMentions, removedMentions);
+                // 이후에 바뀐 멘션으로 개수 바꾸기
+                post.updateMentionCnt(postPatchRequest.mention().size());
+            }
+            // 멘션 수정 로직
 
             //해시태그 수정 로직
             List<String> previousHashTags = extractHashTag(previousContent);
@@ -271,11 +273,13 @@ public class PostService {
                     .filter(hashtag -> !updateHashTags.contains(hashtag))
                     .collect(Collectors.toList());
 
-            hashTagService.updateHashTag(postId, addedHashTags, removedHashTags);
+            if(!(addedHashTags.isEmpty()) || !(removedHashTags.isEmpty()))
+                hashTagService.updateHashTag(postId, addedHashTags, removedHashTags);
             //해시태그 수정 로직
 
             //댓글 허용여부 수정
-            post.updateIsCommentEnabled(postPatchRequest.isCommentEnabled());
+            if(!(post.isCommentEnabled() == postPatchRequest.isCommentEnabled()))
+                post.updateIsCommentEnabled(postPatchRequest.isCommentEnabled());
             //댓글 허용여부 수정
 
             //미디어 변경 로직
