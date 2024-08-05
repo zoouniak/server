@@ -12,6 +12,7 @@ import com.example.cns.feed.post.domain.PostFile;
 import com.example.cns.feed.post.domain.PostLike;
 import com.example.cns.feed.post.domain.repository.PostFileRepository;
 import com.example.cns.feed.post.domain.repository.PostLikeRepository;
+import com.example.cns.feed.post.domain.repository.PostListRepository;
 import com.example.cns.feed.post.domain.repository.PostRepository;
 import com.example.cns.feed.post.dto.request.PostLikeRequest;
 import com.example.cns.feed.post.dto.request.PostPatchRequest;
@@ -27,6 +28,7 @@ import com.example.cns.member.type.RoleType;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,6 +75,11 @@ class PostServiceTest {
     private MentionRepository mentionRepository;
     @Mock
     private PostLikeRepository postLikeRepository;
+    @Mock
+    private PostListRepository postListRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("해시태그, 언급, 파일이 없는 경우에도 글 생성이 가능해야 한다.")
@@ -959,6 +966,75 @@ class PostServiceTest {
         verify(s3Service,times(0)).deleteFile(anyString(),anyString());
 
         verify(postRepository,times(0)).save(any());
+    }
+
+    //테스트...?
+//    @Test
+//    @DisplayName("사용자별 추천 게시글 조회가 가능해야 한다.")
+//    void get_post_success() throws IOException {
+//        Long cursorValue = 0L;
+//        Long page = 1L;
+//        Long memberId = 1L;
+//
+//        List<PostResponse> recommendedPosts =new ArrayList<>();
+//        recommendedPosts.add(new PostResponse());
+//
+//        CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
+//        CloseableHttpResponse httpResponse = mock(CloseableHttpResponse.class);
+//        StatusLine statusLine = mock(StatusLine.class);
+//        HttpEntity httpEntity = mock(HttpEntity.class);
+//        InputStream inputStream = new ByteArrayInputStream("[]".getBytes());
+//
+//        when(httpClient.execute(any(HttpGet.class))).thenReturn(httpResponse);
+//        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+//        when(httpResponse.getStatusLine().getStatusCode()).thenReturn(200);
+//        when(httpResponse.getEntity()).thenReturn(httpEntity);
+//        when(httpEntity.getContent()).thenReturn(inputStream);
+//        when(httpEntity.getContentLength()).thenReturn(2L);
+//
+//
+//        when(objectMapper.readValue(anyString(), ArgumentMatchers.<JavaType>any())).thenReturn(recommendedPosts);
+//
+//        List<PostResponse> additionalPosts = new ArrayList<>();
+//        additionalPosts.add(new PostResponse());
+//        when(postListRepository.findPosts(anyLong(),anyLong(),anyLong(),anyLong(),anyString(),any(),any())).thenReturn(additionalPosts);
+//
+//        List<PostResponse> resultList = postService.getPosts(cursorValue,page,memberId);
+//
+//        assertEquals(2,resultList.size());
+//    }
+
+    @Test
+    @DisplayName("게시글에 해당하는 이미지가 나와야한다.")
+    void get_postImage_success(){
+
+        //given
+        List<PostFile> postFiles = new ArrayList<>();
+        postFiles.add(new PostFile(null,"/file1.png","file1",LocalDateTime.now(),FileType.PNG));
+        postFiles.add(new PostFile(null,"/file2.png","file2",LocalDateTime.now(),FileType.PNG));
+
+        //when
+        when(postFileRepository.findAllByPostId(anyLong())).thenReturn(postFiles);
+
+        List<FileResponse> result = postService.getPostMedia(1L);
+
+        //then
+        List<FileResponse> expected = new ArrayList<>();
+        expected.add(FileResponse.builder()
+                        .uploadFileName("file1")
+                        .uploadFileURL("/file1.png")
+                        .fileType(FileType.PNG)
+                .build());
+        expected.add(FileResponse.builder()
+                        .uploadFileName("file2")
+                        .uploadFileURL("/file2.png")
+                        .fileType(FileType.PNG)
+                .build());
+
+        assertEquals(expected,result);
+
+        verify(postFileRepository,times(1)).findAllByPostId(anyLong());
+
     }
 
 
