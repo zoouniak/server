@@ -31,13 +31,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +66,8 @@ public class PostService {
     private final MentionRepository mentionRepository;
     private final HashTagRepository hashTagRepository;
     private final ObjectMapper objectMapper;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${external-api.recommend-post}")
     private String api;
@@ -121,6 +123,7 @@ public class PostService {
 
         if (post.getMember().getId().equals(id)) {
             //게시글의 댓글들 삭제 로직
+            //todo 필요없는 로직
             post.getComments().forEach(
                     comment -> {
                         if (comment.getParentComment() == null)
@@ -177,17 +180,15 @@ public class PostService {
     3. 끝
      */
     public List<FileResponse> getPostMedia(Long postId) {
-        List<FileResponse> postFileResponses = new ArrayList<>();
         List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
-        allPostFile.forEach(
-                postFile -> {
-                    postFileResponses.add(FileResponse.builder()
-                            .uploadFileName(postFile.getFileName())
-                            .uploadFileURL(postFile.getUrl())
-                            .fileType(postFile.getFileType())
-                            .build());
-                }
-        );
+
+        List<FileResponse> postFileResponses = allPostFile.stream()
+                .map((file) -> new FileResponse(
+                        file.getFileName(),
+                        file.getUrl(),
+                        file.getFileType()
+                )).collect(Collectors.toList());
+
         return postFileResponses;
     }
 
@@ -294,13 +295,12 @@ public class PostService {
         Member member = isMemberExists(id);
         Post post = isPostExists(postLikeRequest.postId());
 
-        Optional<PostLike> postLike = isPostLikeExists(member, post);
-        if (postLike.isEmpty()) { //좋아요 중복 방지
-            PostLike like = PostLike.builder()
+        // Optional<PostLike> postLike = isPostLikeExists(member, post);
+        if (!postLikeRepository.existsByPostAndMember(post, member)) { //좋아요 중복 방지
+            postLikeRepository.save(PostLike.builder()
                     .member(member)
                     .post(post)
-                    .build();
-            postLikeRepository.save(like);
+                    .build());
             post.plusLikeCnt();
         }
     }
@@ -309,12 +309,14 @@ public class PostService {
     public void deleteLike(Long id, PostLikeRequest postLikeRequest) {
         Member member = isMemberExists(id);
         Post post = isPostExists(postLikeRequest.postId());
+        if (postLikeRepository.existsByPostAndMember(post, member)) {
+            postLikeRepository.deleteByPostAndMember(post, member);
+        }
 
-        Optional<PostLike> postLike = isPostLikeExists(member, post);
-        if (postLike.isPresent()) {
+      /*  if (postLike.isPresent()) {
             postLikeRepository.deletePostLikeByMemberIdAndPostId(member.getId(), post.getId());
             post.minusLikeCnt();
-        }
+        }*/
     }
 
     public PostDataListResponse getSpecificPost(Long id, Long postId) {
@@ -382,15 +384,15 @@ public class PostService {
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
 
-    private Optional<PostLike> isPostLikeExists(Member member, Post post) {
+   /* private Optional<PostLike> isPostLikeExists(Member member, Post post) {
         return postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
-    }
+    }*/
 
     private String makeUrl(Long memberId, Long page) {
         return api + "/" + memberId + "/" + page + "/10";
     }
 
-    private List<PostResponse> postResponseWithData(List<PostResponse> posts){
+    private List<PostResponse> postResponseWithData(List<PostResponse> posts) {
         List<Long> postIds = posts.stream().map(PostResponse::getId).toList();
 
         Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
