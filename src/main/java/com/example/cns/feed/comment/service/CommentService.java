@@ -20,7 +20,9 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
+import com.example.cns.notification.event.PostCommentEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,8 @@ public class CommentService {
     private final CommentLikeRepository commentLikeRepository;
     private final CommentListRepository commentListRepository;
     private final MentionRepository mentionRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     /*
     댓글 달기
@@ -65,6 +69,8 @@ public class CommentService {
             //댓글 멘션 저장
             if (commentPostRequest.mention().size() >= 1)
                 mentionService.saveCommentMention(responseId, commentPostRequest.mention());
+
+            eventPublisher.publishEvent(new PostCommentEvent(post.getMember(), member.getNickname(), commentPostRequest.postId(), commentPostRequest.content()));
         }
     }
 
@@ -215,8 +221,8 @@ public class CommentService {
             Long mentionId = (Long) mention[1];
             String mentionNickname = (String) mention[2];
             mentionsMap.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(MentionInfo.builder()
-                            .memberId(mentionId)
-                            .nickname(mentionNickname)
+                    .memberId(mentionId)
+                    .nickname(mentionNickname)
                     .build());
         }
         return mentionsMap;

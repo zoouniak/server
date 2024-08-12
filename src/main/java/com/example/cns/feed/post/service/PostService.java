@@ -27,6 +27,7 @@ import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
+import com.example.cns.notification.event.PostLikeEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -302,6 +303,8 @@ public class PostService {
                     .post(post)
                     .build());
             post.plusLikeCnt();
+
+            eventPublisher.publishEvent(new PostLikeEvent(post.getMember(), member.getNickname(), post.getId()));
         }
     }
 
