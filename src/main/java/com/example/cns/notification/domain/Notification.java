@@ -20,6 +20,10 @@ public class Notification {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "from_id")
+    private Member from;
+
+    @ManyToOne
     @JoinColumn(name = "to_id")
     private Member to;
 
@@ -42,7 +46,8 @@ public class Notification {
     private boolean isChecked;
 
     @Builder
-    public Notification(Member to, Long subjectId, NotificationType notificationType, String message, LocalDateTime createdAt) {
+    public Notification(Member from, Member to, Long subjectId, NotificationType notificationType, String message, LocalDateTime createdAt) {
+        this.from = from;
         this.to = to;
         this.subjectId = subjectId;
         this.notificationType = notificationType;
