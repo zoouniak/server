@@ -1,107 +1,54 @@
 package com.example.cns.notification.service;
 
-import com.example.cns.notification.domain.Notification;
+import com.example.cns.common.exception.ExceptionCode;
+import com.example.cns.common.exception.NotificationException;
 import com.example.cns.notification.domain.repository.CustomNotificationRepository;
-import com.example.cns.notification.domain.repository.NotificationRepository;
 import com.example.cns.notification.dto.response.NotificationResponse;
-import com.example.cns.notification.event.PostCommentEvent;
-import com.example.cns.notification.event.PostLikeEvent;
-import com.example.cns.notification.type.NotificationType;
-import com.example.cns.notification.util.MessageBuilderFactory;
-import com.example.cns.notification.util.NotificationMessageBuilder;
+import com.example.cns.notification.event.NotificationEvent;
+import com.example.cns.notification.infrastructure.NotificationEventHandlers;
+import com.example.cns.notification.infrastructure.NotificationHandler;
+import com.example.cns.notification.infrastructure.NotificationSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.example.cns.notification.type.NotificationType.POST_COMMENT;
-import static com.example.cns.notification.type.NotificationType.POST_LIKE;
 
 @Service
 @Slf4j
 public class NotificationService {
-    private final NotificationRepository notificationRepository;
+
     private final CustomNotificationRepository customNotificationRepository;
-    private final Map<Long, SseEmitter> emitters;
+    private final NotificationSender notificationSender;
+    private final NotificationEventHandlers handlers;
 
-    private final MessageBuilderFactory messageBuilderFactory;
-
-    public NotificationService(NotificationRepository notificationRepository, CustomNotificationRepository customNotificationRepository, MessageBuilderFactory messageBuilderFactory) {
-        this.notificationRepository = notificationRepository;
+    public NotificationService(CustomNotificationRepository customNotificationRepository, NotificationSender notificationSender, NotificationEventHandlers handlers) {
         this.customNotificationRepository = customNotificationRepository;
-        this.emitters = new ConcurrentHashMap<>();
-        this.messageBuilderFactory = messageBuilderFactory;
+        this.notificationSender = notificationSender;
+        this.handlers = handlers;
     }
 
     public List<NotificationResponse> getNotifications(final Long memberId, final Long cursor) {
         return customNotificationRepository.getNotificationsByCursor(memberId, cursor);
     }
 
-    public SseEmitter connect(final Long userId) {
-        SseEmitter emitter = new SseEmitter();
-        emitters.put(userId, emitter);
-
-        emitter.onCompletion(() -> {
-            log.info("sse 연결 종료 : userId = " + userId);
-            emitters.remove(userId);
-        });
-        emitter.onTimeout(() -> {
-
-        });
-
+    public SseEmitter connect(final Long memberId) {
+        SseEmitter emitter = notificationSender.connect(memberId);
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("connected!"));
+        } catch (IOException e) {
+            throw new NotificationException(ExceptionCode.FAIL_WITH_SSE);
+        }
         return emitter;
     }
-    @EventListener
-    public void sendCommentNotification(final PostCommentEvent event) {
-        NotificationMessageBuilder builder = messageBuilderFactory.getBuilder(POST_COMMENT);
-        String message = builder.generateMessage(event.from().getNickname(), event.comment());
-
-        Notification notification = notificationRepository.save(Notification.builder()
-                .from(event.from())
-                .to(event.to())
-                .subjectId(event.postId())
-                .message(message)
-                .notificationType(POST_COMMENT)
-                .createdAt(LocalDateTime.now())
-                .build());
-        sendNotification(event.to().getId(), NotificationResponse.of(notification, event.from()));
-
-    }
 
     @EventListener
-    public void sendPostLikeNotification(final PostLikeEvent event) {
-        NotificationMessageBuilder builder = messageBuilderFactory.getBuilder(NotificationType.POST_LIKE);
-        String message = builder.generateMessage(event.from().getNickname(), null);
-
-
-        Notification notification = notificationRepository.save(Notification.builder()
-                .to(event.to())
-                .subjectId(event.postId())
-                .message(message)
-                .notificationType(POST_LIKE)
-                .createdAt(LocalDateTime.now())
-                .build());
-        sendNotification(event.to().getId(), NotificationResponse.of(notification, event.from()));
+    public void handleNotificationEvent(NotificationEvent notificationEvent) {
+        NotificationHandler handler = handlers.mapping(notificationEvent.getNotificationTye());
+        handler.handle(notificationEvent, notificationSender);
     }
-
-    private void sendNotification(final Long to, final NotificationResponse notificationResponse) {
-        Optional.ofNullable(emitters.get(to))
-                .ifPresent(emitter -> {
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .data(notificationResponse));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-    }
-
-
 }

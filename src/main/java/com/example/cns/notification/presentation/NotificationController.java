@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -22,15 +21,7 @@ public class NotificationController {
 
     @GetMapping("")
     public ResponseEntity<SseEmitter> connect(@Auth final Long memberId) {
-        SseEmitter connect = notificationService.connect(memberId);
-        try {
-            connect.send(SseEmitter.event()
-                    .name("connect")
-                    .data("connected!"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return ResponseEntity.ok(connect);
+        return ResponseEntity.ok(notificationService.connect(memberId));
     }
 
     @GetMapping("/all")

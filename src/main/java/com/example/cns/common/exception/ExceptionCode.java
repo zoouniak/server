@@ -71,8 +71,10 @@ public enum ExceptionCode {
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
     ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다"),
 
-    // 외부 API 요청 8000번대
-    FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다");
+    // 외부 API 요청, 알림 8000번대
+    FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다"),
+    NOT_SUPPORT_ALARM(8002, BAD_REQUEST, "현재 지원하지 않는 알림 이벤트입니다."),
+    FAIL_WITH_SSE(8003, INTERNAL_SERVER_ERROR, "SSE에서 실패하였습니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;
