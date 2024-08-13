@@ -4,7 +4,7 @@ import com.example.cns.member.domain.Member;
 
 public record PostCommentEvent(
         Member to,
-        String from,
+        Member from,
         Long postId,
         String comment) {
 }

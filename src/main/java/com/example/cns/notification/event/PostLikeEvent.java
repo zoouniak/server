@@ -4,8 +4,7 @@ import com.example.cns.member.domain.Member;
 
 public record PostLikeEvent(
         Member to,
-        String from,
-
+        Member from,
         Long postId
 ) {
 }

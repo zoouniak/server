@@ -70,7 +70,7 @@ public class CommentService {
             if (commentPostRequest.mention().size() >= 1)
                 mentionService.saveCommentMention(responseId, commentPostRequest.mention());
 
-            eventPublisher.publishEvent(new PostCommentEvent(post.getMember(), member.getNickname(), commentPostRequest.postId(), commentPostRequest.content()));
+            eventPublisher.publishEvent(new PostCommentEvent(post.getMember(), member, commentPostRequest.postId(), commentPostRequest.content()));
         }
     }
 

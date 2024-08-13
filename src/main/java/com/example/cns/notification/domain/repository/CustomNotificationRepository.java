@@ -13,6 +13,7 @@ import static com.example.cns.notification.domain.QNotification.notification;
 @Repository
 public class CustomNotificationRepository {
     private final JPAQueryFactory queryFactory;
+    private final int ALARM_SIZE = 15;
 
     public CustomNotificationRepository(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
@@ -20,16 +21,21 @@ public class CustomNotificationRepository {
 
     public List<NotificationResponse> getNotificationsByCursor(final Long memberId, final Long cursor) {
         return queryFactory.select(Projections.constructor(NotificationResponse.class,
-                        notification.id.as("id"),
+                        notification.id.as("notificationId"),
+                        notification.from.id.as("fromId"),
+                        notification.from.nickname.as("fromNickname"),
+                        notification.from.url.as("fromUrl"),
                         notification.message.as("message"),
                         notification.subjectId.as("subjectId"),
-                        notification.notificationType.as("type")
+                        notification.notificationType.as("type"),
+                        notification.createdAt.as("createdAt")
                 ))
                 .from(notification)
                 .where(ltCursor(cursor),
                         notification.to.id.eq(memberId)
                 )
                 .orderBy(notification.id.desc())
+                .limit(ALARM_SIZE)
                 .fetch();
 
     }
