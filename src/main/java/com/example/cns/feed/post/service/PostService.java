@@ -304,7 +304,7 @@ public class PostService {
                     .build());
             post.plusLikeCnt();
 
-            eventPublisher.publishEvent(new PostLikeEvent(post.getMember(), member.getNickname(), post.getId()));
+            eventPublisher.publishEvent(new PostLikeEvent(post.getMember(), member, post.getId()));
         }
     }
 
