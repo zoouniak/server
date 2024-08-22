@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +48,7 @@ public class CommentController {
             }
     )
     @PostMapping("/comment")
-    public ResponseEntity writeComment(@Auth Long id, @RequestBody CommentPostRequest commentPostRequest) {
+    public ResponseEntity writeComment(@Auth Long id, @RequestBody @Valid CommentPostRequest commentPostRequest) {
         commentService.createComment(id, commentPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -69,7 +70,7 @@ public class CommentController {
             }
     )
     @PostMapping("/comment/reply")
-    public ResponseEntity writeCommentReply(@Auth Long id, @RequestBody CommentReplyPostRequest commentReplyPostRequest) {
+    public ResponseEntity writeCommentReply(@Auth Long id, @RequestBody @Valid CommentReplyPostRequest commentReplyPostRequest) {
         commentService.createCommentReply(id, commentReplyPostRequest);
         return ResponseEntity.ok().build();
     }
@@ -91,7 +92,7 @@ public class CommentController {
             }
     )
     @DeleteMapping("/comment")
-    public ResponseEntity deleteComment(@Auth Long id, @RequestBody CommentDeleteRequest commentDeleteRequest) {
+    public ResponseEntity deleteComment(@Auth Long id, @RequestBody @Valid CommentDeleteRequest commentDeleteRequest) {
         commentService.deleteComment(id, commentDeleteRequest);
         return ResponseEntity.ok().build();
     }
@@ -158,7 +159,7 @@ public class CommentController {
             }
     )
     @PostMapping("/comment/like")
-    public ResponseEntity addLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
+    public ResponseEntity addLike(@Auth Long id, @RequestBody @Valid CommentLikeRequest commentLikeRequest) {
         commentService.addLike(id, commentLikeRequest);
         return ResponseEntity.ok().build();
     }
@@ -177,7 +178,7 @@ public class CommentController {
             }
     )
     @DeleteMapping("/comment/like")
-    public ResponseEntity deleteLike(@Auth Long id, @RequestBody CommentLikeRequest commentLikeRequest) {
+    public ResponseEntity deleteLike(@Auth Long id, @RequestBody @Valid CommentLikeRequest commentLikeRequest) {
         commentService.deleteLike(id, commentLikeRequest);
         return ResponseEntity.ok().build();
     }
