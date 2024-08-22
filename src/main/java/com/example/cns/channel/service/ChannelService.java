@@ -3,7 +3,7 @@ package com.example.cns.channel.service;
 import com.example.cns.channel.domain.Channel;
 import com.example.cns.channel.domain.ChannelParticipation;
 import com.example.cns.channel.domain.ChannelParticipationID;
-import com.example.cns.channel.dto.request.ChannelCreateRequest;
+import com.example.cns.channel.dto.request.ChannelRequest;
 import com.example.cns.channel.dto.response.ChannelListResponse;
 import com.example.cns.channel.repository.ChannelParticipationRepository;
 import com.example.cns.channel.repository.ChannelRepository;
@@ -50,7 +50,7 @@ public class ChannelService {
     public void init(){this.openVidu = new OpenVidu(openViduURL,openViduSecret);}
 
     @Transactional
-    public void createChannel(Long memberId, Long projectId, ChannelCreateRequest channelCreateRequest) {
+    public void createChannel(Long memberId, Long projectId, ChannelRequest channelRequest) {
 
         Optional<ProjectParticipation> projectParticipation = isProjectParticipation(memberId, projectId);
 
@@ -59,7 +59,7 @@ public class ChannelService {
             Optional<Project> project = projectRepository.findById(projectId);
 
             channelRepository.save(Channel.builder()
-                            .name(channelCreateRequest.name())
+                            .name(channelRequest.name())
                             .project(project.get())
                     .build());
         } else {
@@ -173,13 +173,13 @@ public class ChannelService {
     }
 
     @Transactional
-    public void updateChannelName(Long memberId,Long projectId, Long channelId,ChannelCreateRequest channelCreateRequest) {
+    public void updateChannelName(Long memberId, Long projectId, Long channelId, ChannelRequest channelRequest) {
         Optional<ProjectParticipation> participation = isProjectParticipation(memberId, projectId);
 
         if(participation.isPresent()){
             Optional<Channel> channel = channelRepository.findChannelByChannelIdAndProjectId(channelId, projectId);
             if(channel.isPresent()){
-                channel.get().updateChannelName(channelCreateRequest.name());
+                channel.get().updateChannelName(channelRequest.name());
                 channelRepository.save(channel.get());
             } else throw new BusinessException(ExceptionCode.CHANNEL_NOT_EXIST);
         }else throw new BusinessException(ExceptionCode.NOT_PROJECT_PARTICIPANTS);
