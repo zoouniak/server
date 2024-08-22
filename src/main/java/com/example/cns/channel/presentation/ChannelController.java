@@ -29,9 +29,9 @@ public class ChannelController {
     @Operation(summary = "채널 생성 api", description = "사용자로부터 채널 명을 입력받고, 채널을 생성한다.")
     @Parameters(
             value = {
-                    @Parameter(name = "memberId",description = "JWT/사용자 id"),
+                    @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "channelRequest", description = "채널명 추가 DTO"),
-                    @Parameter(name = "projectId",description = "프로젝트 인덱스값")
+                    @Parameter(name = "projectId", description = "프로젝트 인덱스값")
             }
     )
     @ApiResponses(value = {
@@ -39,8 +39,8 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project/{projectId}/channel")
-    public ResponseEntity<?> createChannel(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ChannelRequest channelRequest){
-        channelService.createChannel(memberId,projectId, channelRequest);
+    public ResponseEntity<?> createChannel(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ChannelRequest channelRequest) {
+        channelService.createChannel(memberId, projectId, channelRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -58,7 +58,7 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/project/{projectId}/channel/{channelId}")
-    public ResponseEntity<?> deleteChannel(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId){
+    public ResponseEntity<?> deleteChannel(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId) {
         channelService.deleteChannel(memberId, projectId, channelId);
         return ResponseEntity.ok().build();
     }
@@ -77,8 +77,8 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project/{projectId}/channel/{channelId}")
-    public ResponseEntity<?> enterChannel(@Auth Long memberId,@PathVariable Long projectId, @PathVariable Long channelId){
-        return ResponseEntity.ok(channelService.createSession(memberId,projectId,channelId));
+    public ResponseEntity<?> enterChannel(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId) {
+        return ResponseEntity.ok(channelService.createSession(memberId, projectId, channelId));
     }
 
     //채널 입장 2(토큰 생성)
@@ -87,7 +87,7 @@ public class ChannelController {
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
-                    @Parameter(name = "channelId",description = "채널 인덱스 값"),
+                    @Parameter(name = "channelId", description = "채널 인덱스 값"),
                     @Parameter(name = "sessionId", description = "채널 세션 값")
             }
     )
@@ -96,8 +96,8 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PostMapping("/project/{projectId}/channel/{channelId}/connection/{sessionId}")
-    public ResponseEntity<?> createToken(@Auth Long memberId,@PathVariable Long projectId, @PathVariable Long channelId, @PathVariable String sessionId){
-        return ResponseEntity.ok(channelService.createToken(memberId,projectId,channelId, sessionId));
+    public ResponseEntity<?> createToken(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId, @PathVariable String sessionId) {
+        return ResponseEntity.ok(channelService.createToken(memberId, projectId, channelId, sessionId));
     }
 
     //채널 퇴장
@@ -106,7 +106,7 @@ public class ChannelController {
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
-                    @Parameter(name = "channelId",description = "채널 인덱스 값")
+                    @Parameter(name = "channelId", description = "채널 인덱스 값")
             }
     )
     @ApiResponses(value = {
@@ -114,8 +114,8 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @DeleteMapping("/project/{projectId}/channel/{channelId}/connection")
-    public ResponseEntity<?> exitChannel(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId){
-        channelService.exitChannel(memberId,projectId,channelId);
+    public ResponseEntity<?> exitChannel(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId) {
+        channelService.exitChannel(memberId, projectId, channelId);
         return ResponseEntity.ok().build();
     }
 
@@ -132,8 +132,8 @@ public class ChannelController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ChannelListResponse.class))))
     })
     @GetMapping("/project/{projectId}/channel")
-    public ResponseEntity<?> getChannelList(@Auth Long memberId, @PathVariable Long projectId){
-        return ResponseEntity.ok(channelService.getChannelList(memberId,projectId));
+    public ResponseEntity<?> getChannelList(@Auth Long memberId, @PathVariable Long projectId) {
+        return ResponseEntity.ok(channelService.getChannelList(memberId, projectId));
     }
 
     //채널명 수정
@@ -142,8 +142,8 @@ public class ChannelController {
             value = {
                     @Parameter(name = "memberId", description = "JWT/사용자 id"),
                     @Parameter(name = "projectId", description = "프로젝트 인덱스 값"),
-                    @Parameter(name = "channelId",description = "채널 인덱스 값"),
-                    @Parameter(name = "channelRequest",description = "채널명 수정 DTO")
+                    @Parameter(name = "channelId", description = "채널 인덱스 값"),
+                    @Parameter(name = "channelRequest", description = "채널명 수정 DTO")
             }
     )
     @ApiResponses(value = {
@@ -151,8 +151,8 @@ public class ChannelController {
                     content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PutMapping("/project/{projectId}/channel/{channelId}")
-    public ResponseEntity<?> updateChannelName(@Auth Long memberId,@PathVariable Long projectId, @PathVariable Long channelId,@RequestBody ChannelRequest channelRequest){
-        channelService.updateChannelName(memberId,projectId,channelId, channelRequest);
+    public ResponseEntity<?> updateChannelName(@Auth Long memberId, @PathVariable Long projectId, @PathVariable Long channelId, @RequestBody ChannelRequest channelRequest) {
+        channelService.updateChannelName(memberId, projectId, channelId, channelRequest);
         return ResponseEntity.ok().build();
     }
 }

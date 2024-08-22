@@ -21,12 +21,12 @@ public class Channel {
     private String name;
 
     @Builder
-    public Channel(String name, Project project){
+    public Channel(String name, Project project) {
         this.name = name;
         this.project = project;
     }
 
-    public void updateChannelName(String name){
+    public void updateChannelName(String name) {
         this.name = name;
     }
 }

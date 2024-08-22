@@ -32,35 +32,34 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChannelService {
 
-    private OpenVidu openVidu;
-
-    @Value("${external-api.openvidu-url}")
-    private String openViduURL;
-
-    @Value("${external-api.openvidu-url-secret}")
-    private String openViduSecret;
-
     private final ChannelRepository channelRepository;
     private final ProjectParticipationRepository projectParticipationRepository;
     private final ChannelParticipationRepository channelParticipationRepository;
     private final ProjectRepository projectRepository;
     private final MemberRepository memberRepository;
+    private OpenVidu openVidu;
+    @Value("${external-api.openvidu-url}")
+    private String openViduURL;
+    @Value("${external-api.openvidu-url-secret}")
+    private String openViduSecret;
 
     @PostConstruct
-    public void init(){this.openVidu = new OpenVidu(openViduURL,openViduSecret);}
+    public void init() {
+        this.openVidu = new OpenVidu(openViduURL, openViduSecret);
+    }
 
     @Transactional
     public void createChannel(Long memberId, Long projectId, ChannelRequest channelRequest) {
 
         Optional<ProjectParticipation> projectParticipation = isProjectParticipation(memberId, projectId);
 
-        if(projectParticipation.isPresent()){
+        if (projectParticipation.isPresent()) {
 
             Optional<Project> project = projectRepository.findById(projectId);
 
             channelRepository.save(Channel.builder()
-                            .name(channelRequest.name())
-                            .project(project.get())
+                    .name(channelRequest.name())
+                    .project(project.get())
                     .build());
         } else {
             throw new BusinessException(ExceptionCode.FAIL_CREATE_CHANNEL);
@@ -71,12 +70,12 @@ public class ChannelService {
     public void deleteChannel(Long memberId, Long projectId, Long channelId) {
         Optional<ProjectParticipation> projectParticipation = isProjectParticipation(memberId, projectId);
 
-        if(projectParticipation.isPresent()){
+        if (projectParticipation.isPresent()) {
             Optional<Channel> channelExists = isChannelExists(projectId, channelId);
 
-            if(channelExists.isPresent()){
+            if (channelExists.isPresent()) {
                 List<ChannelParticipation> participation = channelParticipationRepository.findChannelParticipationByChannel(channelId);
-                if(participation.size() > 0){
+                if (participation.size() > 0) {
                     throw new BusinessException(ExceptionCode.CHANNEL_PARTICIPATION_EXIST);
                 } else channelRepository.deleteById(channelId);
             }
@@ -86,14 +85,14 @@ public class ChannelService {
     public String createSession(Long memberId, Long projectId, Long channelId) {
         Optional<ProjectParticipation> projectParticipation = isProjectParticipation(memberId, projectId);
 
-        if(projectParticipation.isPresent()){
+        if (projectParticipation.isPresent()) {
             Optional<Channel> channel = isChannelExists(projectId, channelId);
-            if(channel.isPresent()){
+            if (channel.isPresent()) {
                 SessionProperties sessionProperties = new SessionProperties.Builder()
-                        .customSessionId(channel.get().getName()+channelId) //세션 아이디 고유성 + 재접근용
+                        .customSessionId(channel.get().getName() + channelId) //세션 아이디 고유성 + 재접근용
                         .build();
                 try {
-                    Session session =openVidu.createSession(sessionProperties);
+                    Session session = openVidu.createSession(sessionProperties);
                     return session.getSessionId();
                 } catch (OpenViduJavaClientException | OpenViduHttpException e) {
                     throw new BusinessException(ExceptionCode.FAIL_GET_API);
@@ -105,11 +104,11 @@ public class ChannelService {
     }
 
     @Transactional
-    public String createToken(Long memberId,Long projectId,Long channelId, String sessionId) {
+    public String createToken(Long memberId, Long projectId, Long channelId, String sessionId) {
 
         Member member = isMemberExists(memberId);
 
-        try{
+        try {
             Session session = openVidu.getActiveSession(sessionId);
 
             ConnectionProperties connectionProperties = new ConnectionProperties.Builder()
@@ -118,12 +117,12 @@ public class ChannelService {
                     .data(member.getNickname())
                     .build();
 
-            Connection connection =session.createConnection(connectionProperties);
+            Connection connection = session.createConnection(connectionProperties);
 
-            enterChannel(projectId,memberId,channelId);
+            enterChannel(projectId, memberId, channelId);
 
             return connection.getToken();
-        }catch (OpenViduJavaClientException | OpenViduHttpException e){
+        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             e.printStackTrace();
             throw new BusinessException(ExceptionCode.FAIL_GET_API);
         }
@@ -132,8 +131,8 @@ public class ChannelService {
     @Transactional
     public void exitChannel(Long memberId, Long projectId, Long channelId) {
         Optional<ChannelParticipation> channelParticipation = channelParticipationRepository.findById(new ChannelParticipationID(memberId, channelId));
-        if(channelParticipation.isPresent()){
-            channelParticipationRepository.deleteChannelParticipationByChannelAndMember(channelId,memberId);
+        if (channelParticipation.isPresent()) {
+            channelParticipationRepository.deleteChannelParticipationByChannelAndMember(channelId, memberId);
         } else throw new BusinessException(ExceptionCode.NOT_CHANNEL_PARTICIPATION);
     }
 
@@ -141,7 +140,7 @@ public class ChannelService {
 
         Optional<ProjectParticipation> participation = isProjectParticipation(memberId, projectId);
 
-        if(participation.isPresent()){
+        if (participation.isPresent()) {
             List<Object[]> channels = channelRepository.findChannelsWithMemberInfoByProject(projectId);
 
             Map<Channel, List<PostMember>> channelWithMembersMap = new HashMap<>();
@@ -152,7 +151,7 @@ public class ChannelService {
 
                 channelWithMembersMap.computeIfAbsent(channel, k -> new ArrayList<>());
 
-                if(member != null){
+                if (member != null) {
                     channelWithMembersMap.get(channel).add(PostMember.builder()
                             .id(member.getId())
                             .nickname(member.getNickname())
@@ -176,21 +175,21 @@ public class ChannelService {
     public void updateChannelName(Long memberId, Long projectId, Long channelId, ChannelRequest channelRequest) {
         Optional<ProjectParticipation> participation = isProjectParticipation(memberId, projectId);
 
-        if(participation.isPresent()){
+        if (participation.isPresent()) {
             Optional<Channel> channel = channelRepository.findChannelByChannelIdAndProjectId(channelId, projectId);
-            if(channel.isPresent()){
+            if (channel.isPresent()) {
                 channel.get().updateChannelName(channelRequest.name());
                 channelRepository.save(channel.get());
             } else throw new BusinessException(ExceptionCode.CHANNEL_NOT_EXIST);
-        }else throw new BusinessException(ExceptionCode.NOT_PROJECT_PARTICIPANTS);
+        } else throw new BusinessException(ExceptionCode.NOT_PROJECT_PARTICIPANTS);
     }
 
 
     //method
-    private void enterChannel(Long projectId,Long memberId, Long channelId){
+    private void enterChannel(Long projectId, Long memberId, Long channelId) {
 
         Optional<Channel> channelExists = isChannelExists(projectId, channelId);
-        if(channelExists.isPresent()){
+        if (channelExists.isPresent()) {
             channelParticipationRepository.save(ChannelParticipation.builder()
                     .member(memberId)
                     .channel(channelId)
@@ -198,15 +197,15 @@ public class ChannelService {
         }
     }
 
-    private Optional<ProjectParticipation> isProjectParticipation(Long memberId, Long projectId){
+    private Optional<ProjectParticipation> isProjectParticipation(Long memberId, Long projectId) {
         return projectParticipationRepository.findById(ProjectParticipationID.builder()
                 .project(projectId)
                 .member(memberId)
                 .build());
     }
 
-    private Optional<Channel> isChannelExists(Long projectId, Long channelId){
-        return channelRepository.findChannelByChannelIdAndProjectId(channelId,projectId);
+    private Optional<Channel> isChannelExists(Long projectId, Long channelId) {
+        return channelRepository.findChannelByChannelIdAndProjectId(channelId, projectId);
     }
 
     private Member isMemberExists(Long memberId) {

@@ -23,15 +23,14 @@ public class ChannelParticipation implements Persistable<ChannelParticipationID>
     private Long channel;
 
     @Builder
-    public ChannelParticipation(Long member, Long channel){
+    public ChannelParticipation(Long member, Long channel) {
         this.member = member;
         this.channel = channel;
     }
 
-
     @Override
     public ChannelParticipationID getId() {
-        return new ChannelParticipationID(this.member,this.channel);
+        return new ChannelParticipationID(this.member, this.channel);
     }
 
     @Override
