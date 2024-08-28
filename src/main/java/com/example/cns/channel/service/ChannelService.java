@@ -107,25 +107,28 @@ public class ChannelService {
     public String createToken(Long memberId, Long projectId, Long channelId, String sessionId) {
 
         Member member = isMemberExists(memberId);
+        Optional<ChannelParticipation> participation = isChannelParticipation(channelId, memberId);
 
-        try {
-            Session session = openVidu.getActiveSession(sessionId);
+        if(participation.isPresent()){
+            try {
+                Session session = openVidu.getActiveSession(sessionId);
 
-            ConnectionProperties connectionProperties = new ConnectionProperties.Builder()
-                    .type(ConnectionType.WEBRTC)
-                    .role(OpenViduRole.PUBLISHER)
-                    .data(member.getNickname())
-                    .build();
+                ConnectionProperties connectionProperties = new ConnectionProperties.Builder()
+                        .type(ConnectionType.WEBRTC)
+                        .role(OpenViduRole.PUBLISHER)
+                        .data(member.getNickname())
+                        .build();
 
-            Connection connection = session.createConnection(connectionProperties);
+                Connection connection = session.createConnection(connectionProperties);
 
-            enterChannel(projectId, memberId, channelId);
+                enterChannel(projectId, memberId, channelId);
 
-            return connection.getToken();
-        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
-            e.printStackTrace();
-            throw new BusinessException(ExceptionCode.FAIL_GET_API);
-        }
+                return connection.getToken();
+            } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+                e.printStackTrace();
+                throw new BusinessException(ExceptionCode.FAIL_GET_API);
+            }
+        } else throw new BusinessException(ExceptionCode.CHANNEL_PARTICIPATION_EXIST);
     }
 
     @Transactional
@@ -211,5 +214,9 @@ public class ChannelService {
     private Member isMemberExists(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(
                 () -> new BusinessException(ExceptionCode.MEMBER_NOT_FOUND));
+    }
+
+    private Optional<ChannelParticipation> isChannelParticipation(Long channelId, Long memberId){
+        return channelParticipationRepository.findById(new ChannelParticipationID(memberId,channelId));
     }
 }
