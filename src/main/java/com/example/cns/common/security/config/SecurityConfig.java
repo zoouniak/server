@@ -79,7 +79,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() { // Localhost 환경 cors
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://" + serverIp + ":5173", "http://" + serverIp + ":5174"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:5173", "http://localhost:5174", "http://" + serverIp + ":5173", "http://" + serverIp + ":5174"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));
         configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization", "Content-Type", "Cache-Control", "RefreshToken", "Content-Type", "Connection", "keep-alive"));

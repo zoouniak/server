@@ -109,7 +109,7 @@ public class ChannelService {
         Member member = isMemberExists(memberId);
         Optional<ChannelParticipation> participation = isChannelParticipation(channelId, memberId);
 
-        if(participation.isPresent()){
+        if(participation.isEmpty()){
             try {
                 Session session = openVidu.getActiveSession(sessionId);
 
