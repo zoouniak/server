@@ -24,4 +24,6 @@ public interface MentionRepository extends JpaRepository<Mention, Long> {
 
     @Query("SELECT m.subjectId, m.member.id, m.member.nickname FROM Mention m WHERE m.subjectId IN :subjectIds AND m.mentionType = :mentionType")
     List<Object[]> findMentionsBySubjectId(@Param("subjectIds") List<Long> subjectIds, @Param("mentionType") MentionType mentionType);
+
+    List<Mention> findAllBySubjectIdAndMentionType(Long subjectId, MentionType type);
 }

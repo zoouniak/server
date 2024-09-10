@@ -14,6 +14,7 @@ import java.util.List;
 import static com.example.cns.chat.domain.QChat.chat;
 import static com.example.cns.feed.post.domain.QPost.post;
 import static com.example.cns.feed.post.domain.QPostLike.postLike;
+import static com.example.cns.hashtag.domain.QHashTag.hashTag;
 import static com.example.cns.hashtag.domain.QHashTagPost.hashTagPost;
 
 @Repository
@@ -58,5 +59,14 @@ public class HashTagSearchRepository {
             return null;
         }
         return chat.id.lt(postId);
+    }
+
+    public List<String> getHashTagPostWithTagName(Long postId) {
+        return queryFactory.select(hashTag.name)
+                .from(hashTagPost)
+                .join(hashTag)
+                .on(hashTagPost.id.post.eq(hashTag.id))
+                .where(hashTagPost.id.post.eq(postId))
+                .fetch();
     }
 }

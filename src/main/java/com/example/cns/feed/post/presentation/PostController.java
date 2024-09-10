@@ -138,7 +138,7 @@ public class PostController {
     )
     @GetMapping("/post/home")
     public ResponseEntity<List<PostResponse>> getPosts(
-            @Auth Long id, @RequestParam(name = "cursorValue",required = false) Long cursorValue, @RequestParam(name = "page", required = false) Long page) {
+            @Auth Long id, @RequestParam(name = "cursorValue", required = false) Long cursorValue, @RequestParam(name = "page", required = false) Long page) {
         List<PostResponse> posts = postService.getPosts(cursorValue, page, id);
         return ResponseEntity.ok(posts);
     }
@@ -224,6 +224,11 @@ public class PostController {
     public ResponseEntity<PostDataListResponse> getDataAboutPost(@Auth Long id, @PathVariable Long postId) {
         PostDataListResponse response = postService.getSpecificPost(id, postId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/post/one/{postId}")
+    public ResponseEntity<PostResponse> getPost(@Auth final Long memberId, @PathVariable(name = "postId") final Long postId) {
+        return ResponseEntity.ok(postService.getPost(postId, memberId));
     }
 
 }

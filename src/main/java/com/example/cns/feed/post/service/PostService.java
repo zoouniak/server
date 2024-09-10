@@ -23,23 +23,26 @@ import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.domain.HashTagPost;
 import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
+import com.example.cns.hashtag.domain.repository.HashTagSearchRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.mention.domain.Mention;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
+import com.example.cns.notification.event.PostLikeEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,8 +70,11 @@ public class PostService {
     private final PostListRepository postListRepository;
     private final MentionRepository mentionRepository;
     private final HashTagRepository hashTagRepository;
+    private final HashTagSearchRepository hashTagSearchRepository;
     private final HashTagPostRepository hashTagPostRepository;
     private final ObjectMapper objectMapper;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${external-api.recommend-post}")
     private String api;
@@ -87,15 +93,12 @@ public class PostService {
         Long responseId = postRepository.save(postRequest.toEntity(member)).getId();
 
         //postRequest 에서 언급된 인원 가져와 멘션 테이블 저장
-        if(postRequest.mention() != null && !(postRequest.mention().isEmpty()))
-            mentionService.savePostMention(responseId, postRequest.mention());
-
+        mentionService.savePostMention(responseId, postRequest.mention());
         //postRequest 에서 만든 해시태그 저장
-        if(postRequest.hashtag() != null && !(postRequest.hashtag().isEmpty()))
-            hashTagService.createHashTag(responseId, postRequest.hashtag());
+        hashTagService.createHashTag(responseId, postRequest.hashtag());
 
         //파일이 있을시에 DB에 연관된 파일 저장
-        if (postRequest.postFileList() != null && !(postRequest.postFileList().isEmpty())) {
+        if (postRequest.postFileList() != null) {
             postRequest.postFileList().forEach(
                     file -> {
                         PostFile postfile = PostFile.builder()
@@ -118,8 +121,8 @@ public class PostService {
     1. 사용자 id, 게시글 id 받아온다
     2. 해당 게시글이 존재하는지?
     3. 해당 게시글과 사용자가 일치하는지?
-    4. 해당 게시글 관련 정보 삭제하는지?
-    5. 삭제 성공
+    4. 삭제 성공
+    + 사진 삭제 필요?
      */
     @Transactional
     public void deletePost(Long id, Long postId) {
@@ -138,29 +141,29 @@ public class PostService {
 
             //해시태그 삭제
             List<HashTagPost> isHashTagList = hashTagPostRepository.findAllByPostId(postId);
-            if(isHashTagList != null && !(isHashTagList.isEmpty()))
+            if (isHashTagList != null && !(isHashTagList.isEmpty()))
                 hashTagService.deleteHashTag(isHashTagList);
             //해시태그 삭제
 
             //멘션 테이블 삭제
             List<Object[]> isMentionList = mentionRepository.findMentionsBySubjectId(List.of(postId), MentionType.FEED);
-            if(isMentionList != null && !(isMentionList.isEmpty()))
+            if (isMentionList != null && !(isMentionList.isEmpty()))
                 mentionService.deletePostMention(postId);
             //멘션 테이블 삭제
 
             //파일 삭제
             List<PostFile> isFileList = postFileRepository.findAllByPostId(postId);
-            if(isFileList != null && !(isFileList.isEmpty())){
-               isFileList.forEach(
-                       postFile -> {
-                           try {
-                               postFileRepository.deleteById(postFile.getId());
-                               s3Service.deleteFile(postFile.getFileName(), "post");
-                           } catch (IOException e) { //파일 삭제 실패
-                               throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
-                           }
-                       }
-               );
+            if (isFileList != null && !(isFileList.isEmpty())) {
+                isFileList.forEach(
+                        postFile -> {
+                            try {
+                                postFileRepository.deleteById(postFile.getId());
+                                s3Service.deleteFile(postFile.getFileName(), "post");
+                            } catch (IOException e) { //파일 삭제 실패
+                                throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
+                            }
+                        }
+                );
             }
             //파일 삭제
 
@@ -169,6 +172,7 @@ public class PostService {
             //게시글 삭제
 
         } else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
+
 
     }
 
@@ -215,17 +219,15 @@ public class PostService {
     3. 끝
      */
     public List<FileResponse> getPostMedia(Long postId) {
-        List<FileResponse> postFileResponses = new ArrayList<>();
         List<PostFile> allPostFile = postFileRepository.findAllByPostId(postId);
-        allPostFile.forEach(
-                postFile -> {
-                    postFileResponses.add(FileResponse.builder()
-                            .uploadFileName(postFile.getFileName())
-                            .uploadFileURL(postFile.getUrl())
-                            .fileType(postFile.getFileType())
-                            .build());
-                }
-        );
+
+        List<FileResponse> postFileResponses = allPostFile.stream()
+                .map((file) -> new FileResponse(
+                        file.getFileName(),
+                        file.getUrl(),
+                        file.getFileType()
+                )).collect(Collectors.toList());
+
         return postFileResponses;
     }
 
@@ -256,12 +258,10 @@ public class PostService {
                     .filter(mention -> !updateMentions.contains(mention))
                     .collect(Collectors.toList());
 
-            if (!(addedMentions.isEmpty()) || !(removedMentions.isEmpty())) {
-                mentionService.updateMention(postId, addedMentions, removedMentions);
-                // 이후에 바뀐 멘션으로 개수 바꾸기
-                post.updateMentionCnt(postPatchRequest.mention().size());
-            }
-            // 멘션 수정 로직
+            mentionService.updateMention(postId, addedMentions, removedMentions);
+            //이후에 바뀐 멘션으로 개수 바꾸기
+            post.updateMentionCnt(postPatchRequest.mention().size());
+            //멘션 수정 로직
 
             //해시태그 수정 로직
             List<String> previousHashTags = extractHashTag(previousContent);
@@ -273,13 +273,11 @@ public class PostService {
                     .filter(hashtag -> !updateHashTags.contains(hashtag))
                     .collect(Collectors.toList());
 
-            if(!(addedHashTags.isEmpty()) || !(removedHashTags.isEmpty()))
-                hashTagService.updateHashTag(postId, addedHashTags, removedHashTags);
+            hashTagService.updateHashTag(postId, addedHashTags, removedHashTags);
             //해시태그 수정 로직
 
             //댓글 허용여부 수정
-            if(!(post.isCommentEnabled() == postPatchRequest.isCommentEnabled()))
-                post.updateIsCommentEnabled(postPatchRequest.isCommentEnabled());
+            post.updateIsCommentEnabled(postPatchRequest.isCommentEnabled());
             //댓글 허용여부 수정
 
             //미디어 변경 로직
@@ -336,14 +334,15 @@ public class PostService {
         Member member = isMemberExists(id);
         Post post = isPostExists(postLikeRequest.postId());
 
-        Optional<PostLike> postLike = isPostLikeExists(member, post);
-        if (postLike.isEmpty()) { //좋아요 중복 방지
-            PostLike like = PostLike.builder()
+        // Optional<PostLike> postLike = isPostLikeExists(member, post);
+        if (!postLikeRepository.existsByPostAndMember(post, member)) { //좋아요 중복 방지
+            postLikeRepository.save(PostLike.builder()
                     .member(member)
                     .post(post)
-                    .build();
-            postLikeRepository.save(like);
+                    .build());
             post.plusLikeCnt();
+
+            eventPublisher.publishEvent(new PostLikeEvent(post.getMember(), member, post.getId()));
         }
     }
 
@@ -351,12 +350,23 @@ public class PostService {
     public void deleteLike(Long id, PostLikeRequest postLikeRequest) {
         Member member = isMemberExists(id);
         Post post = isPostExists(postLikeRequest.postId());
+        if (postLikeRepository.existsByPostAndMember(post, member)) {
+            postLikeRepository.deleteByPostAndMember(post, member);
+        }
 
-        Optional<PostLike> postLike = isPostLikeExists(member, post);
-        if (postLike.isPresent()) {
+      /*  if (postLike.isPresent()) {
             postLikeRepository.deletePostLikeByMemberIdAndPostId(member.getId(), post.getId());
             post.minusLikeCnt();
-        }
+        }*/
+    }
+
+    public PostResponse getPost(final Long postId, final Long memberId) {
+        Post post = isPostExists(postId);
+        Member member = isMemberExists(memberId);
+        boolean isLike = postLikeRepository.existsByPostAndMember(post, member);
+        List<Mention> mentions = mentionRepository.findAllBySubjectIdAndMentionType(postId, MentionType.FEED);
+        List<String> postWithTagName = hashTagSearchRepository.getHashTagPostWithTagName(postId);
+        return PostResponse.of(post, isLike, mentions, postWithTagName);
     }
 
     public PostDataListResponse getSpecificPost(Long id, Long postId) {
@@ -424,15 +434,15 @@ public class PostService {
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
 
-    private Optional<PostLike> isPostLikeExists(Member member, Post post) {
+   /* private Optional<PostLike> isPostLikeExists(Member member, Post post) {
         return postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
-    }
+    }*/
 
     private String makeUrl(Long memberId, Long page) {
         return api + "/" + memberId + "/" + page + "/10";
     }
 
-    private List<PostResponse> postResponseWithData(List<PostResponse> posts){
+    private List<PostResponse> postResponseWithData(List<PostResponse> posts) {
         List<Long> postIds = posts.stream().map(PostResponse::getId).toList();
 
         Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
