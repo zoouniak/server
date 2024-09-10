@@ -4,14 +4,19 @@ import com.example.cns.feed.comment.domain.Comment;
 import com.example.cns.feed.post.domain.Post;
 import com.example.cns.member.domain.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "댓글 등록 요청 DTO")
 public record CommentPostRequest(
+        @NotNull
         @Schema(description = "게시글 인덱스")
         Long postId,
+        @NotBlank
         @Schema(description = "댓글 내용")
         String content,
         @Schema(description = "멘션 리스트", defaultValue = "null", example = "['@사용자1','@사용자2']")
