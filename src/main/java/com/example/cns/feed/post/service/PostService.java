@@ -20,6 +20,8 @@ import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.hashtag.domain.HashTagPost;
+import com.example.cns.hashtag.domain.repository.HashTagPostRepository;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
 import com.example.cns.hashtag.domain.repository.HashTagSearchRepository;
 import com.example.cns.hashtag.service.HashTagService;
@@ -69,6 +71,7 @@ public class PostService {
     private final MentionRepository mentionRepository;
     private final HashTagRepository hashTagRepository;
     private final HashTagSearchRepository hashTagSearchRepository;
+    private final HashTagPostRepository hashTagPostRepository;
     private final ObjectMapper objectMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -126,18 +129,50 @@ public class PostService {
         Post post = isPostExists(postId);
 
         if (post.getMember().getId().equals(id)) {
-            //게시글의 댓글들 삭제 로직
-            //todo 필요없는 로직
+
+            //댓글 삭제
             post.getComments().forEach(
                     comment -> {
                         if (comment.getParentComment() == null)
                             commentService.deleteComment(-1L, new CommentDeleteRequest(postId, comment.getId()));
                     }
             );
-            hashTagService.deleteHashTag(postId); //해시태그 삭제
-            mentionService.deletePostMention(postId); //멘션 테이블 삭제
-            postRepository.deleteById(postId); //게시글 삭제
+            //댓글 삭제
+
+            //해시태그 삭제
+            List<HashTagPost> isHashTagList = hashTagPostRepository.findAllByPostId(postId);
+            if (isHashTagList != null && !(isHashTagList.isEmpty()))
+                hashTagService.deleteHashTag(isHashTagList);
+            //해시태그 삭제
+
+            //멘션 테이블 삭제
+            List<Object[]> isMentionList = mentionRepository.findMentionsBySubjectId(List.of(postId), MentionType.FEED);
+            if (isMentionList != null && !(isMentionList.isEmpty()))
+                mentionService.deletePostMention(postId);
+            //멘션 테이블 삭제
+
+            //파일 삭제
+            List<PostFile> isFileList = postFileRepository.findAllByPostId(postId);
+            if (isFileList != null && !(isFileList.isEmpty())) {
+                isFileList.forEach(
+                        postFile -> {
+                            try {
+                                postFileRepository.deleteById(postFile.getId());
+                                s3Service.deleteFile(postFile.getFileName(), "post");
+                            } catch (IOException e) { //파일 삭제 실패
+                                throw new BusinessException(ExceptionCode.IMAGE_DELETE_FAILED);
+                            }
+                        }
+                );
+            }
+            //파일 삭제
+
+            //게시글 삭제
+            postRepository.deleteById(postId);
+            //게시글 삭제
+
         } else throw new BusinessException(ExceptionCode.NOT_POST_WRITER);
+
 
     }
 
