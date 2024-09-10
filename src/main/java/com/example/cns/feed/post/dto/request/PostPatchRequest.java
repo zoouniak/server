@@ -8,8 +8,8 @@ import java.util.List;
 
 @Schema(description = "게시글 수정 요청 DTO")
 public record PostPatchRequest(
-        @Schema(description = "수정된 게시글 내용")
         @NotBlank
+        @Schema(description = "수정된 게시글 내용")
         String content,
         @Schema(description = "수정된 해시태그 내용")
         List<String> hashtag,
