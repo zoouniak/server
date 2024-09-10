@@ -21,9 +21,11 @@ import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostDataListResponse;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
+import com.example.cns.hashtag.domain.repository.HashTagSearchRepository;
 import com.example.cns.hashtag.service.HashTagService;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
+import com.example.cns.mention.domain.Mention;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
@@ -66,6 +68,7 @@ public class PostService {
     private final PostListRepository postListRepository;
     private final MentionRepository mentionRepository;
     private final HashTagRepository hashTagRepository;
+    private final HashTagSearchRepository hashTagSearchRepository;
     private final ObjectMapper objectMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -320,6 +323,15 @@ public class PostService {
             postLikeRepository.deletePostLikeByMemberIdAndPostId(member.getId(), post.getId());
             post.minusLikeCnt();
         }*/
+    }
+
+    public PostResponse getPost(final Long postId, final Long memberId) {
+        Post post = isPostExists(postId);
+        Member member = isMemberExists(memberId);
+        boolean isLike = postLikeRepository.existsByPostAndMember(post, member);
+        List<Mention> mentions = mentionRepository.findAllBySubjectIdAndMentionType(postId, MentionType.FEED);
+        List<String> postWithTagName = hashTagSearchRepository.getHashTagPostWithTagName(postId);
+        return PostResponse.of(post, isLike, mentions, postWithTagName);
     }
 
     public PostDataListResponse getSpecificPost(Long id, Long postId) {

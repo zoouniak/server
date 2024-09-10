@@ -1,5 +1,6 @@
 package com.example.cns.feed.post.dto.response;
 
+import com.example.cns.member.domain.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,5 +24,13 @@ public class PostMember {
         this.id = id;
         this.nickname = nickname;
         this.profile = profile;
+    }
+
+    public static PostMember of(Member member) {
+        return new PostMember(
+                member.getId(),
+                member.getNickname(),
+                member.getUrl()
+        );
     }
 }
