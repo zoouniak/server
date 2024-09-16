@@ -3,9 +3,7 @@ package com.example.cns.chat.presentation;
 import com.example.cns.auth.config.Auth;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberAddRequest;
-import com.example.cns.chat.dto.response.ChatParticipantsResponse;
-import com.example.cns.chat.dto.response.ChatResponse;
-import com.example.cns.chat.dto.response.ChatRoomResponse;
+import com.example.cns.chat.dto.response.*;
 import com.example.cns.chat.service.ChatRoomService;
 import com.example.cns.chat.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +39,7 @@ public class ChatRoomController {
             content = @Content(schema = @Schema(implementation = ChatRoomResponse.class)))
     @GetMapping("/index")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity getChatRoomPaging(@Auth Long memberId, @RequestParam(name = "page", defaultValue = "1") int page) {
+    public ResponseEntity<List<ChatRoomResponse>> getChatRoomPaging(@Auth Long memberId, @RequestParam(name = "page", defaultValue = "1") int page) {
         List<ChatRoomResponse> allChatroom = chatRoomService.findChatRoomsByPage(memberId, page);
 
         if (allChatroom.isEmpty()) // 조회된 채팅방이 없는 경우
@@ -63,7 +61,7 @@ public class ChatRoomController {
             })
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity createChatRoom(@Auth Long memberId, @RequestBody @Valid ChatRoomCreateRequest request) {
+    public ResponseEntity<ChatRoomCreateResponse> createChatRoom(@Auth Long memberId, @RequestBody @Valid ChatRoomCreateRequest request) {
         return ResponseEntity.ok(chatRoomService.createChatRoom(memberId, request));
     }
 
@@ -76,7 +74,7 @@ public class ChatRoomController {
                     )
             })
     @DeleteMapping("/{roomId}")
-    public ResponseEntity leaveChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
+    public ResponseEntity<ChatRoomCreateResponse> leaveChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
         chatRoomService.leaveChatRoom(memberId, roomId);
         return ResponseEntity.ok().build();
     }
@@ -90,7 +88,7 @@ public class ChatRoomController {
     @ApiResponse(responseCode = "200", description = "조회된 채팅 내역", content = @Content(schema = @Schema(implementation = ChatResponse.class)))
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{roomId}")
-    public ResponseEntity getChatList(@PathVariable(name = "roomId") Long roomId, @RequestParam(name = "chatId", required = false) Long chatId) {
+    public ResponseEntity<List<ChatResponse>> getChatList(@PathVariable(name = "roomId") Long roomId, @RequestParam(name = "chatId", required = false) Long chatId) {
         List<ChatResponse> chat = chatService.getPaginationChat(roomId, chatId);
         return ResponseEntity.ok(chat);
     }
@@ -105,7 +103,7 @@ public class ChatRoomController {
             })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{roomId}/participant")
-    public ResponseEntity getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
+    public ResponseEntity<List<ChatParticipantsResponse>> getParticipants(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId) {
         chatRoomService.verifyRoomId(roomId);
         chatRoomService.verifyMemberInChatRoom(memberId, roomId);
 
@@ -127,8 +125,8 @@ public class ChatRoomController {
             })
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{roomId}/invite")
-    public ResponseEntity addMemberInChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId,
-                                              @RequestBody MemberAddRequest inviteList) {
+    public ResponseEntity<ChatRoomMsgResponse> addMemberInChatRoom(@Auth Long memberId, @PathVariable(name = "roomId") Long roomId,
+                                                                   @RequestBody MemberAddRequest inviteList) {
         // 검증
         chatRoomService.verifyMemberInChatRoom(memberId, roomId);
 
@@ -136,7 +134,12 @@ public class ChatRoomController {
     }
 
     @GetMapping("/{roomId}/images")
-    public ResponseEntity getImagesInChatRoom(@PathVariable Long roomId) {
+    public ResponseEntity<List<ChatFileResponse>> getImagesInChatRoom(@PathVariable Long roomId) {
         return ResponseEntity.ok(chatService.getImages(roomId));
+    }
+
+    @GetMapping("/{roomId}/search")
+    public ResponseEntity<List<ChatResponse>> searchChat(@RequestParam(name = "word") final String word, @PathVariable Long roomId, @RequestParam(required = false, name = "chatId") final Long chatId) {
+        return ResponseEntity.ok(chatService.searchChat(word, roomId, chatId));
     }
 }

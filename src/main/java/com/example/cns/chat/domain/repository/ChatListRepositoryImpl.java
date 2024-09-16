@@ -1,5 +1,6 @@
 package com.example.cns.chat.domain.repository;
 
+import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.dto.response.LastChatInfo;
 import com.querydsl.core.types.Projections;
@@ -20,7 +21,7 @@ public class ChatListRepositoryImpl {
         this.queryFactory = queryFactory;
     }
 
-    public List<ChatResponse> paginationChat(Long roomId, Long chatId, int pageSize) {
+    public List<ChatResponse> paginationChat(final Long roomId, final Long chatId, final int pageSize) {
         return queryFactory.select(Projections.constructor(ChatResponse.class,
                         chat.id.as("chatId"),
                         chat.content,
@@ -41,11 +42,11 @@ public class ChatListRepositoryImpl {
                 .fetch();
     }
 
-    private BooleanExpression eqRoomId(Long roomId) {
+    private BooleanExpression eqRoomId(final Long roomId) {
         return chat.chatRoom.id.eq(roomId);
     }
 
-    private BooleanExpression ltChatId(Long chatId) {
+    private BooleanExpression ltChatId(final Long chatId) {
         if (chatId == null) {
             return null;
         }
@@ -58,5 +59,16 @@ public class ChatListRepositoryImpl {
                 .from(chat)
                 .groupBy(chat.chatRoom.id)
                 .fetch();
+    }
+
+    public Chat searchChat(final String word, final Long roomId, final Long chatId) {
+        return queryFactory.select(chat).from(chat)
+                .where(eqRoomId(roomId)
+                        , chat.content.contains(word)
+                        , ltChatId(chatId))
+                .orderBy(chat.id.desc())
+                .limit(1L)
+                .fetchOne();
+
     }
 }

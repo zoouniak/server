@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
     List<Chat> getAllByChatRoomAndMessageType(ChatRoom chatRoom, MessageType type);
+
+    List<Chat> findAllByIdBetween(Long startId, Long endId);
 }
