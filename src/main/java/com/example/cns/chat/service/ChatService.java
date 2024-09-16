@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.cns.common.exception.ExceptionCode.CHATROOM_NOT_EXIST;
 import static com.example.cns.common.exception.ExceptionCode.MEMBER_NOT_FOUND;
@@ -109,12 +110,14 @@ public class ChatService {
      * using query dsl(like 연산자)
      */
     public List<ChatResponse> searchChat(final String word, final Long roomId, final Long chatId) {
-        Chat result = chatListRepository.searchChat(word, roomId, chatId);// 검색
-        if (result == null) {
-            return Collections.emptyList();
+        Optional<Chat> result;
+        if (chatId == null) {
+            result = chatRepository.searchChat(word, roomId);
+        } else {
+            result = chatRepository.searchChatLtThanChatId(word, roomId, chatId);
         }
-        // 검색 후 위 아래 다섯개의 채팅 조회
-        return chatRepository.findAllByIdBetween(result.getId() - 5, result.getId() + 5)
+
+        return result.map(value -> chatRepository.findAllByIdBetween(value.getId() - 5, value.getId() + 5)
                 .stream()
                 .map(chat -> new ChatResponse(
                         chat.getId(),
@@ -125,7 +128,8 @@ public class ChatService {
                         chat.getCreatedAt(),
                         chat.getMessageType()
                 ))
-                .collect(toList());
+                .collect(toList())).orElse(Collections.emptyList());
+        // 검색 후 위 아래 다섯개의 채팅 조회
 
     }
 }
