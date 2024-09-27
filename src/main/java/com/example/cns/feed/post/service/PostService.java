@@ -352,6 +352,7 @@ public class PostService {
         Post post = isPostExists(postLikeRequest.postId());
         if (postLikeRepository.existsByPostAndMember(post, member)) {
             postLikeRepository.deleteByPostAndMember(post, member);
+            post.minusLikeCnt();
         }
 
       /*  if (postLike.isPresent()) {
