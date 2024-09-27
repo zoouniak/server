@@ -31,6 +31,9 @@ public class S3Service {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("${spring.cloud.aws.cloudfront.url}")
+    private String cloudFront;
+
     private static FileType getFileType(String ext) {
         return switch (ext) {
             case "png", "PNG" -> FileType.PNG;
@@ -81,7 +84,7 @@ public class S3Service {
                             .withCannedAcl(CannedAccessControlList.PublicRead)
             );
 
-            uploadFileURL = amazonS3Client.getUrl(bucketName, keyName).toString();
+            uploadFileURL = cloudFront+keyName;
             return new FileResponse(uploadFileName, uploadFileURL, fileType);
         } catch (IOException e) {
             throw new BusinessException(ExceptionCode.IMAGE_UPLOAD_FAILED);
