@@ -178,7 +178,8 @@ public class PostService {
 
     /*
     모든 게시글 조회
-     */
+    추천 시스템 적용 버전
+
     public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
 
         if (page == 0 || page == null) page = 1L;
@@ -211,6 +212,12 @@ public class PostService {
             throw new BusinessException(ExceptionCode.FAIL_GET_API);
         }
     }
+    */
+    public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
+        if (page == 0 || page == null) page = 1L;
+        return getDefaultPostsWithResponse(cursorValue, memberId);
+    }
+
 
     /*
     게시글 미디어 조회
