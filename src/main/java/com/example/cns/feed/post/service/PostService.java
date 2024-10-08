@@ -32,15 +32,9 @@ import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.service.MentionService;
 import com.example.cns.mention.type.MentionType;
 import com.example.cns.notification.event.PostLikeEvent;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -72,12 +66,8 @@ public class PostService {
     private final HashTagRepository hashTagRepository;
     private final HashTagSearchRepository hashTagSearchRepository;
     private final HashTagPostRepository hashTagPostRepository;
-    private final ObjectMapper objectMapper;
 
     private final ApplicationEventPublisher eventPublisher;
-
-    @Value("${external-api.recommend-post}")
-    private String api;
 
     /*
     게시글 저장
@@ -176,46 +166,25 @@ public class PostService {
 
     }
 
-    /*
-    모든 게시글 조회
-    추천 시스템 적용 버전
-
     public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
 
         if (page == 0 || page == null) page = 1L;
 
-        //추천
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(makeUrl(memberId, page));
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                int status = response.getStatusLine().getStatusCode();
-                if (status == 200) {
-                    String responseJson = EntityUtils.toString(response.getEntity());
-                    List<PostResponse> posts = objectMapper.readValue(responseJson, new TypeReference<>() {
-                    });
+        List<PostResponse> postResponses = postListRepository.findPosts(memberId, memberId, cursorValue, 10L, "posts", null, null);
 
-                    if (posts.size() == 0) {
-                        posts = getDefaultPosts(cursorValue, memberId);
-                    } else if (posts.size() <= 9) { //추천받은 게시글이 10개를 만족못한다면, 필요한 만큼 데이터 찾아 추가하기
-                        System.out.println(posts.size());
-                        posts.addAll(postListRepository.findPosts(memberId, memberId, cursorValue, (10L - posts.size()), "posts", null, null));
-                    }
-                    return postResponseWithData(posts);
+        List<Long> postIds = postResponses.stream().map(PostResponse::getId).toList();
 
-                } else { //추천으로 못받아 올경우 에러가 아닌 최신순 게시글 반환
-                    return getDefaultPostsWithResponse(cursorValue, memberId);
-                }
-            } catch (IOException e) {
-                throw new BusinessException(ExceptionCode.FAIL_GET_API);
-            }
-        } catch (IOException e) {
-            throw new BusinessException(ExceptionCode.FAIL_GET_API);
-        }
-    }
-    */
-    public List<PostResponse> getPosts(Long cursorValue, Long page, Long memberId) {
-        if (page == 0 || page == null) page = 1L;
-        return getDefaultPostsWithResponse(cursorValue, memberId);
+        Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
+        Map<Long, List<String>> hashtagsMap = getHashtagsMap(postIds);
+
+        return postResponses.stream()
+                .map(postResponse -> {
+                    List<MentionInfo> mentions = mentionsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    List<String> hashtags = hashtagsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
+                    return postResponse.withData(mentions, hashtags);
+                })
+                .collect(Collectors.toList());
+
     }
 
 
@@ -341,7 +310,6 @@ public class PostService {
         Member member = isMemberExists(id);
         Post post = isPostExists(postLikeRequest.postId());
 
-        // Optional<PostLike> postLike = isPostLikeExists(member, post);
         if (!postLikeRepository.existsByPostAndMember(post, member)) { //좋아요 중복 방지
             postLikeRepository.save(PostLike.builder()
                     .member(member)
@@ -361,11 +329,6 @@ public class PostService {
             postLikeRepository.deleteByPostAndMember(post, member);
             post.minusLikeCnt();
         }
-
-      /*  if (postLike.isPresent()) {
-            postLikeRepository.deletePostLikeByMemberIdAndPostId(member.getId(), post.getId());
-            post.minusLikeCnt();
-        }*/
     }
 
     public PostResponse getPost(final Long postId, final Long memberId) {
@@ -442,29 +405,6 @@ public class PostService {
                 () -> new BusinessException(ExceptionCode.POST_NOT_EXIST));
     }
 
-   /* private Optional<PostLike> isPostLikeExists(Member member, Post post) {
-        return postLikeRepository.findByMemberIdAndPostId(member.getId(), post.getId());
-    }*/
-
-    private String makeUrl(Long memberId, Long page) {
-        return api + "/" + memberId + "/" + page + "/10";
-    }
-
-    private List<PostResponse> postResponseWithData(List<PostResponse> posts) {
-        List<Long> postIds = posts.stream().map(PostResponse::getId).toList();
-
-        Map<Long, List<MentionInfo>> mentionsMap = getMentionsMap(postIds);
-        Map<Long, List<String>> hashtagsMap = getHashtagsMap(postIds);
-
-        return posts.stream()
-                .map(postResponse -> {
-                    List<MentionInfo> mentions = mentionsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
-                    List<String> hashtags = hashtagsMap.getOrDefault(postResponse.getId(), Collections.emptyList());
-                    return postResponse.withData(mentions, hashtags);
-                })
-                .collect(Collectors.toList());
-    }
-
     private Map<Long, List<MentionInfo>> getMentionsMap(List<Long> postIds) {
         List<Object[]> mentionsList = mentionRepository.findMentionsBySubjectId(postIds, MentionType.FEED);
         Map<Long, List<MentionInfo>> mentionsMap = new HashMap<>();
@@ -489,14 +429,5 @@ public class PostService {
             hashtagsMap.computeIfAbsent(postId, k -> new ArrayList<>()).add(tagName);
         }
         return hashtagsMap;
-    }
-
-    private List<PostResponse> getDefaultPosts(Long cursorValue, Long memberId) {
-        return postListRepository.findPosts(memberId, memberId, cursorValue, 10L, "posts", null, null);
-    }
-
-    private List<PostResponse> getDefaultPostsWithResponse(Long cursorValue, Long memberId) {
-        List<PostResponse> postResponses = postListRepository.findPosts(memberId, memberId, cursorValue, 10L, "posts", null, null);
-        return postResponseWithData(postResponses);
     }
 }
