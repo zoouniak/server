@@ -125,4 +125,17 @@ public class PlanController {
         planService.editPlanSchedule(planId, dateEditRequest);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "OpenAI를 이용해 일정을 생성하는 api", description = "사용자로부터 일정 정보를 받아와 일정을 생성하고 일정 아이디를 반환한다.")
+    @Parameter(name = "projectId", description = "프로젝트 번호")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "일정 저장 성공",
+                    content = @Content(schema = @Schema(implementation = PlanCreateResponse.class)))
+    })
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PostMapping("/openai-generate/{projectId}")
+    public ResponseEntity openaiGeneratePlan(@Auth Long memberId, @PathVariable(name = "projectId") Long projectId) {
+        planService.openaiGeneratePlan(memberId,projectId);
+        return ResponseEntity.ok().build();
+    }
 }
