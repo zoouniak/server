@@ -31,9 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.DateFormatter;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -106,7 +104,6 @@ public class PlanService {
                 .collect(Collectors.toList());
         return toPlanDetailResponse(plan, participants);
     }
-
     @Transactional
     public void openaiGeneratePlan(Long memberId, Long projectId){
 
@@ -120,28 +117,7 @@ public class PlanService {
             Map<String,Object> parsedContent = objectMapper.readValue(content,Map.class); //일정 내용 String 얻어옴
             Object data = parsedContent.get("plan");
             if(data != null){
-                //데이터 리스트
-                List<Map<String,Object>> dataList = (List<Map<String, Object>>) data;
-
-                //일정 객체로 변환
-                List<Plan> planList = dataList.stream().map(
-                        plan -> Plan.builder()
-                                .planName(plan.get("planName").toString())
-                                .startedAt(LocalDateTime.parse(plan.get("startedAt").toString()))
-                                .endedAt(LocalDateTime.parse(plan.get("endedAt").toString()))
-                                .content(plan.get("content").toString())
-                                .project(project)
-                                .build()
-                ).toList();
-
-                List<Plan> savedPlans = planRepository.saveAll(planList);
-
-                List<PlanParticipation> planParticipationList = savedPlans.stream().map(
-                        plan -> new PlanParticipation(memberId, plan.getId())
-                ).toList();
-
-                planParticipationRepository.saveAll(planParticipationList);
-
+                savePlanAndParticipant(memberId,data,project);
             }else {
                 throw new BusinessException(PLAN_GENERATE_FAILED);
             }
@@ -210,6 +186,31 @@ public class PlanService {
         for (Long memberId : inviteRequest) {
             planParticipationRepository.save(new PlanParticipation(memberId, planId));
         }
+    }
+
+    @Transactional
+    public void savePlanAndParticipant(Long memberId, Object data, Project project){
+        //데이터 리스트
+        List<Map<String,Object>> dataList = (List<Map<String, Object>>) data;
+
+        //일정 객체로 변환
+        List<Plan> planList = dataList.stream().map(
+                plan -> Plan.builder()
+                        .planName(plan.get("planName").toString())
+                        .startedAt(LocalDateTime.parse(plan.get("startedAt").toString()))
+                        .endedAt(LocalDateTime.parse(plan.get("endedAt").toString()))
+                        .content(plan.get("content").toString())
+                        .project(project)
+                        .build()
+        ).toList();
+
+        List<Plan> savedPlans = planRepository.saveAll(planList);
+
+        List<PlanParticipation> planParticipationList = savedPlans.stream().map(
+                plan -> new PlanParticipation(memberId, plan.getId())
+        ).toList();
+
+        planParticipationRepository.saveAll(planParticipationList);
     }
 
     @Transactional

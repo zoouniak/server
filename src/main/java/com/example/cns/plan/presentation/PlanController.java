@@ -126,11 +126,11 @@ public class PlanController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "OpenAI를 이용해 일정을 생성하는 api", description = "사용자로부터 일정 정보를 받아와 일정을 생성하고 일정 아이디를 반환한다.")
+    @Operation(summary = "OpenAI를 이용해 일정을 생성하는 api", description = "프로젝트의 일정을 자동 생성한다. 단, 관리자만 가능하다.")
     @Parameter(name = "projectId", description = "프로젝트 번호")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "일정 저장 성공",
-                    content = @Content(schema = @Schema(implementation = PlanCreateResponse.class)))
+            @ApiResponse(responseCode = "200", description = "일정 자동 생성 성공",
+                    content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     })
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/openai-generate/{projectId}")
