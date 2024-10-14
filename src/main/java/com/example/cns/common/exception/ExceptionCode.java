@@ -70,6 +70,7 @@ public enum ExceptionCode {
     // 일정 7000번대
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
     ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다"),
+    PLAN_GENERATE_FAILED(7003, BAD_REQUEST,"일정 생성에 실패하였습니다."),
 
     // 외부 API 요청 8000번대
     FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다"),
