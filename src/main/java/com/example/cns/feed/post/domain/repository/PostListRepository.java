@@ -1,6 +1,8 @@
 package com.example.cns.feed.post.domain.repository;
 
+import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostResponse;
+import com.example.cns.mention.type.MentionType;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -15,6 +17,10 @@ import java.util.List;
 
 import static com.example.cns.feed.post.domain.QPost.post;
 import static com.example.cns.feed.post.domain.QPostLike.postLike;
+import static com.example.cns.hashtag.domain.QHashTag.hashTag;
+import static com.example.cns.hashtag.domain.QHashTagPost.hashTagPost;
+import static com.example.cns.member.domain.QMember.member;
+import static com.example.cns.mention.domain.QMention.mention;
 
 @Repository
 public class PostListRepository {
@@ -79,7 +85,7 @@ public class PostListRepository {
                 .on(postLike.post.eq(post).and(postLike.member.id.eq(memberId)))
                 .where(decideCursor(type, cursorValue),
                         betweenDate(start, end),
-                        eqMemberId(memberId,type)
+                        eqMemberId(memberId, type)
                 )
                 .groupBy(post.id)
                 .orderBy(decideOrder(type))
@@ -97,7 +103,7 @@ public class PostListRepository {
     }
 
     // 특정 사용자 게시물 조회를 위한 동적 쿼리 생성
-    private BooleanExpression eqMemberId(Long memberId,String type) {
+    private BooleanExpression eqMemberId(Long memberId, String type) {
         if (memberId == null)
             return null;
         if (type.equals("myLike")) return postLike.member.id.eq(memberId);
@@ -118,5 +124,38 @@ public class PostListRepository {
         if (type.equals("oldest") || type.equals("period")) return post.id.gt(cursorValue);
         if (type.equals("myLike")) return postLike.post.id.lt(cursorValue);
         return post.id.lt(cursorValue);
+    }
+
+    public PostResponse getPost(Long postId, Long memberId) {
+        return jpaQueryFactory.select(Projections.constructor(PostResponse.class,
+                        post.id,
+                        post.member.id.as("memberId"),
+                        post.member.nickname.as("nickname"),
+                        post.member.url.as("profile"),
+                        post.content,
+                        post.createdAt,
+                        post.likeCnt,
+                        post.fileCnt,
+                        post.comments.size(),
+                        ExpressionUtils.as(JPAExpressions.select(postLike)
+                                .from(postLike)
+                                .where(postLike.post.eq(post),
+                                        postLike.member.id.eq(memberId)
+                                ).exists(), "liked"),
+                        jpaQueryFactory.select(Projections.constructor(
+                                        MentionInfo.class,
+                                        mention.member.nickname, mention.member.id))
+                                .from(mention)
+                                .where(mention.subjectId.eq(postId)
+                                        .and(mention.mentionType.eq(MentionType.FEED))),
+                        jpaQueryFactory.select(hashTag.name)
+                                .from(hashTag)
+                                .join(hashTagPost).on(hashTagPost.id.hashtag.eq(hashTag.id))
+                                .where(hashTagPost.id.post.eq(postId))
+                ))
+                .from(post)
+                .join(post.member, member)
+                .where(post.id.eq(postId))
+                .fetchOne();
     }
 }

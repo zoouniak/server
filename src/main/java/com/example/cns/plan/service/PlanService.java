@@ -16,15 +16,29 @@ import com.example.cns.plan.dto.response.PlanDetailResponse;
 import com.example.cns.plan.dto.response.PlanListResponse;
 import com.example.cns.project.domain.Project;
 import com.example.cns.project.domain.repository.ProjectRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.example.cns.common.exception.ExceptionCode.MEMBER_NOT_FOUND;
+import static com.example.cns.common.exception.ExceptionCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +47,17 @@ public class PlanService {
     private final PlanRepository planRepository;
     private final PlanParticipationRepository planParticipationRepository;
     private final MemberRepository memberRepository;
+
+    private final ObjectMapper objectMapper;
+
+    @Value("${spring.ai.openai.api-key}")
+    private String openaiAPIKey;
+
+    @Value("${spring.ai.openai.chat.options.model}")
+    private String aiModel;
+
+    @Value("${spring.ai.openai.chat.options.temperature}")
+    private Double modelTemperature;
 
     @Transactional
     public PlanCreateResponse createPlan(Long projectId, PlanCreateRequest request) {
@@ -79,6 +104,56 @@ public class PlanService {
                 .collect(Collectors.toList());
         return toPlanDetailResponse(plan, participants);
     }
+    @Transactional
+    public void openaiGeneratePlan(Long memberId, Long projectId){
+
+        Project project = getValidatedProject(memberId, projectId);
+
+        ChatResponse response = callOpenAiAPI(project);
+
+        String content = response.getResult().getOutput().getContent();
+
+        try {
+            Map<String,Object> parsedContent = objectMapper.readValue(content,Map.class); //일정 내용 String 얻어옴
+            Object data = parsedContent.get("plan");
+            if(data != null){
+                savePlanAndParticipant(memberId,data,project);
+            }else {
+                throw new BusinessException(PLAN_GENERATE_FAILED);
+            }
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(PLAN_GENERATE_FAILED);
+        }
+    }
+
+    //비동기 api 호출
+    public CompletableFuture<ChatResponse> callOpenAiAPIAsync(Project project){
+        return CompletableFuture.supplyAsync(() -> callOpenAiAPI(project));
+    }
+
+    private ChatResponse callOpenAiAPI(Project project){
+
+        var openAiApi = new OpenAiApi(openaiAPIKey);
+
+        var openAiChatOptions = OpenAiChatOptions.builder()
+                .withModel(aiModel)
+                .withTemperature(modelTemperature)
+                .withMaxTokens(1000)
+                .build();
+
+        var chatModel = new OpenAiChatModel(openAiApi,openAiChatOptions);
+
+        Message userMessage = new UserMessage("프로젝트 제목 : " + project.getProjectName() + "\n" +
+                "프로젝트 목표 : " + project.getGoal() +"\n" +
+                "시작 날짜 : " + project.getStart() + "\n" +
+                "종료 날짜 : " + project.getEnd() + "\n" +
+                "프로젝트 상세내용 : " + project.getDetail());
+        Message systemMessage = new SystemMessage("응답값은 다음의 JSON 형태를 따라야한다. {\"plan\" : [{\"planName\" : \"프로젝트 계획\", \"startedAt\" : \"2024-01-01T09:00:00\", \"endedAt\" : \"2024-01-01T17:00:00\", \"content\" : \"프로젝트 시작을 위한 준비\"}]}");
+
+        Prompt prompt = new Prompt(List.of(userMessage,systemMessage));
+
+        return chatModel.call(prompt);
+    }
 
     private PlanDetailResponse toPlanDetailResponse(Plan plan, List<MemberResponse> participants) {
         return new PlanDetailResponse(
@@ -114,6 +189,31 @@ public class PlanService {
     }
 
     @Transactional
+    public void savePlanAndParticipant(Long memberId, Object data, Project project){
+        //데이터 리스트
+        List<Map<String,Object>> dataList = (List<Map<String, Object>>) data;
+
+        //일정 객체로 변환
+        List<Plan> planList = dataList.stream().map(
+                plan -> Plan.builder()
+                        .planName(plan.get("planName").toString())
+                        .startedAt(LocalDateTime.parse(plan.get("startedAt").toString()))
+                        .endedAt(LocalDateTime.parse(plan.get("endedAt").toString()))
+                        .content(plan.get("content").toString())
+                        .project(project)
+                        .build()
+        ).toList();
+
+        List<Plan> savedPlans = planRepository.saveAll(planList);
+
+        List<PlanParticipation> planParticipationList = savedPlans.stream().map(
+                plan -> new PlanParticipation(memberId, plan.getId())
+        ).toList();
+
+        planParticipationRepository.saveAll(planParticipationList);
+    }
+
+    @Transactional
     public void exitPlan(Long planId, Long memberId) {
         planParticipationRepository.deleteByPlanAndMember(planId, memberId);
     }
@@ -122,5 +222,13 @@ public class PlanService {
     public void editPlanSchedule(Long planId, PlanDateEditRequest dateEditRequest) {
         Plan plan = getPlan(planId);
         plan.updateSchedule(dateEditRequest);
+    }
+
+    private Project getValidatedProject(Long memberId, Long projectId){
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(PROJECT_NOT_EXIST));
+        if(!Objects.equals(project.getManager().getId(),memberId))
+            throw new BusinessException(ONLY_MANAGER);
+        return project;
     }
 }

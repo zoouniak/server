@@ -84,10 +84,7 @@ public class HashTagService {
     2. 연관관계 테이블도 삭제
      */
     @Transactional
-    public void deleteHashTag(Long postId) {
-
-        //게시글과 관련된 연관관계 데이터 가져오기
-        List<HashTagPost> hashTagPostList = hashTagPostRepository.findAllByPostId(postId);
+    public void deleteHashTag(List<HashTagPost> hashTagPostList) {
 
         hashTagPostList.forEach(
                 hashTagPost -> {

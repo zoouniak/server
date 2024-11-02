@@ -56,7 +56,7 @@ class MemberAuthServiceTest {
         SignUpRequest req = createSignUpReq("test1@cns.com");
         when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
-        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com", "field"));
+        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com","field"));
 
         // 실행
         sut.register(req);
@@ -79,7 +79,7 @@ class MemberAuthServiceTest {
         SignUpRequest req = createSignUpReq("test1@naver.com");
         when(memberService.isExistByNickname(req.nickname())).thenReturn(false);
         when(memberService.isExistByEmail(req.email())).thenReturn(false);
-        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com", "field"));
+        when(companySearchService.findByCompanyName(req.companyName())).thenReturn(new Company(1L, "cns", "cns.com","field"));
 
         Assertions.assertThrows(AuthException.class,
                 () -> sut.register(req));

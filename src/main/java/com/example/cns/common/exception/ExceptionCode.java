@@ -73,9 +73,18 @@ public enum ExceptionCode {
     // 일정 7000번대
     PLAN_NOT_EXIST(7001, BAD_REQUEST, "일정이 존재하지 않습니다."),
     ONLY_MANAGER(7002, BAD_REQUEST, "담당자에게만 허용된 요청입니다"),
+    PLAN_GENERATE_FAILED(7003, BAD_REQUEST,"일정 생성에 실패하였습니다."),
 
     // 외부 API 요청 8000번대
-    FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다");
+    FAIL_GET_API(8001, INTERNAL_SERVER_ERROR, "외부 API 요청에 실패하였습니다"),
+    NOT_SUPPORT_ALARM(8002, BAD_REQUEST, "현재 지원하지 않는 알림 이벤트입니다."),
+    FAIL_WITH_SSE(8003, INTERNAL_SERVER_ERROR, "SSE에서 실패하였습니다."),
+
+    //화상회의 9000번대
+    FAIL_CREATE_CHANNEL(9001, BAD_REQUEST, "채널 생성에 실패하였습니다."),
+    CHANNEL_PARTICIPATION_EXIST(9002, FORBIDDEN, "채널에 사용자가 존재합니다."),
+    CHANNEL_NOT_EXIST(9003, BAD_REQUEST, "채널이 존재하지 않습니다."),
+    NOT_CHANNEL_PARTICIPATION(9004, BAD_REQUEST, "채널 참여자가 아닙니다.");
 
     private final int errorCode;
     private final HttpStatus httpStatus;
