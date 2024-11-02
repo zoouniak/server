@@ -1,13 +1,12 @@
 package com.example.cns.chat.service;
 
-import com.example.cns.chat.dto.request.FileMessageFormat;
-import com.example.cns.chat.dto.request.TextMessageFormat;
 import com.example.cns.chat.dto.response.ChatResponse;
+import com.example.cns.chat.dto.response.UnRead;
+
+import java.util.List;
 
 public interface MessagePublisher {
-    void publishTextMessage(Long roomId, TextMessageFormat textMessageFormat);
-
-    void publishImageMessage(Long roomId, FileMessageFormat fileMessageFormat);
-
     void publishMessage(Long roomId, ChatResponse chat);
+
+    void publishUnRead(Long roomId, List<UnRead> unReadList);
 }

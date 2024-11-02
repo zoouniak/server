@@ -6,15 +6,14 @@ import com.example.cns.chat.dto.request.TextMessageFormat;
 import com.example.cns.chat.dto.response.ChatResponse;
 import com.example.cns.chat.service.ChatService;
 import com.example.cns.chat.service.MessagePublisher;
-import com.example.cns.chat.service.MessageSubscriber;
 import com.example.cns.common.service.S3Service;
 import com.example.cns.feed.post.dto.response.FileResponse;
 import com.example.cns.member.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 import java.util.Base64;
@@ -25,18 +24,14 @@ public class RealTimeChatController {
     public final ChatService chatService;
     public final MemberService memberService;
     private final MessagePublisher messagePublisher;
-    private final MessageSubscriber messageSubscriber;
     private final S3Service fileUploader;
 
 
     @MessageMapping("/chat-room/{roomId}")
-    @SendTo("/sub/chat-room/{roomId}")
-    public void sendTextMessage(@DestinationVariable Long roomId, TextMessageFormat textMessage) {
-
+    public void sendTextMessage(@DestinationVariable Long roomId, @Payload @Valid TextMessageFormat textMessage) {
         // 데이터베이스에 채팅 저장
         Long save = chatService.saveTextMessage(textMessage);
         String senderProfile = memberService.getMemberProfileUrl(textMessage.memberId());
-        //  publisher.publishTextMessage(roomId, textMessage);
         // 채팅 전송
         messagePublisher.publishMessage(roomId, ChatResponse.builder()
                 .chatId(save)
@@ -50,10 +45,7 @@ public class RealTimeChatController {
     }
 
     @MessageMapping("/chat-room/file/{roomId}")
-    @SendTo("/sub/chat-room/{roomId}")
-    public void sendFileMessage(@DestinationVariable Long roomId, FileMessageFormat imageMessage) {
-        //  publisher.publishImageMessage(roomId, imageMessage);
-
+    public void sendFileMessage(@DestinationVariable Long roomId, @Payload @Valid FileMessageFormat imageMessage) {
         // 디코딩
         byte[] imgByte = Base64.getDecoder().decode(imageMessage.content());
 
@@ -78,8 +70,4 @@ public class RealTimeChatController {
                 .build());
     }
 
-    @SubscribeMapping("/chat-room/{roomId}")
-    public void subscribeRoom(@DestinationVariable Long roomId) {
-        messageSubscriber.subscribe(String.valueOf(roomId));
-    }
 }

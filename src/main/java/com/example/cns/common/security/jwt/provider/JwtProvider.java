@@ -72,8 +72,12 @@ public class JwtProvider {
     }
 
     public boolean isTokenExpired(String token) {
-        Claims claims = getClaims(token);
-        return claims.getExpiration().before(new Date());
+        try {
+            getClaims(token);
+        } catch (AuthException e) {
+            return true;
+        }
+        return false;
     }
 
     private Map<String, Object> createHeader() {

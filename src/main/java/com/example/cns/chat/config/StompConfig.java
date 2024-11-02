@@ -1,5 +1,6 @@
 package com.example.cns.chat.config;
 
+import com.example.cns.chat.handler.StompErrorHandler;
 import com.example.cns.chat.interceptor.StompInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +33,8 @@ public class StompConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/sub");
-        registry.setApplicationDestinationPrefixes("/pub", "/sub");
+        registry.enableSimpleBroker("/sub", "/unread");
+        registry.setApplicationDestinationPrefixes("/pub");
     }
 
     @Override

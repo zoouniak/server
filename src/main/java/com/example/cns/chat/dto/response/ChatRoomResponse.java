@@ -2,11 +2,10 @@ package com.example.cns.chat.dto.response;
 
 import com.example.cns.chat.type.RoomType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
+
 public record ChatRoomResponse(
         Long roomId,
         String roomName,

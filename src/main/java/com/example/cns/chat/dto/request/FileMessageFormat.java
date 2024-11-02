@@ -1,33 +1,33 @@
 package com.example.cns.chat.dto.request;
 
 import com.example.cns.chat.type.MessageType;
-import lombok.NonNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
 public record FileMessageFormat(
-        @NonNull
+        @NotNull
         String content,
 
-        @NonNull
+        @NotNull
         String originalFileName,
 
-        @NonNull
+        @NotNull
         String extension,
 
-        @NonNull
+        @NotNull
         MessageType messageType,
 
-        @NonNull
+        @NotNull
         LocalDateTime createdAt,
 
-        @NonNull
+        @NotNull
         Long roomId,
 
-        @NonNull
+        @NotNull
         Long memberId,
 
-        @NonNull
+        @NotNull
         String from
 ) {
 }

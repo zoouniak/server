@@ -17,6 +17,6 @@ public record ChatRoomCreateRequest(
         return ChatRoom.builder()
                 .roomType(this.inviteList.size() > 2 ? RoomType.GROUP : RoomType.PERSONAL)
                 .name(this.roomName)
-                .memberCnt(this.inviteList.size()).build();
+                .memberCnt(this.inviteList.size() + 1).build();
     }
 }

@@ -4,27 +4,27 @@ import com.example.cns.chat.domain.Chat;
 import com.example.cns.chat.domain.ChatRoom;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.member.domain.Member;
-import lombok.NonNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
 public record TextMessageFormat(
-        @NonNull
+        @NotNull
         String content,
 
-        @NonNull
+        @NotNull
         Long roomId,
 
-        @NonNull
+        @NotNull
         LocalDateTime createdAt,
 
-        @NonNull
+        @NotNull
         Long memberId,
 
-        @NonNull
+        @NotNull
         String from,
 
-        @NonNull
+        @NotNull
         MessageType messageType,
 
         Long subjectId

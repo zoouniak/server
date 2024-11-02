@@ -10,15 +10,14 @@ import com.example.cns.chat.domain.repository.ChatRoomListRepository;
 import com.example.cns.chat.domain.repository.ChatRoomRepository;
 import com.example.cns.chat.dto.request.ChatRoomCreateRequest;
 import com.example.cns.chat.dto.request.MemberInfo;
-import com.example.cns.chat.dto.response.ChatParticipantsResponse;
-import com.example.cns.chat.dto.response.ChatRoomCreateResponse;
-import com.example.cns.chat.dto.response.ChatRoomMsgResponse;
-import com.example.cns.chat.dto.response.ChatRoomResponse;
+import com.example.cns.chat.dto.response.*;
+import com.example.cns.chat.event.UserRoomExitEvent;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.common.exception.BusinessException;
 import com.example.cns.member.domain.Member;
 import com.example.cns.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +35,8 @@ public class ChatRoomService {
     private final ChatParticipationRepository chatParticipationRepository;
     private final MemberRepository memberRepository;
     private final ChatRoomListRepository chatRoomListRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private static void checkCapacity(int size) {
         if (size > 10)
@@ -86,7 +87,7 @@ public class ChatRoomService {
             inviteMsg.append(guest.nickname()).append("님, ");
         }
 
-        return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다";
+        return inviteMsg.substring(0, inviteMsg.length() - 2) + "을 초대하였습니다.";
     }
 
     /*
@@ -126,6 +127,8 @@ public class ChatRoomService {
                             throw new BusinessException(CHATROOM_NOT_EXIST);
                         }
                 );
+
+        eventPublisher.publishEvent(new UserRoomExitEvent(roomId));
     }
 
     /*
@@ -133,6 +136,9 @@ public class ChatRoomService {
      */
     @Transactional
     public ChatRoomMsgResponse inviteMemberInChatRoom(Long memberId, List<MemberInfo> request, Long roomId) {
+        // 사용자 검증
+        verifyMemberInChatRoom(memberId, roomId);
+
         ChatRoom chatRoom = getChatRoom(roomId);
 
         // 채팅방 수용 인원 검증
@@ -154,7 +160,11 @@ public class ChatRoomService {
      * 채팅방 참여자 조회
      */
     @Transactional(readOnly = true)
-    public List<ChatParticipantsResponse> getChatParticipants(Long roomId) {
+    public List<ChatParticipantsResponse> getChatParticipants(Long memberId, Long roomId) {
+        // 검증
+        verifyRoomId(roomId);
+        verifyMemberInChatRoom(memberId, roomId);
+
         List<Member> participants = chatParticipationRepository.findMemberByRoom(roomId);
 
         return participants.stream()
@@ -170,8 +180,8 @@ public class ChatRoomService {
      */
     @Transactional(readOnly = true)
     public void verifyMemberInChatRoom(Long memberId, Long roomId) {
-        chatParticipationRepository.findById(new ChatParticipationID(memberId, roomId))
-                .orElseThrow(() -> new BusinessException(NOT_CHAT_PARTICIPANTS));
+        if (!chatParticipationRepository.existsById(new ChatParticipationID(memberId, roomId)))
+            throw new BusinessException(NOT_CHAT_PARTICIPANTS);
     }
 
     /*
@@ -203,5 +213,13 @@ public class ChatRoomService {
         return memberRepository.findById(memberId)
                 .map(Member::getNickname)
                 .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
+    }
+
+    public List<PastChatResponse> getPastChat(Long roomId) {
+        List<ChatParticipation> participants = chatParticipationRepository.findAllByRoom(roomId);
+
+        return participants.stream()
+                .map(cp -> new PastChatResponse(cp.getMember(), cp.getLastChatId()))
+                .collect(Collectors.toList());
     }
 }

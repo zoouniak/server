@@ -5,6 +5,9 @@ import com.example.cns.feed.post.dto.response.MentionInfo;
 import com.example.cns.feed.post.dto.response.PostResponse;
 import com.example.cns.hashtag.domain.HashTag;
 import com.example.cns.hashtag.domain.repository.HashTagRepository;
+import com.example.cns.hashtag.domain.repository.HashTagSearchRepository;
+import com.example.cns.member.domain.Member;
+import com.example.cns.member.domain.repository.MemberRepository;
 import com.example.cns.mention.domain.repository.MentionRepository;
 import com.example.cns.mention.type.MentionType;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,14 +33,23 @@ import static com.example.cns.common.exception.ExceptionCode.FAIL_GET_API;
 @RequiredArgsConstructor
 public class HashTagSearchService {
     private final HashTagRepository hashTagRepository;
+    private final HashTagSearchRepository searchRepository;
+    private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
     private final MentionRepository mentionRepository;
     @Value("${external-api.recommend-hashtag}")
     private String api;
 
-    /*
-     *  해시태그에 따른 게시물 추천
-     */
+
+    public List<PostResponse> getPostsByHashTag(String hashtag, Long postId, Long memberId) {
+        Optional<HashTag> optionalHashTag = hashTagRepository.findByName(hashtag);
+        if (optionalHashTag.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Member member = memberRepository.findById(memberId).orElseThrow();
+        return searchRepository.getPostsByHashTag(optionalHashTag.get().getId(), member, postId, 10);
+    }
+
     public List<PostResponse> getRecommendPostByHashTag(String hashtag, Long memberId, int page) {
         Optional<HashTag> entity = hashTagRepository.findByName(hashtag);
         if (entity.isEmpty()) return Collections.emptyList();

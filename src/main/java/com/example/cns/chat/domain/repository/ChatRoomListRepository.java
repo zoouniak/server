@@ -3,6 +3,7 @@ package com.example.cns.chat.domain.repository;
 import com.example.cns.chat.dto.response.ChatRoomResponse;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -33,8 +34,12 @@ public class ChatRoomListRepository {
                                 .from(chat)
                                 .where(chat.id.eq(chatRoom.lastChatId)
                                 ), "lastChatSendAt"),
+
                         chatRoom.roomType,
-                        chatParticipation.isRead
+                        new CaseBuilder()
+                                .when(chatParticipation.lastChatId.lt(chatRoom.lastChatId))
+                                .then(false)
+                                .otherwise(true).as("isRead")
                 ))
                 .from(chatRoom)
                 .join(chatParticipation).on(chatRoom.id.eq(chatParticipation.room))

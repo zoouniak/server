@@ -3,6 +3,7 @@ package com.example.cns.chat.domain;
 import com.example.cns.chat.type.MessageType;
 import com.example.cns.member.domain.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Chat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
