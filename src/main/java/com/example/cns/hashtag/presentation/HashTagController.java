@@ -46,7 +46,7 @@ public class HashTagController {
     @Operation(summary = "해시태그를 통한 게시물 조회", description = "해시태그를 입력 받고 해당 해시태그를 태그한 게시물을 반환한다.")
     @Parameters({
             @Parameter(name = "hashtag", description = "검색할 해시태그", required = true),
-            @Parameter(name = "page", description = "페이징번호, 디폴트값:1")
+            @Parameter(name = "postId", description = "무한스크롤")
     })
     @ApiResponses(
             value = {
@@ -56,8 +56,8 @@ public class HashTagController {
             })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/hashtag/post")
-    public ResponseEntity recommend(@Auth Long memberId, @RequestParam(name = "hashtag") String hashtag, @RequestParam(name = "page", defaultValue = "1") int page) {
-        List<PostResponse> response = searchService.getRecommendPostByHashTag(hashtag, memberId, page);
+    public ResponseEntity<List<PostResponse>> getPostsByHashTag(@Auth Long memberId, @RequestParam(name = "hashtag") String hashtag, @RequestParam(name = "postId", required = false) Long postId) {
+        List<PostResponse> response = searchService.getPostsByHashTag(hashtag, postId, memberId);
 
         if (response.isEmpty()) return ResponseEntity.noContent().build();
 

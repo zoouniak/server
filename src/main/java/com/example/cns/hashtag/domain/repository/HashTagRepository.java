@@ -15,4 +15,6 @@ public interface HashTagRepository extends JpaRepository<HashTag, Long> {
 
     @Query("SELECT htp.id.post, ht.name FROM HashTagPost htp JOIN HashTag ht ON htp.id.hashtag = ht.id WHERE htp.id.post IN :postIds")
     List<Object[]> findHashTagNamesByPostIds(@Param("postIds") List<Long> postIds);
+
+    List<HashTag> findAllByName(String name);
 }
