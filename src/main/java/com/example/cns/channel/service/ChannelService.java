@@ -49,7 +49,7 @@ public class ChannelService {
     }
 
     @Transactional
-    public void createChannel(Long memberId, Long projectId, ChannelRequest channelRequest) {
+    public Long createChannel(Long memberId, Long projectId, ChannelRequest channelRequest) {
 
         Optional<ProjectParticipation> projectParticipation = isProjectParticipation(memberId, projectId);
 
@@ -57,10 +57,10 @@ public class ChannelService {
 
             Optional<Project> project = projectRepository.findById(projectId);
 
-            channelRepository.save(Channel.builder()
+            return channelRepository.save(Channel.builder()
                     .name(channelRequest.name())
                     .project(project.get())
-                    .build());
+                    .build()).getId();
         } else {
             throw new BusinessException(ExceptionCode.FAIL_CREATE_CHANNEL);
         }

@@ -40,8 +40,7 @@ public class ChannelController {
     })
     @PostMapping("/project/{projectId}/channel")
     public ResponseEntity<?> createChannel(@Auth Long memberId, @PathVariable Long projectId, @RequestBody ChannelRequest channelRequest) {
-        channelService.createChannel(memberId, projectId, channelRequest);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(channelService.createChannel(memberId, projectId, channelRequest));
     }
 
     //채널 삭제
